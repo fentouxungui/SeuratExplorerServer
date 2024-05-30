@@ -108,7 +108,7 @@ knitr::kable(data_meta)
 其他参数可以在App运行过程中进行修改。必填项目一般是否数据分析员所设定的，其他参数可由用户自行设定。
 
 
-### Explorer data
+### Explore data
 
 ```{r eval=FALSE}
 library(SeuratExplorerServer)
@@ -129,7 +129,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 
 - 浏览分析报告。
 
-- SeuratExplorer里的功能。
+- ``SeuratExplorer``里的功能。
 
 - 修改样本元信息的默认参数。
 

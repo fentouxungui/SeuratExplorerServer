@@ -142,9 +142,9 @@ server <- function(input, output, session) {
           "\n",
           "Parameters bellow can be modified, Contact technician if you want to make a change:\n",
           "\n",
-          "Main Reports Directory: ",    data_meta$reports.main[which_data],    "\n",
+          "Main Reports Directory: ",    data_meta$Reports.main[which_data],    "\n",
           "Data Relative Path: ",        data_meta$Rds.path[which_data],        "\n",
-          "SecondaryReports Directory:", data_meta$reports.second[which_data],  "\n"
+          "SecondaryReports Directory:", data_meta$Reports.second[which_data],  "\n"
     )
   })
 
