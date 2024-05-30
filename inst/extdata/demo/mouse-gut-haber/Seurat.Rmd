@@ -1,0 +1,128 @@
+---
+title: "Step3.1 Seurat Filter Cells And Preliminary Analysis"
+author: "Zhang Yongchao"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    number_sections: TRUE
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      collapse = TRUE,
+                      warning = FALSE,
+  fig.align = "center")
+```
+
+> [Seurat - Guided Clustering Tutorial](see: https://satijalab.org/seurat/v3.1/pbmc3k_tutorial.html)
+
+```{r}
+Results.dir <- "./"
+Assay.use <- "RNA" # RNA is not supported right now!
+
+if ( !dir.exists(Results.dir)) {
+  dir.create(Results.dir)
+}
+```
+
+```{r}
+suppressMessages(library(dplyr)) 
+suppressMessages(library(harmony)) 
+suppressMessages(library(Seurat))
+suppressMessages(library(patchwork))
+suppressMessages(library(ggplot2))
+suppressMessages(library(Matrix))
+suppressMessages(library(clustree))
+suppressMessages(library(scater))
+suppressMessages(library(clustree))
+suppressMessages(library(Matrix))
+suppressMessages(library(DT))
+```
+
+
+# import data
+
+** Attention **: We will also remove cells with zero CellBender UMI counts, these cell usually have low CellRanger UMI counts, details see "Q1: what is the zero counts cells" : "Step2.2 CellBender QC And Generate Raw Cells Rds"
+
+## import
+
+```{r}
+atlas_umis = read.delim("../../supplementary-GSE92332/data/GSE92332_atlas_UMIcounts.txt.gz")
+info <- function(text, ...)
+{
+	cat(sprintf(paste(Sys.time(),"INFO:", text,"\n")))
+}
+info(sprintf("Data dimensions: %s" , paste(dim(atlas_umis), collapse = "x")))
+```
+
+
+```{R}
+cds <- CreateSeuratObject(counts = atlas_umis, project = "Haber-Mouse-Epithelium-Atlas-Droplet")
+cds
+```
+
+```{r}
+get_field = function(string,field=1,delim="_", fixed=T) return(strsplit(string,delim, fixed=fixed)[[1]][field])
+batch.labels = factor(unlist(lapply(colnames(cds), get_field, 1,"_")))
+table(batch.labels)
+
+cds@meta.data$batch <- batch.labels
+```
+
+```{r}
+cds@meta.data$Annotation.paper <- unlist(lapply(strsplit(colnames(cds), split = "_"),"[",3))
+```
+
+```{r}
+s.genes <- readRDS("~/reference/Biology-Database/Cell-Cycles-Genes/Mouse/mouse.s.genes.rds")
+g2m.genes <- readRDS("~/reference/Biology-Database/Cell-Cycles-Genes/Mouse/mouse.g2m.genes.rds")
+s.genes
+g2m.genes
+
+cds <- NormalizeData(cds)
+cds <- FindVariableFeatures(cds, selection.method = "vst", nfeatures = 3000)
+cds <- CellCycleScoring(cds, s.features = s.genes, g2m.features = g2m.genes)
+cds <- ScaleData(cds, vars.to.regress = c(paste("nCount", DefaultAssay(cds),sep = "_"),"S.Score", "G2M.Score"))
+cds <- RunPCA(cds, features = VariableFeatures(cds))
+```
+
+```{r}
+TSNE.coor <- read.delim("../data/atlas_tSNE_PCA_update.txt",stringsAsFactors = FALSE)
+TSNE.coor <- TSNE.coor[-1,]
+```
+
+```{r}
+all(unlist(lapply(strsplit(TSNE.coor$NAME,split = "_"),"[",1)) == unlist(lapply(strsplit(colnames(cds),split = "_"),"[",2)))
+```
+```{r}
+tsne.data <- TSNE.coor[,c(2,3)]
+colnames(tsne.data) <- paste0("TSNE_",1:2)
+rownames(tsne.data) <- colnames(cds)
+tsne.data$TSNE_1 <- as.numeric(tsne.data$TSNE_1)
+tsne.data$TSNE_2 <- as.numeric(tsne.data$TSNE_2)
+```
+
+```{r}
+cds[["tsne"]] <- CreateDimReducObject(embeddings = as.matrix(tsne.data), key = "TSNE_", assay = DefaultAssay(cds))
+```
+
+```{r}
+DimPlot(cds,label = TRUE,group.by = "Annotation.paper",reduction = 'tsne')
+```
+```{r}
+Idents(cds) <- "Annotation.paper"
+markers <- FindAllMarkers(cds, only.pos = TRUE)
+write.csv(markers,file = "markers.csv")
+```
+```{r}
+saveRDS(cds,file = "haber.tsne.embeding.rds")
+```
+
+
+# Session info
+
+```{r}
+sessionInfo()
+```

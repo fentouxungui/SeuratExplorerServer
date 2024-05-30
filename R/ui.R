@@ -1,0 +1,106 @@
+# ui.R
+# R shiny UI for SeuratExplorer
+
+#' UI for shiny App interface
+#'
+#' @param Encrypted.app 是否要加密App
+#' @param TechnicianEmail 技术人员的联系邮箱
+#' @param TechnicianName 技术人员的名字
+#'
+#' @import shiny SeuratExplorer
+#' @import shinydashboard shinyWidgets shinymanager
+#' @export
+ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", TechnicianName = "ZhangYongchao"){
+  requireNamespace("shinydashboard")
+  requireNamespace("shinyWidgets")
+  requireNamespace("SeuratExplorer")
+  requireNamespace("shinymanager")
+
+  # Header ----
+  header = dashboardHeader(
+    title = "SeuratExplorer Server",
+    # Dropdown menu for github
+    dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
+                 notificationItem(icon = icon("github"), status = "info", "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer"),
+                 notificationItem(icon = icon("github"), status = "info", "SeuratExplorerServer", href = "https://github.com/fentouxungui/SeuratExplorerServer")))
+
+  # Sidebar ----
+  sidebar = dashboardSidebar(
+    sidebarMenu(
+      menuItem("Dataset", tabName = "dataset", icon = icon("database")),
+      conditionalPanel(
+        condition = "output.file_loaded",
+        sidebarMenu(menuItem("Reports", tabName = "reports", icon = icon("file")))),
+      SeuratExplorer::explorer_sidebar_ui(),
+      conditionalPanel(
+        condition = "output.file_loaded",
+        sidebarMenu(menuItem("Settings", tabName = "settings", icon = icon("gear"))))
+     )
+  )
+
+  # BODY ----
+  tab_list = list()
+
+  tab_list[["dataset"]] = tabItem(tabName = "dataset",
+                                  # 选择数据
+                                  box(status = "primary", width = 12,
+                                      h3("Dataset Metadata:"),
+                                      DT::dataTableOutput("DataList"),
+                                      shinycssloaders::withSpinner(uiOutput("SelectData.UI")),
+                                      actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"))
+                                  ),
+                                  conditionalPanel(
+                                    condition = "output.file_loaded",
+                                    box(title = "Cell Meta Info", collapsible = TRUE, status = "primary", width = 12,
+                                        shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
+                                  )
+  )
+
+  tab_list[["reports"]] = tabItem(tabName = "reports",
+                                  # 选择数据
+                                  box(status = "primary", width = 12,
+                                      verbatimTextOutput(outputId = "clientdata"),
+                                      shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
+                                  ) )
+
+  # body part for Seurat Explorer functions
+  tab_list <- SeuratExplorer::explorer_body_ui(tab_list = tab_list)
+
+  # body part for set default parameters
+  tab_list[["settings"]] = tabItem(tabName = "settings",
+                                   box(textOutput("settings_warning"), title = "WARNING：", background = "orange", width = 12),
+                                   box(status = "primary", width = 12,
+                                       verbatimTextOutput(outputId = "InfoForDataOpened"),
+                                       shinycssloaders::withSpinner(uiOutput("SetSampleName.UI")),
+                                       shinycssloaders::withSpinner(uiOutput("SetSpecies.UI")),
+                                       shinycssloaders::withSpinner(uiOutput("SetDescription.UI")),
+                                       shinycssloaders::withSpinner(uiOutput("SetDefaultReduction.UI")),
+                                       shinycssloaders::withSpinner(uiOutput("SetDefaultCluster.UI")),
+                                       shinycssloaders::withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
+                                       actionButton(inputId = "submitsettings",label = "Save Settings", icon = icon("save"))
+                                   ) )
+
+  body = dashboardBody(
+    div(class= "tab-content", tab_list),
+    tags$script(HTML(
+      "document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';"
+    )) # 不显示dropdownMenu中notification的数目， refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
+  )
+
+
+
+  # 整合到一起
+  ui_out <- dashboardPage(header, sidebar, body)
+  # 加密UI
+  if (Encrypted.app) {
+    ui_out <- shinymanager::secure_app(ui = ui_out,
+                                       tags_bottom = tags$div(tags$p("For any question, please  contact ",
+                                                                     tags$a(href = paste0("mailto:", TechnicianEmail,"?Subject=Report%20A%20ShinyApp%20Issue"),
+                                                                            target="_top", TechnicianName))),
+                                       background  = "linear-gradient(rgba(0, 0, 255, 0.5), rgba(255, 255, 0, 0.5))",
+                                       language = "en")
+  }
+  return(ui_out)
+}
+
+
