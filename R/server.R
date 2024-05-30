@@ -17,7 +17,7 @@ server <- function(input, output, session) {
   requireNamespace("shinymanager")
   requireNamespace("SeuratExplorer")
   # 加密
-  if (Encrypted.app) {
+  if (Encrypted.server) {
     res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = credentials.server))
   }
   # 展示元数据
@@ -186,7 +186,7 @@ server <- function(input, output, session) {
       data_meta_new$Default.ClusterResolution[which_data] <- input$NewDefaultCluster
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
-      saveRDS(data_meta_new, file = paramterfile.app)
+      saveRDS(data_meta_new, file = paramterfile.server)
       showModal(modalDialog(title = "Success:","New settings has beed saved successfully. restart App to use the latest settings.",easyClose = TRUE,footer = NULL))
       removeUI(selector = "div:has(> #NewName)")
       removeUI(selector = "div:has(> #NewSpecies)")
@@ -200,7 +200,7 @@ server <- function(input, output, session) {
 
   # do something when session ended
   session$onSessionEnded(function() {
-    if (!Encrypted.app) {
+    if (!Encrypted.server) {
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('hello, the session finally ended')
     }else if(!is.null(isolate({res_auth$user}))){ # 注意，shinymanager登陆成功后也会触发session ended

@@ -98,13 +98,13 @@ revise_path <- function(paramterfile = system.file("extdata/demo/others", "sampl
 # define global variables for server function
 # refer to: https://stackoverflow.com/questions/31118236/how-to-set-global-variable-values-in-the-onstart-parameter-of-shiny-application
 onStart <- function(Encrypted, credentials, paramterfile){
-  Encrypted.app <- Encrypted # 经测试，必须要在这里重新复制定义Encrypted.app
-  credentials.server <- credentials
+  Encrypted.server <<- Encrypted # 经测试，必须要在这里重新复制定义Encrypted.server
+  credentials.server <<- credentials
   # 读入数据配置文件，并作检查
-  paramterfile.app <- paramterfile
-  data_meta <- check_metedata(parameters = readRDS(paramterfile))
+  paramterfile.server <<- paramterfile
+  data_meta <<- check_metedata(parameters = readRDS(paramterfile))
   # 准备reports目录
-  reports_dir <- paste0("../", basename(getwd()), "_reports") # 创建一个临时目录，用于存储reports文件的快捷方式
+  reports_dir <<- paste0("../", basename(getwd()), "_reports") # 创建一个临时目录，用于存储reports文件的快捷方式
   if(!dir.exists(reports_dir)){
     dir.create(reports_dir)
   }else{
