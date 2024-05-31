@@ -7,8 +7,7 @@
 launchSeuratExplorerServer(
   Encrypted = TRUE,
   credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-  paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package =
-    "SeuratExplorerServer"),
+  paramterfile = revise_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao"
 )

@@ -105,7 +105,7 @@ knitr::kable(data_meta)
 # saveRDS(data_meta, file = "./inst/extdata/demo/others/sample-paramters.rds")
 ```
 
-其他参数可以在App运行过程中进行修改。必填项目一般是否数据分析员所设定的，其他参数可由用户自行设定。
+其他参数可以在App运行过程中进行修改。必填项目一般是由数据分析员设定的，其他参数可由用户自行设定。
 
 
 ### Explore data
@@ -152,6 +152,8 @@ shinyApp(
   server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
 )
 ```
+
+A live [demo](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
 
 ## Rsession info
 
