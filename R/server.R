@@ -190,6 +190,12 @@ server <- function(input, output, session) {
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
       saveRDS(data_meta_new, file = paramterfile.server)
+      # R Shiny app shows old data
+      # https://stackoverflow.com/questions/37408072/r-shiny-app-shows-old-data
+      p <- paste0(getwd(), "/app.R")
+      if(file.exists(p)){
+        print("update app.R file, in case of Shiny use cached data when restart.")
+        R.utils::touchFile(p)}
       showModal(modalDialog(title = "Success:","New settings has beed saved successfully. restart App to use the latest settings.",easyClose = TRUE,footer = NULL))
       removeUI(selector = "div:has(> #NewName)")
       removeUI(selector = "div:has(> #NewSpecies)")
