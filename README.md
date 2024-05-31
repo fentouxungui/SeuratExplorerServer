@@ -11,7 +11,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 > Q: 为什么搞这个R包<br/> A:
 > `SeuratExplorer`相当于一个桌面版软件，可以在本地电脑上查看和分析`Seurat`对象，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据来浏览客户端电脑上的`Seurat`对象，无法查看位于服务器上的数据。`SeuratExplorerServer`的开发目的是，允许用户利用服务器硬件资源，通过网页浏览器来查看位于服务器上的`Seurat`对象数据，该R包不仅具有`SeuratExplorer`R
-> 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换和密码保护功能。
+> 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护功能和自定义部分初始化参数。
 
 > Q: 为啥要多数据切换<br/> A:有时在做完分析后，会需要提取某些cell
 > type的细胞，然后再重新分析，得到新的`Seurat`对象，这样同一个project下就会有多个`Seurat`对象。
@@ -34,6 +34,7 @@ You can install the development version of `SeuratExplorer` and
 ``` r
 if(!require(devtools)){install.packages("devtools")}
 install_github("fentouxungui/SeuratExplorer")
+options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
@@ -135,14 +136,14 @@ launchSeuratExplorerServer()
 
 ## 软件工作流程介绍
 
-- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***），sample
+- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以`_reports`为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample
   meta中`Reports.main`列和`Reports.second`列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。这会导致App加载延迟。
 
 - 登录：输入账户和密码。
 
 - sample meta 信息展示。
 
-- 选择数据。
+- 选择或切换数据。
 
 - 浏览分析报告。
 
@@ -150,11 +151,13 @@ launchSeuratExplorerServer()
 
 - 修改样本元信息的默认参数。
 
-- 关闭时会删除`_reports`目录
+- 关闭时会删除`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***）
 
 ## Examples deployed on Shinyserver
 
 ``` r
+options(timeout = max(300, getOption("timeout")))
+
 if(!require(devtools)){install.packages("devtools")}
 if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
 if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
@@ -172,7 +175,8 @@ shinyApp(
 )
 ```
 
-A live [demo](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
+**A live
+\[demo\]**(<http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/>).
 
 ## Rsession info
 
