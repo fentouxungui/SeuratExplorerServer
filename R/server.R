@@ -41,7 +41,8 @@ server <- function(input, output, session) {
 
   ## Dataset tab ----
   # reactiveValues: Create an object for storing reactive values,similar to a list,
-  data = reactiveValues(obj = NULL, loaded = FALSE, Name = NULL, Path = NULL, Species = NULL,
+  data = reactiveValues(obj = NULL, loaded = FALSE, Name = NULL, Path = NULL,
+                        Species = NULL, Description = NULL,
                         reduction_options = NULL, reduction_default = NULL,
                         cluster_options = NULL, cluster_default = NULL,
                         split_maxlevel = 6, split_options = NULL,
@@ -59,6 +60,7 @@ server <- function(input, output, session) {
     data$Name <- data_meta$Sample.name[which_data]
     data$Path <- input$Choosendata
     data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # 如果是NA值，输出为NULL
+    data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # 如果是NA值，输出为NULL
     data$reduction_options <- SeuratExplorer:::prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
     data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # 如果是NA值，输出为NULL
     data$cluster_options <- SeuratExplorer:::prepare_cluster_options(df = data$obj@meta.data)
@@ -132,7 +134,8 @@ server <- function(input, output, session) {
   # settings
   # Warning
   output$settings_warning = renderText({
-    paste0('The changes takes effect after the restart. and Only one sample can be modified at each app run.')
+    paste0('The changes take effect after you close the web page, and wait a few miniutes. And Only one sample can be modified at each app run.
+           修改参数后，需要您关闭网页，等待1~2分钟后，再重新打开网页，修改才能生效。注意，每次只能修改一个数据的参数。')
   })
 
   output$InfoForDataOpened <- renderText({
@@ -140,7 +143,7 @@ server <- function(input, output, session) {
     paste(sep = "",
           "Data Opened: ",               data_meta$Sample.name[which_data],     "\n",
           "\n",
-          "Parameters bellow can be modified, Contact technician if you want to make a change:\n",
+          "Parameters bellow can not be modified, Contact technician if you want to make a change:\n",
           "\n",
           "Main Reports Directory: ",    data_meta$Reports.main[which_data],    "\n",
           "Data Relative Path: ",        data_meta$Rds.path[which_data],        "\n",
