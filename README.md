@@ -154,7 +154,23 @@ launchSeuratExplorerServer()
 
 ## Examples deployed on Shinyserver
 
-## Examples deployed on shinyapps.io
+``` r
+if(!require(devtools)){install.packages("devtools")}
+if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
+if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
+library(shiny)
+
+Encrypted = TRUE
+credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
+paramterfile = SeuratExplorerServer:::revise_path()
+TechnicianEmail = "zhangyongchao@nibs.ac.cn"
+TechnicianName = "ZhangYongchao"
+
+shinyApp(
+  ui = SeuratExplorerServer::ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
+  server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
+)
+```
 
 ## Rsession info
 
