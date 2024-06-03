@@ -20,7 +20,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 > A:对于未公开的数据，一般会仅仅允许数据相关的人员可以获取和查看数据。对于已发表的数据，可以选择不设置密码。
 
 > Q: `SeuratExplorer`与`SeuratExplorerServer`的关系<br/>
-> A:`SeuratExplorerServer`依赖于`SeuratExplorer`
+> A:`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的功能。
 
 > Q: `SeuratExplorerServer`支持的分析报告类型<br/> A: pdf, html, tiff,
 > csv, jpg, jpeg, png, bmp,
@@ -94,7 +94,7 @@ knitr::kable(data_meta)
 | inst/extdata/demo/mouse-gut-haber   | haber.tsne.embeding.rds     | NA             | Mouse-Intestine-scRNAseq-Haber |                     4 | umap                       | NA                        | Mouse   | hahaha      |
 
 ``` r
-# saveRDS(data_meta, file = "inst/extdata/demo/others/sample-paramters.rds")
+# saveRDS(data_meta, file = "sample-paramters.rds")
 ```
 
 Or:
@@ -122,7 +122,7 @@ knitr::kable(data_meta)
 | inst/extdata/demo/mouse-gut-haber   | haber.tsne.embeding.rds     | NA             | Mouse-Intestine-scRNAseq-Haber | NA      | NA          | NA                         | NA                        | NA                    |
 
 ``` r
-# saveRDS(data_meta, file = "./inst/extdata/demo/others/sample-paramters.rds")
+# saveRDS(data_meta, file = "sample-paramters.rds")
 ```
 
 其他参数可以在App运行过程中进行修改。必填项目一般是由数据分析员设定的，其他参数可由用户自行设定。
@@ -131,7 +131,11 @@ knitr::kable(data_meta)
 
 ``` r
 library(SeuratExplorerServer)
-launchSeuratExplorerServer()
+launchSeuratExplorerServer(Encrypted = TRUE, 
+                           credentials = credentials,
+                           paramterfile = "sample-paramters.rds",
+                           TechnicianEmail = "your-email",
+                           TechnicianName = "your-name")
 ```
 
 ## 软件工作流程介绍
@@ -141,7 +145,7 @@ launchSeuratExplorerServer()
 
 - 登录：输入账户和密码。
 
-- sample meta 信息展示。
+- `sample meta`信息展示。
 
 - 选择或切换数据。
 
@@ -149,11 +153,14 @@ launchSeuratExplorerServer()
 
 - `SeuratExplorer`里的功能。
 
-- 修改样本元信息的默认参数。
+- 修改样本元信息的默认参数，重启后生效。
 
 - 关闭时会删除`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***）
 
 ## Examples deployed on Shinyserver
+
+[**A live
+demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
 
 ``` r
 options(timeout = max(300, getOption("timeout")))
@@ -174,9 +181,6 @@ shinyApp(
   server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
 )
 ```
-
-**A live
-\[demo\]**(<http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/>).
 
 ## Rsession info
 
