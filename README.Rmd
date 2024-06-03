@@ -126,7 +126,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 
 - 登录：输入账户和密码。
 
-- ``sample meta``信息展示。
+- ``sample meta``信息展示及下载。
 
 - 选择或切换数据。
 
@@ -161,6 +161,16 @@ shinyApp(
   server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
 )
 ```
+
+## To Do List
+
+- 加上数据缓存功能，在切换数据后，原数据不会丢失，免去再次加载时的数据读入过程，但对服务器内存有一定压力。
+
+- meta.data show rds file size，每页默认显示4个数据
+
+- 为每个图片区提供下载pdf，jpeg的功能，``SeuratExplorer`` related.
+
+
 
 ## Rsession info
 

@@ -29,7 +29,9 @@ prepare_reports <- function(reports_dir, data_meta){
   for (i in 1:nrow(data_meta)) {
     links.from <- list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types, full.names = TRUE)
     links.to <- paste0(reports_dir, "/", data_meta$Sample.name[i], "/", list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types, full.names = FALSE))
-    links.db.list[[data_meta$Sample.name[i]]] <- data.frame(from = links.from, to = links.to)
+    if (length(links.from) != 0) {
+      links.db.list[[data_meta$Sample.name[i]]] <- data.frame(from = links.from, to = links.to)
+    }
   }
   # 次要分析目录（新建连接到others文件目录下） 可能的问题，如果两个目录有相同的文件，会被覆盖！
   second_dirs <- unique(as.vector(na.omit(data_meta$Reports.second)))
@@ -40,14 +42,20 @@ prepare_reports <- function(reports_dir, data_meta){
       links.from <- append(links.from, list.files(i, recursive = TRUE, pattern = file.types, full.names = TRUE))
       links.to <- append(links.to, paste0(reports_dir, "/others/", list.files(i, recursive = TRUE, pattern = file.types, full.names = FALSE)))
     }
-    links.db.list[["others"]] <- data.frame(from = links.from, to = links.to)
+    if (length(links.from) != 0) {
+      links.db.list[["others"]] <- data.frame(from = links.from, to = links.to)
+    }
+  }
+  if (length(links.db.list) != 0) { # 如果确实存在中间分析文件
+    links.db <- Reduce(rbind, links.db.list)
+    # 创建链接
+    if (nrow(links.db) > 0) {
+      for (i in 1:nrow(links.db)) {
+        suppressWarnings(R.utils::createLink(link = links.db$to[i], target = links.db$from[i], skip = TRUE))
+      }
+    }
   }
 
-  links.db <- Reduce(rbind, links.db.list)
-  # 创建链接
-  for (i in 1:nrow(links.db)) {
-    suppressWarnings(R.utils::createLink(link = links.db$to[i], target = links.db$from[i], skip = TRUE))
-  }
 }
 
 #' 初始化样本的元数据信息
