@@ -28,9 +28,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   sidebar = dashboardSidebar(
     sidebarMenu(
       menuItem("Dataset", tabName = "dataset", icon = icon("database")),
-      conditionalPanel(
-        condition = "output.file_loaded",
-        sidebarMenu(menuItem("Reports", tabName = "reports", icon = icon("file")))),
+      sidebarMenu(menuItem("Reports", tabName = "reports", icon = icon("file"))),
       SeuratExplorer::explorer_sidebar_ui(),
       conditionalPanel(
         condition = "output.file_loaded",
@@ -42,43 +40,48 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   tab_list = list()
 
   tab_list[["dataset"]] = tabItem(tabName = "dataset",
-                                  # 选择数据
-                                  box(status = "primary", width = 12,
-                                      h3("Dataset Metadata:"),
-                                      DT::dataTableOutput("DataList"),
-                                      shinycssloaders::withSpinner(uiOutput("SelectData.UI")),
-                                      actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"))
-                                  ),
-                                  conditionalPanel(
-                                    condition = "output.file_loaded",
-                                    box(title = "Cell Meta Info", collapsible = TRUE, status = "primary", width = 12,
-                                        shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
-                                  )
+                                  fluidRow(
+                                    # 选择数据
+                                    box(status = "primary", title = "Select Data", width = 12, collapsible = TRUE, solidHeader = TRUE,
+                                        shinycssloaders::withSpinner(uiOutput("SelectData.UI")),
+                                        actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")
+                                    ),
+                                    box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,
+                                        DT::dataTableOutput("DataList")),
+                                    conditionalPanel(
+                                      condition = "output.file_loaded",
+                                      box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,
+                                          shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
+                                    ))
+
   )
 
   tab_list[["reports"]] = tabItem(tabName = "reports",
-                                  # 选择数据
-                                  box(status = "primary", width = 12,
-                                      verbatimTextOutput(outputId = "clientdata"),
-                                      shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
-                                  ) )
+                                  fluidRow(
+                                    box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
+                                        verbatimTextOutput(outputId = "clientdata"),
+                                        shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
+                                        ))
+ )
 
   # body part for Seurat Explorer functions
   tab_list <- SeuratExplorer::explorer_body_ui(tab_list = tab_list)
 
   # body part for set default parameters
   tab_list[["settings"]] = tabItem(tabName = "settings",
-                                   box(textOutput("settings_warning"), title = "WARNING：", background = "orange", width = 12),
-                                   box(status = "primary", width = 12,
-                                       verbatimTextOutput(outputId = "InfoForDataOpened"),
-                                       shinycssloaders::withSpinner(uiOutput("SetSampleName.UI")),
-                                       shinycssloaders::withSpinner(uiOutput("SetSpecies.UI")),
-                                       shinycssloaders::withSpinner(uiOutput("SetDescription.UI")),
-                                       shinycssloaders::withSpinner(uiOutput("SetDefaultReduction.UI")),
-                                       shinycssloaders::withSpinner(uiOutput("SetDefaultCluster.UI")),
-                                       shinycssloaders::withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
-                                       actionButton(inputId = "submitsettings",label = "Save Settings", icon = icon("save"))
-                                   ) )
+                                   fluidRow(
+                                     box(textOutput("settings_warning"), title = "WARNING：", background = "orange", width = 12),
+                                     box(status = "primary", width = 12, title = "Set Default Initialization Parameter", collapsible = TRUE, solidHeader = TRUE,
+                                         verbatimTextOutput(outputId = "InfoForDataOpened"),
+                                         shinycssloaders::withSpinner(uiOutput("SetSampleName.UI")),
+                                         shinycssloaders::withSpinner(uiOutput("SetSpecies.UI")),
+                                         shinycssloaders::withSpinner(uiOutput("SetDescription.UI")),
+                                         shinycssloaders::withSpinner(uiOutput("SetDefaultReduction.UI")),
+                                         shinycssloaders::withSpinner(uiOutput("SetDefaultCluster.UI")),
+                                         shinycssloaders::withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
+                                         actionButton(inputId = "submitsettings",label = "Save", icon = icon("save"), class = "btn-primary")
+                                     ))
+ )
 
   body = dashboardBody(
     div(class= "tab-content", tab_list),

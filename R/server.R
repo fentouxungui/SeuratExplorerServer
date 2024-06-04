@@ -34,7 +34,8 @@ server <- function(input, output, session) {
   output$SelectData.UI <- renderUI({
     choices <- data_meta$Rds.full.path
     names(choices)  <- data_meta$Sample.name
-    radioButtons(inputId = "Choosendata", label = h3("Choose Data:"),
+    radioButtons(inputId = "Choosendata",
+                 label = NULL,
                  choices = choices,
                  selected = unname(choices[1]))
   })
@@ -122,7 +123,7 @@ server <- function(input, output, session) {
     }else{
       full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
       reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-      tags$a(class="btn btn-default", href = reports_URL, "View Reports", target = "_blank")
+      tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
     }
    })
 
