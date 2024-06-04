@@ -16,13 +16,22 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   requireNamespace("SeuratExplorer")
   requireNamespace("shinymanager")
 
+  # notificationItem 默认函数无法在新页面打开链接; refer to: https://forum.posit.co/t/shinydashboard-notification-item-with-link-in-new-tab/37580/2
+  notificationItemWithAttr <- function(text, icon = shiny::icon("warning"), status = "success", href = NULL, ...) {
+    if (is.null(href))
+      href <- "#"
+    icon <- tagAppendAttributes(icon, class = paste0("text-",
+                                                     status))
+    tags$li(a(href = href, icon, text, ...))
+  }
+
   # Header ----
   header = dashboardHeader(
     title = "SeuratExplorer Server",
     # Dropdown menu for github
     dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
-                 notificationItem(icon = icon("github"), status = "info", "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer"),
-                 notificationItem(icon = icon("github"), status = "info", "SeuratExplorerServer", href = "https://github.com/fentouxungui/SeuratExplorerServer")))
+                 notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
+                 notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorerServer", href = "https://github.com/fentouxungui/SeuratExplorerServer", target = "_blank")))
 
   # Sidebar ----
   sidebar = dashboardSidebar(
@@ -59,7 +68,8 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   tab_list[["reports"]] = tabItem(tabName = "reports",
                                   fluidRow(
                                     box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
-                                        verbatimTextOutput(outputId = "clientdata"),
+                                        # verbatimTextOutput(outputId = "clientdata"),
+                                        verbatimTextOutput(outputId = "DirectoryTree"),
                                         shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
                                         ))
  )

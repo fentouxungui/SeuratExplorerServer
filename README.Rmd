@@ -166,7 +166,7 @@ shinyApp(
 
 - 加上数据缓存功能，在切换数据后，原数据不会丢失，免去再次加载时的数据读入过程，但对服务器内存有一定压力。
 
-- **Done**: meta.data show rds file size，每页默认显示4个数据，或者延长背景，ref to:https://stackoverflow.com/questions/44570977/background-color-is-cut-in-shinydashboard-body
+- **Done**: meta.data show rds file size，并显示到select data中，以及构建树形数据显示结构。
 
 - 为每个图片区提供下载pdf，jpeg的功能，``SeuratExplorer`` related.
 

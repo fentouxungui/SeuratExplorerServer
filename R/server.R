@@ -20,6 +20,22 @@ server <- function(input, output, session) {
   if (Encrypted.server) {
     res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = credentials.server))
   }
+
+  output$DirectoryTree <- renderPrint({
+    path <- gsub("//+","/",data_meta$Reports.main)
+    library(data.tree)
+    library(plyr)
+    # https://stackoverflow.com/questions/36094183/how-to-build-a-dendrogram-from-a-directory-tree
+    x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
+    x <- plyr::rbind.fill(x)
+    equal.index <- apply(x, 2, function(x)length(unique(x)) == 1)
+    x <- x[,(min(which(!equal.index)) - 1) : ncol(x)]
+    x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
+    x$SampleName <- data_meta$Sample.name
+    mytree <- data.tree::as.Node(x)
+    print(mytree, "SampleName")
+  }, width = 300) # 每行300个字符
+
   # 展示元数据
   output$DataList <- DT::renderDataTable(DT::datatable(data_meta,
                                                        class = 'cell-border stripe',
@@ -33,7 +49,7 @@ server <- function(input, output, session) {
   # 返回数据选择UI
   output$SelectData.UI <- renderUI({
     choices <- data_meta$Rds.full.path
-    names(choices)  <- data_meta$Sample.name
+    names(choices)  <- paste0(data_meta$Sample.name, " [",data_meta$Rds.File.size, "]")
     radioButtons(inputId = "Choosendata",
                  label = NULL,
                  choices = choices,
@@ -102,20 +118,20 @@ server <- function(input, output, session) {
   # Disable suspend for output$file_loaded, 当被隐藏时，禁用暂停，conditionalpanel所需要要的参数
   outputOptions(output, 'file_loaded', suspendWhenHidden=FALSE)
 
-
-  output$clientdata <- renderText({
-    full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
-    reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-    paste(sep = "",
-          "protocol: ", session$clientData$url_protocol, "\n",
-          "hostname: ", session$clientData$url_hostname, "\n",
-          "pathname: ", session$clientData$url_pathname, "\n",
-          "port: ",     session$clientData$url_port,     "\n",
-          "search: ",   session$clientData$url_search,   "\n",
-          "full url: ",      full_URL,     "\n",
-          "reports url: ",      reports_URL,     "\n"
-    )
-  })
+  # 调试IP地址用的
+  # output$clientdata <- renderText({
+  #   full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
+  #   reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
+  #   paste(sep = "",
+  #         "protocol: ", session$clientData$url_protocol, "\n",
+  #         "hostname: ", session$clientData$url_hostname, "\n",
+  #         "pathname: ", session$clientData$url_pathname, "\n",
+  #         "port: ",     session$clientData$url_port,     "\n",
+  #         "search: ",   session$clientData$url_search,   "\n",
+  #         "full url: ",      full_URL,     "\n",
+  #         "reports url: ",      reports_URL,     "\n"
+  #   )
+  # })
 
   output$ReportURL.UI <- renderUI({
     if (session$clientData$url_pathname == "/") {
@@ -190,6 +206,7 @@ server <- function(input, output, session) {
       data_meta_new$Default.ClusterResolution[which_data] <- input$NewDefaultCluster
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
+      data_meta_new$Rds.File.size <- NULL
       saveRDS(data_meta_new, file = paramterfile.server)
       # R Shiny app shows old data
       # https://stackoverflow.com/questions/37408072/r-shiny-app-shows-old-data

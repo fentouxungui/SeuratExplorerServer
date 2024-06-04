@@ -5,6 +5,7 @@ check_metedata <- function(parameters){
    if (!all(file.exists(parameters$Rds.full.path))) {
     stop("Please contact data curator to report this error, this error is related to the Reports.main and Rds.path columns in data meta!")
   }else{
+    parameters$Rds.File.size <- sapply(file.size(parameters$Rds.full.path), function(x)utils:::format.object_size(x, "auto"))
     # 2. 检查Reports.second路径是否都存在
     second_dirs <- as.vector(na.omit(parameters$Reports.second))
     if (length(second_dirs) > 0) {
@@ -18,6 +19,8 @@ check_metedata <- function(parameters){
     }else if (any(is.na(parameters$Sample.name))) {
       parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(".rds", basename(parameters$Rds.path[is.na(parameters$Sample.name)]),fixed = TRUE)
     }
+    # 3. 依据main directory名排序
+    parameters <- parameters[order(parameters$Reports.main),]
     return(parameters)
   }
 }

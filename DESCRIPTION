@@ -22,4 +22,6 @@ Imports:
     SeuratObject,
     shinyWidgets,
     Seurat,
-    htmltools
+    htmltools,
+    data.tree,
+    plyr
