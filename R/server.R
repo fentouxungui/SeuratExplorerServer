@@ -92,6 +92,7 @@ server <- function(input, output, session) {
       data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
       data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
     }
+    message("data loaded successfully!")
     removeModal()
   })
 
@@ -105,6 +106,7 @@ server <- function(input, output, session) {
   # 可以下载全部，参考：https://stackoverflow.com/questions/50039186/add-download-buttons-in-dtrenderdatatable
   output$dataset_meta <- DT::renderDT(server=FALSE,{
     shiny::req(data$obj)
+    message("Preparing dataset_meta...")
     # Show data
     DT::datatable(data$obj@meta.data, extensions = 'Buttons',
                   caption = htmltools::tags$caption(
@@ -142,11 +144,13 @@ server <- function(input, output, session) {
     x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
     x$SampleName <- data_meta$Sample.name
     mytree <- data.tree::as.Node(x)
+    message("Preparing DirectoryTree...")
     print(mytree, "SampleName")
   }, width = 300) # 每行300个字符
 
   # 调试IP地址用的
   output$reports_not_work <- renderText({
+    message("Preparing reports_not_work...")
     full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
     reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
     paste(sep = "",
@@ -163,6 +167,7 @@ server <- function(input, output, session) {
   })
 
   output$ReportURL.UI <- renderUI({
+    message("Preparing ReportURL.UI...")
     if (session$clientData$url_pathname == "/") {
       verbatimTextOutput(outputId = "reports_not_work")
     }else{
@@ -183,6 +188,7 @@ server <- function(input, output, session) {
   })
 
   output$InfoForDataOpened <- renderText({
+    message("Preparing InfoForDataOpened...")
     which_data <- match(data$Path, data_meta$Rds.full.path)
     paste(sep = "",
           "Data Opened: ",               data_meta$Sample.name[which_data],     "\n",
@@ -196,26 +202,32 @@ server <- function(input, output, session) {
   })
 
   output$SetSampleName.UI <- renderUI({
+    message("Preparing SetSampleName.UI...")
     textInput(inputId = "NewName", label = "Sample Name:", value = data$Name, placeholder = "Suggest only use letters, numbers, undersocres. And not too long.")
   })
 
   output$SetSpecies.UI <- renderUI({
+    message("Preparing SetSpecies.UI...")
     selectInput(inputId = "NewSpecies", label = "Choose the Species:", choices = c(Human = "Human", Mouse = "Mouse", Fly = "Fly", Others = "Others"), selected = data$Species)
   })
 
   output$SetDescription.UI <- renderUI({
+    message("Preparing SetDescription.UI...")
     textAreaInput(inputId = "NewDescription", label = "Sample Description:", value = data$Description, placeholder = "Do not use special characters")
   })
 
   output$SetDefaultReduction.UI <- renderUI({
+    message("Preparing SetDefaultReduction.UI...")
     selectInput("NewDefaultReduction", "Dimension Reduction:", choices = data$reduction_options, selected = data$reduction_default)
   })
 
   output$SetDefaultCluster.UI <- renderUI({
+    message("Preparing SetDefaultCluster.UI...")
     selectInput("NewDefaultCluster","Cluster Resolution:", choices = data$cluster_options, selected = data$cluster_default)
   })
 
   output$SetDefaultSplitMaxLevels.UI <- renderUI({
+    message("Preparing SetDefaultSplitMaxLevels.UI...")
     sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 20, value = data$split_maxlevel)
   })
 

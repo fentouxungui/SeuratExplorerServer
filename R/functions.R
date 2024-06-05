@@ -21,6 +21,7 @@ check_metedata <- function(parameters){
     }
     # 3. 依据main directory名排序
     parameters <- parameters[order(parameters$Reports.main),]
+    message("data meta file check passed!")
     return(parameters)
   }
 }
@@ -58,7 +59,7 @@ prepare_reports <- function(reports_dir, data_meta){
       }
     }
   }
-
+  message("reports prepared successfully!")
 }
 
 #' 初始化样本的元数据信息
@@ -93,6 +94,7 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
     data_meta$Default.ClusterResolution <- NA
     data_meta$SplitOptions.MaxLevel <- NA
     invisible(check_metedata(parameters = data_meta))
+    message("data meta file initilized successfully!")
     return(data_meta)
   }else{
     stop("Check the parameters length.")
@@ -105,6 +107,7 @@ revise_path <- function(paramterfile = system.file("extdata/demo/others", "sampl
     data_meta$Reports.main <- paste(system.file(package ="SeuratExplorerServer"),data_meta$Reports.main,sep = "/")
     saveRDS(data_meta,file = paramterfile)
   }
+  message("data meta file path revised successfully!")
   return(paramterfile)
 }
 
