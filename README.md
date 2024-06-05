@@ -184,11 +184,10 @@ shinyApp(
 
 ## To Do List
 
-- 加上数据缓存功能，在切换数据后，原数据不会丢失，免去再次加载时的数据读入过程，但对服务器内存有一定压力。
-
-- meta.data show rds file size，每页默认显示4个数据
-
 - 为每个图片区提供下载pdf，jpeg的功能，`SeuratExplorer` related.
+
+- 支持空间转录组数据，`SeuratExplorer`
+  related，比较复杂，以后有精力再做.
 
 ## Rsession info
 

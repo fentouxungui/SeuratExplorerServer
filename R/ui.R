@@ -68,7 +68,6 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   tab_list[["reports"]] = tabItem(tabName = "reports",
                                   fluidRow(
                                     box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
-                                        # verbatimTextOutput(outputId = "clientdata"),
                                         verbatimTextOutput(outputId = "DirectoryTree"),
                                         shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
                                         ))

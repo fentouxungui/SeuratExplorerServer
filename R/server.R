@@ -16,26 +16,17 @@ server <- function(input, output, session) {
   requireNamespace("SeuratObject")
   requireNamespace("shinymanager")
   requireNamespace("SeuratExplorer")
+
+
   # 加密
   if (Encrypted.server) {
     res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = credentials.server))
   }
 
-  output$DirectoryTree <- renderPrint({
-    path <- gsub("//+","/",data_meta$Reports.main)
-    library(data.tree)
-    library(plyr)
-    # https://stackoverflow.com/questions/36094183/how-to-build-a-dendrogram-from-a-directory-tree
-    x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
-    x <- plyr::rbind.fill(x)
-    equal.index <- apply(x, 2, function(x)length(unique(x)) == 1)
-    x <- x[,(min(which(!equal.index)) - 1) : ncol(x)]
-    x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
-    x$SampleName <- data_meta$Sample.name
-    mytree <- data.tree::as.Node(x)
-    print(mytree, "SampleName")
-  }, width = 300) # 每行300个字符
 
+  ############################################################# Dataset Page
+  # 用于缓存数据
+  cache.rds.list <- list()
   # 展示元数据
   output$DataList <- DT::renderDataTable(DT::datatable(data_meta,
                                                        class = 'cell-border stripe',
@@ -73,18 +64,34 @@ server <- function(input, output, session) {
     shiny::req(input$Choosendata) # req: Check for required values; Choosendata is a data.frame
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded!", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
-    data$obj <- SeuratExplorer:::prepare_seurat_object(obj = Seurat::UpdateSeuratObject(readRDS(file = input$Choosendata)))
-    data$Name <- data_meta$Sample.name[which_data]
-    data$Path <- input$Choosendata
-    data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # 如果是NA值，输出为NULL
-    data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # 如果是NA值，输出为NULL
-    data$reduction_options <- SeuratExplorer:::prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
-    data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # 如果是NA值，输出为NULL
-    data$cluster_options <- SeuratExplorer:::prepare_cluster_options(df = data$obj@meta.data)
-    data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # 如果是NA值，输出为NULL
-    data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){6}else{data_meta$SplitOptions.MaxLevel[which_data]} # 如果是NA值，设为6，决定了split选项
-    data$split_options <- SeuratExplorer:::prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
-    data$extra_qc_options <- SeuratExplorer:::prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
+    if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # 首次加载
+      data$obj <- SeuratExplorer:::prepare_seurat_object(obj = Seurat::UpdateSeuratObject(readRDS(file = input$Choosendata)))
+      data$Name <- data_meta$Sample.name[which_data]
+      data$Path <- input$Choosendata
+      data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # 如果是NA值，输出为NULL
+      data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # 如果是NA值，输出为NULL
+      data$reduction_options <- SeuratExplorer:::prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
+      data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # 如果是NA值，输出为NULL
+      data$cluster_options <- SeuratExplorer:::prepare_cluster_options(df = data$obj@meta.data)
+      data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # 如果是NA值，输出为NULL
+      data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){6}else{data_meta$SplitOptions.MaxLevel[which_data]} # 如果是NA值，设为6，决定了split选项
+      data$split_options <- SeuratExplorer:::prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
+      data$extra_qc_options <- SeuratExplorer:::prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
+      cache.rds.list[[data_meta$Sample.name[which_data]]] <<- reactiveValuesToList(data)
+    }else{ # 之前加载过
+      data$obj <- cache.rds.list[[data_meta$Sample.name[which_data]]]$obj
+      data$Name <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Name
+      data$Path <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Path
+      data$Species <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Species
+      data$Description <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Description
+      data$reduction_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_options
+      data$reduction_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_default
+      data$cluster_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_options
+      data$cluster_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_default
+      data$split_maxlevel <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_maxlevel
+      data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
+      data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
+    }
     removeModal()
   })
 
@@ -94,7 +101,7 @@ server <- function(input, output, session) {
     data$loaded = !is.null(data$obj)
   })
 
-  ############################### Render metadata table
+  # Render metadata table
   # 可以下载全部，参考：https://stackoverflow.com/questions/50039186/add-download-buttons-in-dtrenderdatatable
   output$dataset_meta <- DT::renderDT(server=FALSE,{
     shiny::req(data$obj)
@@ -118,24 +125,42 @@ server <- function(input, output, session) {
   # Disable suspend for output$file_loaded, 当被隐藏时，禁用暂停，conditionalpanel所需要要的参数
   outputOptions(output, 'file_loaded', suspendWhenHidden=FALSE)
 
+  ######################################################### Reports page
+  output$DirectoryTree <- renderPrint({
+    path <- gsub("//+","/",data_meta$Reports.main)
+    library(data.tree)
+    library(plyr)
+    # https://stackoverflow.com/questions/36094183/how-to-build-a-dendrogram-from-a-directory-tree
+    x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
+    x <- plyr::rbind.fill(x)
+    equal.index <- apply(x, 2, function(x)length(unique(x)) == 1)
+    x <- x[,(min(which(!equal.index)) - 1) : ncol(x)]
+    x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
+    x$SampleName <- data_meta$Sample.name
+    mytree <- data.tree::as.Node(x)
+    print(mytree, "SampleName")
+  }, width = 300) # 每行300个字符
+
   # 调试IP地址用的
-  # output$clientdata <- renderText({
-  #   full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
-  #   reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-  #   paste(sep = "",
-  #         "protocol: ", session$clientData$url_protocol, "\n",
-  #         "hostname: ", session$clientData$url_hostname, "\n",
-  #         "pathname: ", session$clientData$url_pathname, "\n",
-  #         "port: ",     session$clientData$url_port,     "\n",
-  #         "search: ",   session$clientData$url_search,   "\n",
-  #         "full url: ",      full_URL,     "\n",
-  #         "reports url: ",      reports_URL,     "\n"
-  #   )
-  # })
+  output$reports_not_work <- renderText({
+    full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
+    reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
+    paste(sep = "",
+          "protocol: ", session$clientData$url_protocol, "\n",
+          "hostname: ", session$clientData$url_hostname, "\n",
+          "pathname: ", session$clientData$url_pathname, "\n",
+          "port: ",     session$clientData$url_port,     "\n",
+          "search: ",   session$clientData$url_search,   "\n",
+          "full url: ",      full_URL,     "\n",
+          "reports url: ",      reports_URL,     "\n",
+          "\n",
+          "Attention: Reports function not work by using this kind of url [only IP + port], pathname should be included."
+    )
+  })
 
   output$ReportURL.UI <- renderUI({
     if (session$clientData$url_pathname == "/") {
-     textOutput(outputId = "reports_not_work")
+      verbatimTextOutput(outputId = "reports_not_work")
     }else{
       full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
       reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
@@ -143,16 +168,14 @@ server <- function(input, output, session) {
     }
    })
 
-  output$reports_not_work <- renderText({"Attention: Reports function not work by using this kind of url [only IP + port], pathname should be included."})
-
-  # Seurat explorer functions
+  ##################################### Seurat explorer functions
   SeuratExplorer::explorer_server(input = input, output = output, session = session, data = data)
 
-  # settings
+  ##################################### settings
   # Warning
   output$settings_warning = renderText({
     paste0('The changes take effect after you close the web page. And Only one sample can be modified at each app run.
-           修改参数后，需要您关闭网页，等待几秒钟后，再重新打开网页，修改才能生效。注意，每次只能修改一个数据的参数。')
+           修改参数后，需要您关闭网页后再重新打开，修改才能生效。注意每次只能修改一个样本的参数。')
   })
 
   output$InfoForDataOpened <- renderText({
