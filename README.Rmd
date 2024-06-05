@@ -143,12 +143,12 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 [**A live demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
 
 ```{r eval=FALSE}
+# app.R
 options(timeout = max(300, getOption("timeout")))
 
 if(!require(devtools)){install.packages("devtools")}
 if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
 if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
-library(shiny)
 
 Encrypted = TRUE
 credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)

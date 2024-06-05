@@ -163,12 +163,12 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
 
 ``` r
+# app.R
 options(timeout = max(300, getOption("timeout")))
 
 if(!require(devtools)){install.packages("devtools")}
 if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
 if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
-library(shiny)
 
 Encrypted = TRUE
 credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
@@ -218,7 +218,7 @@ shinyApp(
     #>   [7] rmarkdown_2.22                  vctrs_0.6.2                    
     #>   [9] ROCR_1.0-11                     memoise_2.0.1                  
     #>  [11] spatstat.explore_3.2-1          askpass_1.1                    
-    #>  [13] htmltools_0.5.5                 SeuratExplorerServer_0.0.0.9000
+    #>  [13] htmltools_0.5.5                 SeuratExplorerServer_0.0.1.0000
     #>  [15] sass_0.4.6                      sctransform_0.4.1              
     #>  [17] parallelly_1.36.0               KernSmooth_2.23-20             
     #>  [19] bslib_0.5.0                     htmlwidgets_1.6.2              
