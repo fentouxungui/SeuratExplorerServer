@@ -134,7 +134,11 @@ server <- function(input, output, session) {
     x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
     x <- plyr::rbind.fill(x)
     equal.index <- apply(x, 2, function(x)length(unique(x)) == 1)
-    x <- x[,(min(which(!equal.index)) - 1) : ncol(x)]
+    if (all(equal.index)) {
+      x <- x[,(ncol(x) - 1):ncol(x)]
+    }else{
+      x <- x[,(min(which(!equal.index)) - 1) : ncol(x)]
+    }
     x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
     x$SampleName <- data_meta$Sample.name
     mytree <- data.tree::as.Node(x)
