@@ -182,6 +182,10 @@ shinyApp(
 )
 ```
 
+## Screenshots
+
+<img src="inst/extdata/www/login.png" width="100%" /><img src="inst/extdata/www/dataset.png" width="100%" /><img src="inst/extdata/www/reports-main.png" width="100%" /><img src="inst/extdata/www/reports-2.png" width="100%" /><img src="inst/extdata/www/reports-3.png" width="100%" /><img src="inst/extdata/www/settings.png" width="100%" />
+
 ## To Do List
 
 - 为每个图片区提供下载pdf，jpeg的功能，`SeuratExplorer` related.
@@ -238,45 +242,45 @@ shinyApp(
     #>  [47] httr_1.4.6                      polyclip_1.10-4                
     #>  [49] abind_1.4-5                     compiler_4.3.0                 
     #>  [51] bit64_4.0.5                     DBI_1.1.3                      
-    #>  [53] fastDummies_1.7.3               R.utils_2.12.3                 
-    #>  [55] MASS_7.3-58.4                   openssl_2.0.6                  
-    #>  [57] tools_4.3.0                     lmtest_0.9-40                  
-    #>  [59] httpuv_1.6.11                   future.apply_1.11.0            
-    #>  [61] goftest_1.2-3                   R.oo_1.26.0                    
-    #>  [63] glue_1.6.2                      nlme_3.1-162                   
-    #>  [65] promises_1.2.0.1                grid_4.3.0                     
-    #>  [67] Rtsne_0.16                      cluster_2.1.4                  
-    #>  [69] reshape2_1.4.4                  generics_0.1.3                 
-    #>  [71] gtable_0.3.3                    spatstat.data_3.0-1            
-    #>  [73] R.methodsS3_1.8.2               tidyr_1.3.0                    
-    #>  [75] data.table_1.14.8               sp_2.0-0                       
-    #>  [77] utf8_1.2.3                      spatstat.geom_3.2-4            
-    #>  [79] RcppAnnoy_0.0.21                ggrepel_0.9.3                  
-    #>  [81] shinymanager_1.0.410            RANN_2.6.1                     
-    #>  [83] pillar_1.9.0                    stringr_1.5.0                  
-    #>  [85] spam_2.10-0                     RcppHNSW_0.6.0                 
-    #>  [87] later_1.3.1                     splines_4.3.0                  
-    #>  [89] dplyr_1.1.2                     lattice_0.21-8                 
-    #>  [91] bit_4.0.5                       survival_3.5-5                 
-    #>  [93] deldir_1.0-9                    tidyselect_1.2.0               
-    #>  [95] miniUI_0.1.1.1                  pbapply_1.7-2                  
-    #>  [97] knitr_1.43                      gridExtra_2.3                  
-    #>  [99] scattermore_1.2                 xfun_0.39                      
-    #> [101] shinydashboard_0.7.2            matrixStats_1.0.0              
-    #> [103] DT_0.28                         stringi_1.7.12                 
-    #> [105] scrypt_0.1.6                    lazyeval_0.2.2                 
-    #> [107] yaml_2.3.7                      shinyWidgets_0.8.6             
-    #> [109] evaluate_0.21                   codetools_0.2-19               
-    #> [111] tibble_3.2.1                    cli_3.6.1                      
-    #> [113] uwot_0.1.16                     xtable_1.8-4                   
-    #> [115] reticulate_1.30                 munsell_0.5.0                  
-    #> [117] jquerylib_0.1.4                 Rcpp_1.0.10                    
-    #> [119] SeuratExplorer_0.0.5.9000       globals_0.16.2                 
-    #> [121] spatstat.random_3.1-5           png_0.1-8                      
-    #> [123] parallel_4.3.0                  blob_1.2.4                     
-    #> [125] ggplot2_3.5.1                   dotCall64_1.1-1                
-    #> [127] listenv_0.9.0                   viridisLite_0.4.2              
-    #> [129] scales_1.3.0                    ggridges_0.5.4                 
-    #> [131] SeuratObject_5.0.2              leiden_0.4.3                   
-    #> [133] purrr_1.0.1                     rlang_1.1.3                    
-    #> [135] cowplot_1.1.1
+    #>  [53] fastDummies_1.7.3               highr_0.10                     
+    #>  [55] R.utils_2.12.3                  MASS_7.3-58.4                  
+    #>  [57] openssl_2.0.6                   tools_4.3.0                    
+    #>  [59] lmtest_0.9-40                   httpuv_1.6.11                  
+    #>  [61] future.apply_1.11.0             goftest_1.2-3                  
+    #>  [63] R.oo_1.26.0                     glue_1.6.2                     
+    #>  [65] nlme_3.1-162                    promises_1.2.0.1               
+    #>  [67] grid_4.3.0                      Rtsne_0.16                     
+    #>  [69] cluster_2.1.4                   reshape2_1.4.4                 
+    #>  [71] generics_0.1.3                  gtable_0.3.3                   
+    #>  [73] spatstat.data_3.0-1             R.methodsS3_1.8.2              
+    #>  [75] tidyr_1.3.0                     data.table_1.14.8              
+    #>  [77] sp_2.0-0                        utf8_1.2.3                     
+    #>  [79] spatstat.geom_3.2-4             RcppAnnoy_0.0.21               
+    #>  [81] ggrepel_0.9.3                   shinymanager_1.0.410           
+    #>  [83] RANN_2.6.1                      pillar_1.9.0                   
+    #>  [85] stringr_1.5.0                   spam_2.10-0                    
+    #>  [87] RcppHNSW_0.6.0                  later_1.3.1                    
+    #>  [89] splines_4.3.0                   dplyr_1.1.2                    
+    #>  [91] lattice_0.21-8                  bit_4.0.5                      
+    #>  [93] survival_3.5-5                  deldir_1.0-9                   
+    #>  [95] tidyselect_1.2.0                miniUI_0.1.1.1                 
+    #>  [97] pbapply_1.7-2                   knitr_1.43                     
+    #>  [99] gridExtra_2.3                   scattermore_1.2                
+    #> [101] xfun_0.39                       shinydashboard_0.7.2           
+    #> [103] matrixStats_1.0.0               DT_0.28                        
+    #> [105] stringi_1.7.12                  scrypt_0.1.6                   
+    #> [107] lazyeval_0.2.2                  yaml_2.3.7                     
+    #> [109] shinyWidgets_0.8.6              evaluate_0.21                  
+    #> [111] codetools_0.2-19                tibble_3.2.1                   
+    #> [113] cli_3.6.1                       uwot_0.1.16                    
+    #> [115] xtable_1.8-4                    reticulate_1.30                
+    #> [117] munsell_0.5.0                   jquerylib_0.1.4                
+    #> [119] Rcpp_1.0.10                     SeuratExplorer_0.0.5.9000      
+    #> [121] globals_0.16.2                  spatstat.random_3.1-5          
+    #> [123] png_0.1-8                       parallel_4.3.0                 
+    #> [125] blob_1.2.4                      ggplot2_3.5.1                  
+    #> [127] dotCall64_1.1-1                 listenv_0.9.0                  
+    #> [129] viridisLite_0.4.2               scales_1.3.0                   
+    #> [131] ggridges_0.5.4                  SeuratObject_5.0.2             
+    #> [133] leiden_0.4.3                    purrr_1.0.1                    
+    #> [135] rlang_1.1.3                     cowplot_1.1.1

@@ -162,6 +162,18 @@ shinyApp(
 )
 ```
 
+## Screenshots
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("inst/extdata/www/login.png")
+knitr::include_graphics("inst/extdata/www/dataset.png")
+knitr::include_graphics("inst/extdata/www/reports-main.png")
+knitr::include_graphics("inst/extdata/www/reports-2.png")
+knitr::include_graphics("inst/extdata/www/reports-3.png")
+knitr::include_graphics("inst/extdata/www/settings.png")
+```
+
 ## To Do List
 
 - 为每个图片区提供下载pdf，jpeg的功能，``SeuratExplorer`` related.
