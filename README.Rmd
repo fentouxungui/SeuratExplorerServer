@@ -35,7 +35,7 @@ A:``SeuratExplorerServer``依赖于``SeuratExplorer``，并且具备所有``Seur
 A: pdf, html, tiff, csv, jpg, jpeg, png, bmp, svg等，也可以通过修改``functions.R``里的``prepare_reports``function，来指定其它类型的文件。
 
 
-## Installation
+## 1. Installation
 
 You can install the development version of ``SeuratExplorer`` and ``SeuratExplorerServer``like so:
 
@@ -46,7 +46,7 @@ options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-## Run a demo
+## 2. Run a demo
 
 ```{r eval=FALSE}
 library(SeuratExplorerServer)
@@ -61,9 +61,51 @@ launchSeuratExplorerServer()
 
 - ``paramterfile``: see bellow for detailed information
 
-## Usage
+## 3. Workflow introduction
 
-### Generate credentials
+- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以``_reports``为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample meta中``Reports.main``列和``Reports.second``列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。这会导致App加载延迟。
+
+- 登录：输入账户和密码。
+
+- ``sample meta``信息展示及下载。
+
+- 选择或切换数据。
+
+- 浏览分析报告。
+
+- ``SeuratExplorer``里的功能。
+
+- 修改样本元信息的默认参数，重启后生效。
+
+- 关闭时会删除``_reports``目录（***Fly-Gut-EEs-scRNAseq_reports***）
+
+## 4. Examples deployed on Shinyserver
+
+[**A live demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
+
+```{r eval=FALSE}
+# app.R
+options(timeout = max(300, getOption("timeout")))
+
+if(!require(devtools)){install.packages("devtools")}
+if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
+if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
+
+Encrypted = TRUE
+credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
+paramterfile = SeuratExplorerServer:::revise_path()
+TechnicianEmail = "zhangyongchao@nibs.ac.cn"
+TechnicianName = "ZhangYongchao"
+
+shinyApp(
+  ui = SeuratExplorerServer::ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
+  server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
+)
+```
+
+## 5. Usage
+
+### 5.1 Generate credentials
 
 Please refer to R package [shinymanager](https://github.com/datastorm-open/shinymanager) for detailed tutorial to generate a credentials data in ``data.frame``.
 
@@ -76,7 +118,7 @@ credentials <- data.frame(
 )
 ```
 
-### Generate sample metadata parameters
+### 5.2 Generate sample metadata parameters
 
 ```{r eval=TRUE}
 data_meta <- data.frame(
@@ -109,7 +151,7 @@ knitr::kable(data_meta)
 其他参数可以在App运行过程中进行修改。必填项目一般是由数据分析员设定的，其他参数可由用户自行设定。
 
 
-### Explore data
+### 5.3 Explore data
 
 ```{r eval=FALSE}
 library(SeuratExplorerServer)
@@ -120,49 +162,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
                            TechnicianName = "your-name")
 ```
 
-## 软件工作流程介绍
-
-- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以``_reports``为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample meta中``Reports.main``列和``Reports.second``列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。这会导致App加载延迟。
-
-- 登录：输入账户和密码。
-
-- ``sample meta``信息展示及下载。
-
-- 选择或切换数据。
-
-- 浏览分析报告。
-
-- ``SeuratExplorer``里的功能。
-
-- 修改样本元信息的默认参数，重启后生效。
-
-- 关闭时会删除``_reports``目录（***Fly-Gut-EEs-scRNAseq_reports***）
-
-## Examples deployed on Shinyserver
-
-[**A live demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
-
-```{r eval=FALSE}
-# app.R
-options(timeout = max(300, getOption("timeout")))
-
-if(!require(devtools)){install.packages("devtools")}
-if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
-if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
-
-Encrypted = TRUE
-credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
-paramterfile = SeuratExplorerServer:::revise_path()
-TechnicianEmail = "zhangyongchao@nibs.ac.cn"
-TechnicianName = "ZhangYongchao"
-
-shinyApp(
-  ui = SeuratExplorerServer::ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
-  server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
-)
-```
-
-## Screenshots
+## 6. Screenshots
 
 
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -174,14 +174,12 @@ knitr::include_graphics("inst/extdata/www/reports-3.png")
 knitr::include_graphics("inst/extdata/www/settings.png")
 ```
 
-## To Do List
-
-- 为每个图片区提供下载pdf，jpeg的功能，``SeuratExplorer`` related.
+## 7. To Do List
 
 - 支持空间转录组数据，``SeuratExplorer`` related，比较复杂，以后有精力再做.
 
 
-## Rsession info
+## 8. Rsession info
 
 ```{r echo=FALSE}
 sessionInfo()

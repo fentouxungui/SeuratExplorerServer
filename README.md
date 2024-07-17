@@ -26,7 +26,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 > csv, jpg, jpeg, png, bmp,
 > svg等，也可以通过修改`functions.R`里的`prepare_reports`function，来指定其它类型的文件。
 
-## Installation
+## 1. Installation
 
 You can install the development version of `SeuratExplorer` and
 `SeuratExplorerServer`like so:
@@ -38,7 +38,7 @@ options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-## Run a demo
+## 2. Run a demo
 
 ``` r
 library(SeuratExplorerServer)
@@ -54,9 +54,53 @@ launchSeuratExplorerServer()
 
 - `paramterfile`: see bellow for detailed information
 
-## Usage
+## 3. Workflow introduction
 
-### Generate credentials
+- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以`_reports`为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample
+  meta中`Reports.main`列和`Reports.second`列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。这会导致App加载延迟。
+
+- 登录：输入账户和密码。
+
+- `sample meta`信息展示及下载。
+
+- 选择或切换数据。
+
+- 浏览分析报告。
+
+- `SeuratExplorer`里的功能。
+
+- 修改样本元信息的默认参数，重启后生效。
+
+- 关闭时会删除`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***）
+
+## 4. Examples deployed on Shinyserver
+
+[**A live
+demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
+
+``` r
+# app.R
+options(timeout = max(300, getOption("timeout")))
+
+if(!require(devtools)){install.packages("devtools")}
+if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
+if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
+
+Encrypted = TRUE
+credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
+paramterfile = SeuratExplorerServer:::revise_path()
+TechnicianEmail = "zhangyongchao@nibs.ac.cn"
+TechnicianName = "ZhangYongchao"
+
+shinyApp(
+  ui = SeuratExplorerServer::ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
+  server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
+)
+```
+
+## 5. Usage
+
+### 5.1 Generate credentials
 
 Please refer to R package
 [shinymanager](https://github.com/datastorm-open/shinymanager) for
@@ -71,7 +115,7 @@ credentials <- data.frame(
 )
 ```
 
-### Generate sample metadata parameters
+### 5.2 Generate sample metadata parameters
 
 ``` r
 data_meta <- data.frame(
@@ -105,14 +149,11 @@ data_meta <- SeuratExplorerServer::initialize_metadata(
   Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"), # 必填项目
   Reports.second = c(NA, NA), # 必填项目
   Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber")) # 必填项目
-#> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
-#> which was just loaded, will retire in October 2023.
-#> Please refer to R-spatial evolution reports for details, especially
-#> https://r-spatial.org/r/2023/05/15/evolution4.html.
-#> It may be desirable to make the sf package available;
-#> package maintainers should consider adding sf to Suggests:.
-#> The sp package is now running under evolution status 2
-#>      (status 2 uses the sf package in place of rgdal)
+#> data meta file check passed!
+#> data meta file initilized successfully!
+```
+
+``` r
 knitr::kable(data_meta)
 ```
 
@@ -127,7 +168,7 @@ knitr::kable(data_meta)
 
 其他参数可以在App运行过程中进行修改。必填项目一般是由数据分析员设定的，其他参数可由用户自行设定。
 
-### Explore data
+### 5.3 Explore data
 
 ``` r
 library(SeuratExplorerServer)
@@ -138,66 +179,20 @@ launchSeuratExplorerServer(Encrypted = TRUE,
                            TechnicianName = "your-name")
 ```
 
-## 软件工作流程介绍
-
-- 首先在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以`_reports`为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample
-  meta中`Reports.main`列和`Reports.second`列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。这会导致App加载延迟。
-
-- 登录：输入账户和密码。
-
-- `sample meta`信息展示及下载。
-
-- 选择或切换数据。
-
-- 浏览分析报告。
-
-- `SeuratExplorer`里的功能。
-
-- 修改样本元信息的默认参数，重启后生效。
-
-- 关闭时会删除`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***）
-
-## Examples deployed on Shinyserver
-
-[**A live
-demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
-
-``` r
-# app.R
-options(timeout = max(300, getOption("timeout")))
-
-if(!require(devtools)){install.packages("devtools")}
-if(!require(SeuratExplorer)){install_github("fentouxungui/SeuratExplorer")}
-if(!require(SeuratExplorerServer)){install_github("fentouxungui/SeuratExplorerServer")}
-
-Encrypted = TRUE
-credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE)
-paramterfile = SeuratExplorerServer:::revise_path()
-TechnicianEmail = "zhangyongchao@nibs.ac.cn"
-TechnicianName = "ZhangYongchao"
-
-shinyApp(
-  ui = SeuratExplorerServer::ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
-  server = SeuratExplorerServer::server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
-)
-```
-
-## Screenshots
+## 6. Screenshots
 
 <img src="inst/extdata/www/login.png" width="100%" /><img src="inst/extdata/www/dataset.png" width="100%" /><img src="inst/extdata/www/reports-main.png" width="100%" /><img src="inst/extdata/www/reports-2.png" width="100%" /><img src="inst/extdata/www/reports-3.png" width="100%" /><img src="inst/extdata/www/settings.png" width="100%" />
 
-## To Do List
-
-- 为每个图片区提供下载pdf，jpeg的功能，`SeuratExplorer` related.
+## 7. To Do List
 
 - 支持空间转录组数据，`SeuratExplorer`
   related，比较复杂，以后有精力再做.
 
-## Rsession info
+## 8. Rsession info
 
-    #> R version 4.3.0 (2023-04-21 ucrt)
-    #> Platform: x86_64-w64-mingw32/x64 (64-bit)
-    #> Running under: Windows 10 x64 (build 19045)
+    #> R version 4.4.1 (2024-06-14 ucrt)
+    #> Platform: x86_64-w64-mingw32/x64
+    #> Running under: Windows 11 x64 (build 22631)
     #> 
     #> Matrix products: default
     #> 
@@ -216,71 +211,71 @@ shinyApp(
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> loaded via a namespace (and not attached):
-    #>   [1] RColorBrewer_1.1-3              rstudioapi_0.14                
-    #>   [3] jsonlite_1.8.5                  billboarder_0.4.1              
-    #>   [5] magrittr_2.0.3                  spatstat.utils_3.0-3           
-    #>   [7] rmarkdown_2.22                  vctrs_0.6.2                    
+    #>   [1] RColorBrewer_1.1-3              rstudioapi_0.16.0              
+    #>   [3] jsonlite_1.8.8                  billboarder_0.4.1              
+    #>   [5] magrittr_2.0.3                  spatstat.utils_3.0-5           
+    #>   [7] rmarkdown_2.27                  vctrs_0.6.5                    
     #>   [9] ROCR_1.0-11                     memoise_2.0.1                  
-    #>  [11] spatstat.explore_3.2-1          askpass_1.1                    
-    #>  [13] htmltools_0.5.5                 SeuratExplorerServer_0.0.1.0000
-    #>  [15] sass_0.4.6                      sctransform_0.4.1              
-    #>  [17] parallelly_1.36.0               KernSmooth_2.23-20             
-    #>  [19] bslib_0.5.0                     htmlwidgets_1.6.2              
-    #>  [21] ica_1.0-3                       plyr_1.8.8                     
-    #>  [23] plotly_4.10.2                   zoo_1.8-12                     
-    #>  [25] cachem_1.0.8                    igraph_1.4.3                   
-    #>  [27] mime_0.12                       lifecycle_1.0.3                
-    #>  [29] pkgconfig_2.0.3                 Matrix_1.6-4                   
-    #>  [31] R6_2.5.1                        fastmap_1.1.1                  
-    #>  [33] fitdistrplus_1.1-11             future_1.33.0                  
-    #>  [35] shiny_1.8.1.1                   digest_0.6.31                  
+    #>  [11] spatstat.explore_3.2-7          askpass_1.2.0                  
+    #>  [13] htmltools_0.5.8.1               SeuratExplorerServer_0.0.1.0000
+    #>  [15] sass_0.4.9                      sctransform_0.4.1              
+    #>  [17] parallelly_1.37.1               KernSmooth_2.23-24             
+    #>  [19] bslib_0.7.0                     htmlwidgets_1.6.4              
+    #>  [21] ica_1.0-3                       plyr_1.8.9                     
+    #>  [23] plotly_4.10.4                   zoo_1.8-12                     
+    #>  [25] cachem_1.1.0                    igraph_2.0.3                   
+    #>  [27] mime_0.12                       lifecycle_1.0.4                
+    #>  [29] pkgconfig_2.0.3                 Matrix_1.7-0                   
+    #>  [31] R6_2.5.1                        fastmap_1.2.0                  
+    #>  [33] fitdistrplus_1.1-11             future_1.33.2                  
+    #>  [35] shiny_1.8.1.1                   digest_0.6.36                  
     #>  [37] colorspace_2.1-0                patchwork_1.2.0                
     #>  [39] Seurat_5.1.0                    tensor_1.5                     
     #>  [41] RSpectra_0.16-1                 irlba_2.3.5.1                  
-    #>  [43] RSQLite_2.3.1                   progressr_0.14.0               
-    #>  [45] fansi_1.0.4                     spatstat.sparse_3.0-2          
-    #>  [47] httr_1.4.6                      polyclip_1.10-4                
-    #>  [49] abind_1.4-5                     compiler_4.3.0                 
-    #>  [51] bit64_4.0.5                     DBI_1.1.3                      
-    #>  [53] fastDummies_1.7.3               highr_0.10                     
-    #>  [55] R.utils_2.12.3                  MASS_7.3-58.4                  
-    #>  [57] openssl_2.0.6                   tools_4.3.0                    
-    #>  [59] lmtest_0.9-40                   httpuv_1.6.11                  
-    #>  [61] future.apply_1.11.0             goftest_1.2-3                  
-    #>  [63] R.oo_1.26.0                     glue_1.6.2                     
-    #>  [65] nlme_3.1-162                    promises_1.2.0.1               
-    #>  [67] grid_4.3.0                      Rtsne_0.16                     
-    #>  [69] cluster_2.1.4                   reshape2_1.4.4                 
-    #>  [71] generics_0.1.3                  gtable_0.3.3                   
-    #>  [73] spatstat.data_3.0-1             R.methodsS3_1.8.2              
-    #>  [75] tidyr_1.3.0                     data.table_1.14.8              
-    #>  [77] sp_2.0-0                        utf8_1.2.3                     
-    #>  [79] spatstat.geom_3.2-4             RcppAnnoy_0.0.21               
-    #>  [81] ggrepel_0.9.3                   shinymanager_1.0.410           
+    #>  [43] RSQLite_2.3.7                   progressr_0.14.0               
+    #>  [45] fansi_1.0.6                     spatstat.sparse_3.1-0          
+    #>  [47] httr_1.4.7                      polyclip_1.10-6                
+    #>  [49] abind_1.4-5                     compiler_4.4.1                 
+    #>  [51] bit64_4.0.5                     DBI_1.2.3                      
+    #>  [53] fastDummies_1.7.3               highr_0.11                     
+    #>  [55] R.utils_2.12.3                  MASS_7.3-60.2                  
+    #>  [57] openssl_2.2.0                   tools_4.4.1                    
+    #>  [59] lmtest_0.9-40                   httpuv_1.6.15                  
+    #>  [61] future.apply_1.11.2             goftest_1.2-3                  
+    #>  [63] R.oo_1.26.0                     glue_1.7.0                     
+    #>  [65] nlme_3.1-164                    promises_1.3.0                 
+    #>  [67] grid_4.4.1                      Rtsne_0.17                     
+    #>  [69] cluster_2.1.6                   reshape2_1.4.4                 
+    #>  [71] generics_0.1.3                  gtable_0.3.5                   
+    #>  [73] spatstat.data_3.1-2             R.methodsS3_1.8.2              
+    #>  [75] tidyr_1.3.1                     data.table_1.15.4              
+    #>  [77] sp_2.1-4                        utf8_1.2.4                     
+    #>  [79] spatstat.geom_3.2-9             RcppAnnoy_0.0.22               
+    #>  [81] ggrepel_0.9.5                   shinymanager_1.0.410           
     #>  [83] RANN_2.6.1                      pillar_1.9.0                   
-    #>  [85] stringr_1.5.0                   spam_2.10-0                    
-    #>  [87] RcppHNSW_0.6.0                  later_1.3.1                    
-    #>  [89] splines_4.3.0                   dplyr_1.1.2                    
-    #>  [91] lattice_0.21-8                  bit_4.0.5                      
-    #>  [93] survival_3.5-5                  deldir_1.0-9                   
-    #>  [95] tidyselect_1.2.0                miniUI_0.1.1.1                 
-    #>  [97] pbapply_1.7-2                   knitr_1.43                     
+    #>  [85] stringr_1.5.1                   spam_2.10-0                    
+    #>  [87] RcppHNSW_0.6.0                  later_1.3.2                    
+    #>  [89] splines_4.4.1                   dplyr_1.1.4                    
+    #>  [91] lattice_0.22-6                  bit_4.0.5                      
+    #>  [93] survival_3.6-4                  deldir_2.0-4                   
+    #>  [95] tidyselect_1.2.1                miniUI_0.1.1.1                 
+    #>  [97] pbapply_1.7-2                   knitr_1.47                     
     #>  [99] gridExtra_2.3                   scattermore_1.2                
-    #> [101] xfun_0.39                       shinydashboard_0.7.2           
-    #> [103] matrixStats_1.0.0               DT_0.28                        
-    #> [105] stringi_1.7.12                  scrypt_0.1.6                   
-    #> [107] lazyeval_0.2.2                  yaml_2.3.7                     
-    #> [109] shinyWidgets_0.8.6              evaluate_0.21                  
-    #> [111] codetools_0.2-19                tibble_3.2.1                   
-    #> [113] cli_3.6.1                       uwot_0.1.16                    
-    #> [115] xtable_1.8-4                    reticulate_1.30                
-    #> [117] munsell_0.5.0                   jquerylib_0.1.4                
-    #> [119] Rcpp_1.0.10                     SeuratExplorer_0.0.5.9000      
-    #> [121] globals_0.16.2                  spatstat.random_3.1-5          
-    #> [123] png_0.1-8                       parallel_4.3.0                 
+    #> [101] xfun_0.45                       shinydashboard_0.7.2           
+    #> [103] matrixStats_1.3.0               DT_0.33                        
+    #> [105] stringi_1.8.4                   scrypt_0.1.6                   
+    #> [107] lazyeval_0.2.2                  yaml_2.3.8                     
+    #> [109] shinyWidgets_0.8.6              evaluate_0.24.0                
+    #> [111] codetools_0.2-20                tibble_3.2.1                   
+    #> [113] cli_3.6.3                       uwot_0.2.2                     
+    #> [115] xtable_1.8-4                    reticulate_1.38.0              
+    #> [117] munsell_0.5.1                   jquerylib_0.1.4                
+    #> [119] Rcpp_1.0.12                     SeuratExplorer_0.0.6.0000      
+    #> [121] globals_0.16.3                  spatstat.random_3.2-3          
+    #> [123] png_0.1-8                       parallel_4.4.1                 
     #> [125] blob_1.2.4                      ggplot2_3.5.1                  
-    #> [127] dotCall64_1.1-1                 listenv_0.9.0                  
+    #> [127] dotCall64_1.1-1                 listenv_0.9.1                  
     #> [129] viridisLite_0.4.2               scales_1.3.0                   
-    #> [131] ggridges_0.5.4                  SeuratObject_5.0.2             
-    #> [133] leiden_0.4.3                    purrr_1.0.1                    
-    #> [135] rlang_1.1.3                     cowplot_1.1.1
+    #> [131] ggridges_0.5.6                  SeuratObject_5.0.2             
+    #> [133] leiden_0.4.3.1                  purrr_1.0.2                    
+    #> [135] rlang_1.1.4                     cowplot_1.1.3
