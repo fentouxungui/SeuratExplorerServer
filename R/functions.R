@@ -106,8 +106,14 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
 
 revise_path <- function(paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package ="SeuratExplorerServer")){
   data_meta <- readRDS(paramterfile)
-  main.dir <- dirname(dirname(paramterfile))
-  data_meta$Reports.main <- paste(main.dir, basename(data_meta$Reports.main),sep = "/")
+  if(all(!dir.exists(data_meta$Reports.main))){ # run demo mode, try change the path in installation, only work for the first time run.
+    main.dir <- dirname(dirname(paramterfile))
+    data_meta$Reports.main <- paste(main.dir, basename(data_meta$Reports.main),sep = "/")
+    if(any(!dir.exists(data_meta$Reports.main))){ # 修改后，若仍找不到对应文件
+      stop('Error, can not found the Reports.main directory in demo data.')
+    }
+    saveRDS(data_meta,file = paramterfile)
+  }
   message("data meta file path revised successfully!")
   return(paramterfile)
 }
