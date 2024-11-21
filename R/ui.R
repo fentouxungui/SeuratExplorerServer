@@ -70,6 +70,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
                                         verbatimTextOutput(outputId = "DirectoryTree"),
                                         actionButton(inputId = "generatereports",label = "Generate/Update Reports", icon = icon("refresh"), class = "btn-primary"),
+                                        # br(),
                                         uiOutput("ViewReports.UI")
                                         # conditionalPanel(
                                         #   condition = "reports.generated",

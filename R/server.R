@@ -186,7 +186,12 @@ server <- function(input, output, session) {
       }else{
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-        tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
+        actionButton(inputId='openreportswebpage',
+                     label="View Reports",
+                     value = "Open a new web page",
+                     onclick = 'window.open(reports_URL, "view reports", "resizable=no,toolbar=no,menubar=no,location=no,status=no")',
+                     icon = icon("file"))
+        # tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
       }
     })
   })
