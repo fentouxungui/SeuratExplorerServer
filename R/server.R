@@ -2,7 +2,7 @@
 ## R shiny server side for SeuratExplorer
 
 #' Server for SeuratExplorer shiny app
-#' @import shiny ggplot2 R.utils utils
+#' @import shiny ggplot2 utils
 #' @import Seurat SeuratObject SeuratExplorer
 #' @param input Input from the UI
 #' @param output Output to send back to UI
@@ -187,6 +187,7 @@ server <- function(input, output, session) {
       }else{
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
+        # https://stackoverflow.com/questions/37795760/r-shiny-add-weblink-to-actionbutton
         message(paste0("Reports url: ", reports_URL))
         actionButton(inputId='openreportswebpage',
                      label="View/Download Reports",
