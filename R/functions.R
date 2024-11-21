@@ -106,10 +106,8 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
 
 revise_path <- function(paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package ="SeuratExplorerServer")){
   data_meta <- readRDS(paramterfile)
-  if(all(!dir.exists(data_meta$Reports.main))){ # run demo mode, try change the path in installation, only work for the first time run.
-    data_meta$Reports.main <- paste(system.file(package ="SeuratExplorerServer"),data_meta$Reports.main,sep = "/")
-    saveRDS(data_meta,file = paramterfile)
-  }
+  main.dir <- dirname(dirname(paramterfile))
+  data_meta$Reports.main <- paste(main.dir, basename(data_meta$Reports.main),sep = "/")
   message("data meta file path revised successfully!")
   return(paramterfile)
 }

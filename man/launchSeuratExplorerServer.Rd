@@ -7,7 +7,7 @@
 launchSeuratExplorerServer(
   Encrypted = TRUE,
   credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-  paramterfile = revise_path(),
+  paramterfile = SeuratExplorerServer:::revise_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao"
 )

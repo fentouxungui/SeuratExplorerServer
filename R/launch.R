@@ -10,7 +10,7 @@
 #' @param TechnicianEmail 技术人员邮箱
 #' @param TechnicianName 技术人员姓名
 #'
-#' @import shiny SeuratExplorer
+#' @import shiny SeuratExplorer SeuratExplorerServer
 #' @return In-browser Shiny Application launch
 #' @examples
 #' # launchSeuratExplorerServer()
@@ -19,15 +19,17 @@
 #'
 launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-                                        paramterfile = revise_path(),
+                                        paramterfile = SeuratExplorerServer:::revise_path(),
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
                                         TechnicianName = "ZhangYongchao"
                                        ){
   requireNamespace("shinydashboard")
   requireNamespace("shinymanager")
+  requireNamespace("shiny")
+  requireNamespace("SeuratExplorerServer")
   app = shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
-    server = server, onStart = onStart(Encrypted, credentials, paramterfile)
+    server = server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
     )
   runApp(app, launch.browser = TRUE)
 }
