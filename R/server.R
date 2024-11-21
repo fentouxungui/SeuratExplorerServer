@@ -166,16 +166,32 @@ server <- function(input, output, session) {
     )
   })
 
-  output$ReportURL.UI <- renderUI({
-    message("Preparing ReportURL.UI...")
-    if (session$clientData$url_pathname == "/") {
-      verbatimTextOutput(outputId = "reports_not_work")
-    }else{
-      full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
-      reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-      tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
+  # 点击generate reports按钮，更新或者生成reports目录，然后加入一个view reports按钮，可链接到分析结果目录。
+  observeEvent(input$generatereports,{
+    reports_dir <<- paste0("../", basename(getwd()), "_reports")
+    if (!dir.exists(reports_dir)) { # 生成
+      showModal(modalDialog(title = "Generating reports...", "Please wait...", footer= NULL, size = "l"))
+    }else{ # 更新
+      showModal(modalDialog(title = "Updating reports...", "Please wait...", footer= NULL, size = "l"))
+      unlink(reports_dir, recursive = TRUE)
     }
-   })
+    dir.create(reports_dir)
+    message("Preparing the reports direcotry, Please wait a moment...")
+    prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
+    removeModal()
+    output$ViewReports.UI <- renderUI({ # 生成view reports UI
+      message("Preparing ReportURL.UI...")
+      if (session$clientData$url_pathname == "/") {
+        verbatimTextOutput(outputId = "reports_not_work")
+      }else{
+        full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
+        reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
+        tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
+      }
+    })
+  })
+
+
 
   ##################################### Seurat explorer functions
   SeuratExplorer::explorer_server(input = input, output = output, session = session, data = data)
@@ -268,10 +284,10 @@ server <- function(input, output, session) {
   session$onSessionEnded(function() {
     if (!Encrypted.server) {
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
-      print('hello, the session finally ended')
+      print('Hello, the session finally ended!')
     }else if(!is.null(isolate({res_auth$user}))){ # 注意，shinymanager登陆成功后也会触发session ended
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
-      print('hello, the session finally ended')
+      print('Hello, the session finally ended!')
     }
   })
 

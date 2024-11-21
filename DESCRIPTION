@@ -1,10 +1,10 @@
 Package: SeuratExplorerServer
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.1.0000
+Title:  An interactive web application for exploring scRNAseq data processed in Seurat by shinyserver.
+Version: 0.0.1.0002
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Zhang", "Yongchao", , "zhangyongchao@nibs.ac.cn", role = c("aut", "cre"),
+           comment = c(Github = "https://github.com/fentouxungui"))
+Description: An interactive web application, deployed by shinyserver, to visualize single cell RNAseq data in Seurat objects formats. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

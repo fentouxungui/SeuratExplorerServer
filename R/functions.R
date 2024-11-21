@@ -119,17 +119,17 @@ onStart <- function(Encrypted, credentials, paramterfile){
   # 读入数据配置文件，并作检查
   paramterfile.server <<- paramterfile
   data_meta <<- check_metedata(parameters = readRDS(paramterfile))
-  # 准备reports目录
-  reports_dir <<- paste0("../", basename(getwd()), "_reports") # 创建一个临时目录，用于存储reports文件的快捷方式
-  if(!dir.exists(reports_dir)){
-    dir.create(reports_dir)
-  }else{
-    unlink(reports_dir, recursive = TRUE)
-    dir.create(reports_dir)
-  }
-  # 准备reports文件
-  message("Preparing the reports direcotry, Please wait a moment...")
-  prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
+  # # 准备reports目录
+  # reports_dir <<- paste0("../", basename(getwd()), "_reports") # 创建一个临时目录，用于存储reports文件的快捷方式
+  # if(!dir.exists(reports_dir)){
+  #   dir.create(reports_dir)
+  # }else{
+  #   unlink(reports_dir, recursive = TRUE)
+  #   dir.create(reports_dir)
+  # }
+  # # 准备reports文件
+  # message("Preparing the reports direcotry, Please wait a moment...")
+  # prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
   # clean up jobs
   onStop(function(){
     if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}

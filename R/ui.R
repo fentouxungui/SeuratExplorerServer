@@ -69,7 +69,13 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                   fluidRow(
                                     box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
                                         verbatimTextOutput(outputId = "DirectoryTree"),
-                                        shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
+                                        actionButton(inputId = "generatereports",label = "Generate/Update Reports", icon = icon("refresh"), class = "btn-primary"),
+                                        uiOutput("ViewReports.UI")
+                                        # conditionalPanel(
+                                        #   condition = "reports.generated",
+                                        #   box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,
+                                        #       shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
+                                        # shinycssloaders::withSpinner(uiOutput("ReportURL.UI"))
                                         ))
  )
 
