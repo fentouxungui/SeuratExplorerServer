@@ -187,9 +187,10 @@ server <- function(input, output, session) {
       }else{
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
+        message(paste0("Reports url: ", reports_URL))
         actionButton(inputId='openreportswebpage',
                      label="View/Download Reports",
-                     onclick = 'window.open(reports_URL, "_blank")',
+                     onclick = paste0("window.open('", reports_URL, "','_blank')"),
                      icon = icon("file"),
                      class = "btn-primary")
       }
