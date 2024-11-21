@@ -22,7 +22,8 @@ A data.frame
 搭建新的app时，用于初始化元数据，记录了数据的分析主要和次要分析目录、Rds文件的在主分析目录中的路径和各样本的名字，主要分析目录会包含Rds文件。
 }
 \examples{
-# initialize_metadata(Reports.main = c("inst/extdata/demo/fly-gut-EEs-scRNA", "inst/extdata/demo/mouse-gut-haber"),
+# data_meta <- initialize_metadata(Reports.main = c("inst/extdata/demo/fly",
+#    "inst/extdata/demo/mouse"),
 # Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
 # Reports.second = c(NA, NA),
 # Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))

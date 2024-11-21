@@ -1,11 +1,13 @@
 check_metedata <- function(parameters){
   requireNamespace("shinydashboard")
+  requireNamespace("utils")
+
   # 1. 检查路径是否正确
   parameters$Rds.full.path <- paste(parameters$Reports.main, parameters$Rds.path,sep = "/")
    if (!all(file.exists(parameters$Rds.full.path))) {
     stop("Please contact data curator to report this error, this error is related to the Reports.main and Rds.path columns in data meta!")
   }else{
-    parameters$Rds.File.size <- sapply(file.size(parameters$Rds.full.path), function(x)utils:::format.object_size(x, "auto"))
+    parameters$Rds.File.size <- sapply(file.size(parameters$Rds.full.path), function(x)format.object_size(x, "auto"))
     # 2. 检查Reports.second路径是否都存在
     second_dirs <- as.vector(na.omit(parameters$Reports.second))
     if (length(second_dirs) > 0) {
@@ -74,7 +76,8 @@ prepare_reports <- function(reports_dir, data_meta){
 #' @return A data.frame
 #' @export
 #' @examples
-#' # initialize_metadata(Reports.main = c("inst/extdata/demo/fly-gut-EEs-scRNA", "inst/extdata/demo/mouse-gut-haber"),
+#' # data_meta <- initialize_metadata(Reports.main = c("inst/extdata/demo/fly",
+#' #    "inst/extdata/demo/mouse"),
 #' # Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
 #' # Reports.second = c(NA, NA),
 #' # Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))

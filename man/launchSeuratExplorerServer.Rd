@@ -12,6 +12,17 @@ launchSeuratExplorerServer(
   TechnicianName = "ZhangYongchao"
 )
 }
+\arguments{
+\item{Encrypted}{是否加密App}
+
+\item{credentials}{密码文件}
+
+\item{paramterfile}{参数文件}
+
+\item{TechnicianEmail}{技术人员邮箱}
+
+\item{TechnicianName}{技术人员姓名}
+}
 \value{
 In-browser Shiny Application launch
 }

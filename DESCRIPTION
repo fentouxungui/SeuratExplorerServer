@@ -1,10 +1,10 @@
 Package: SeuratExplorerServer
-Title:  An interactive web application for exploring scRNAseq data processed in Seurat by shinyserver.
+Title:  An interactive web application for exploring scRNAseq data processed in Seurat by shinyserver
 Version: 0.0.1.0002
 Authors@R: 
     person("Zhang", "Yongchao", , "zhangyongchao@nibs.ac.cn", role = c("aut", "cre"),
            comment = c(Github = "https://github.com/fentouxungui"))
-Description: An interactive web application, deployed by shinyserver, to visualize single cell RNAseq data in Seurat objects formats. 
+Description: An interactive web application, deployed by shinyserver, to visualize single cell RNAseq data in Seurat objects formats.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -12,6 +12,8 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5.0)
 Imports:
+    R.utils,
+    utils,
     shiny,
     shinydashboard,
     DT,
@@ -23,4 +25,5 @@ Imports:
     Seurat,
     htmltools,
     data.tree,
-    plyr
+    plyr,
+    ggplot2

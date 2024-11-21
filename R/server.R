@@ -2,7 +2,7 @@
 ## R shiny server side for SeuratExplorer
 
 #' Server for SeuratExplorer shiny app
-#' @import shiny
+#' @import shiny ggplot2 R.utils utils
 #' @import Seurat SeuratObject SeuratExplorer
 #' @param input Input from the UI
 #' @param output Output to send back to UI
@@ -15,8 +15,11 @@ server <- function(input, output, session) {
   requireNamespace("shinydashboard")
   requireNamespace("SeuratObject")
   requireNamespace("shinymanager")
+  requireNamespace("data.tree")
+  requireNamespace("plyr")
   requireNamespace("SeuratExplorer")
-
+  requireNamespace("R.utils")
+  requireNamespace("utils")
 
   # 加密
   if (Encrypted.server) {
@@ -130,8 +133,6 @@ server <- function(input, output, session) {
   ######################################################### Reports page
   output$DirectoryTree <- renderPrint({
     path <- gsub("//+","/",data_meta$Reports.main)
-    library(data.tree)
-    library(plyr)
     # https://stackoverflow.com/questions/36094183/how-to-build-a-dendrogram-from-a-directory-tree
     x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
     x <- plyr::rbind.fill(x)
@@ -187,9 +188,9 @@ server <- function(input, output, session) {
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
         actionButton(inputId='openreportswebpage',
-                     label="View Reports",
+                     label="View/Download Reports",
                      value = "Open a new web page",
-                     onclick = 'window.open(reports_URL, "view reports", "resizable=no,toolbar=no,menubar=no,location=no,status=no")',
+                     onclick = 'window.open(reports_URL, "view and Download reports", "resizable=no,toolbar=no,menubar=no,location=no,status=no")',
                      icon = icon("file"),
                      class = "btn-primary")
         # tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
