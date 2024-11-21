@@ -190,7 +190,7 @@ server <- function(input, output, session) {
                      label="View Reports",
                      value = "Open a new web page",
                      onclick = 'window.open(reports_URL, "view reports", "resizable=no,toolbar=no,menubar=no,location=no,status=no")',
-                     icon = icon("file"))
+                     icon = icon("file"), class = "btn-primary")
         # tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
       }
     })
