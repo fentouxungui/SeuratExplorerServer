@@ -189,7 +189,7 @@ server <- function(input, output, session) {
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
         actionButton(inputId='openreportswebpage',
                      label="View/Download Reports",
-                     onclick = 'window.open(reports_URL, _blank")',
+                     onclick = 'window.open(reports_URL, "_blank")',
                      icon = icon("file"),
                      class = "btn-primary")
       }
