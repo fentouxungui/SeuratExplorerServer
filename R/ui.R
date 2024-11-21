@@ -70,8 +70,9 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     box(status = "primary", width = 12, title = "View Analysis Reports", collapsible = TRUE, solidHeader = TRUE,
                                         verbatimTextOutput(outputId = "DirectoryTree"),
                                         actionButton(inputId = "generatereports",label = "Generate/Update Reports", icon = icon("refresh"), class = "btn-primary"),
-                                        # br(),
-                                        uiOutput("ViewReports.UI")
+                                        # https://stackoverflow.com/questions/65767801/adjust-spacing-between-r-shinys-rendertext-elements
+                                        div(style = "margin-top: 10px;"), # 调整与上一个UI的间距，若无此代码，会紧紧的贴着。
+                                        uiOutput("ViewReports.UI", fill = TRUE)
                                         # conditionalPanel(
                                         #   condition = "reports.generated",
                                         #   box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,

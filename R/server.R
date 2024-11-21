@@ -62,7 +62,7 @@ server <- function(input, output, session) {
   # 但并不影响前台显示。
   observeEvent(input$submitdata,{
     shiny::req(input$Choosendata) # req: Check for required values; Choosendata is a data.frame
-    showModal(modalDialog(title = "Loading data...", "Please wait until data loaded!", footer= NULL, size = "l"))
+    showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
     if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # 首次加载
       data$obj <- SeuratExplorer:::prepare_seurat_object(obj = Seurat::UpdateSeuratObject(readRDS(file = input$Choosendata)))
@@ -190,7 +190,8 @@ server <- function(input, output, session) {
                      label="View Reports",
                      value = "Open a new web page",
                      onclick = 'window.open(reports_URL, "view reports", "resizable=no,toolbar=no,menubar=no,location=no,status=no")',
-                     icon = icon("file"), class = "btn-primary")
+                     icon = icon("file"),
+                     class = "btn-primary")
         # tags$a(class="btn btn-primary", href = reports_URL, "View Reports", target = "_blank")
       }
     })
