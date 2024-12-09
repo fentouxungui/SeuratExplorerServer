@@ -170,7 +170,7 @@ server <- function(input, output, session) {
 
   # 点击generate reports按钮，更新或者生成reports目录，然后加入一个view reports按钮，可链接到分析结果目录。
   observeEvent(input$generatereports,{
-    reports_dir <<- paste0("../", basename(getwd()), "_reports")
+    reports_dir <- paste0("../", basename(getwd()), "_reports")
     if (!dir.exists(reports_dir)) { # 生成
       showModal(modalDialog(title = "Generating reports...", "Please wait...", footer= NULL, size = "l"))
     }else{ # 更新
@@ -290,6 +290,7 @@ server <- function(input, output, session) {
 
   # do something when session ended
   session$onSessionEnded(function() {
+    reports_dir <- paste0("../", basename(getwd()), "_reports")
     if (!Encrypted.server) {
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('Hello, the session finally ended!')
