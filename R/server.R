@@ -115,7 +115,8 @@ server <- function(input, output, session) {
                   caption = htmltools::tags$caption(
                     style = 'caption-side: bottom; text-align: center;',
                     'Table 2: ', htmltools::em('cell metadata')),
-                  options = list(scrollX=TRUE, lengthMenu = c(5,10,15),
+                  options = list(scrollX=TRUE,
+                                 # lengthMenu = c(5,10,15),
                              paging = TRUE, searching = TRUE,
                              fixedColumns = TRUE, autoWidth = TRUE,
                              ordering = TRUE, dom = 'Bfrtip',

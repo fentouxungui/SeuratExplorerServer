@@ -55,11 +55,11 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                         shinycssloaders::withSpinner(uiOutput("SelectData.UI")),
                                         actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")
                                     ),
-                                    box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary",
+                                    box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
                                         DT::dataTableOutput("DataList")),
                                     conditionalPanel(
                                       condition = "output.file_loaded",
-                                      box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary",
+                                      box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
                                           shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
                                     ))
 
