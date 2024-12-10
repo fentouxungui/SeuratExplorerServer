@@ -82,7 +82,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   # body part for set default parameters
   tab_list[["settings"]] = tabItem(tabName = "settings",
                                    fluidRow(
-                                     box(textOutput("settings_warning"), title = "WARNING：", background = "orange", width = 12),
+                                     box(textOutput("settings_warning"), background = "orange", width = 12),
                                      box(status = "primary", width = 12, title = "Set Default Initialization Parameter", collapsible = TRUE, solidHeader = TRUE,
                                          verbatimTextOutput(outputId = "InfoForDataOpened"),
                                          shinycssloaders::withSpinner(uiOutput("SetSampleName.UI")),

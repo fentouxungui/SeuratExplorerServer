@@ -207,8 +207,7 @@ server <- function(input, output, session) {
   ##################################### settings
   # Warning
   output$settings_warning = renderText({
-    paste0('The changes take effect after you close the web page. And Only one sample can be modified at each app run.
-           修改参数后，需要您关闭网页后再重新打开，修改才能生效。注意每次只能修改一个样本的参数。')
+    paste0('注意：修改参数后，需要您关闭网页后重新打开，修改才能生效。每次只能修改一个样本的参数。')
   })
 
   output$InfoForDataOpened <- renderText({
