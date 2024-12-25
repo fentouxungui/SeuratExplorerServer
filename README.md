@@ -20,7 +20,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 > A:对于未公开的数据，一般会仅仅允许数据相关的人员可以获取和查看数据。对于已发表的数据，可以选择不设置密码。
 
 > Q: `SeuratExplorer`与`SeuratExplorerServer`的关系<br/>
-> A:`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的功能。
+> A:`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
 
 > Q: `SeuratExplorerServer`支持的分析报告类型<br/> A: pdf, html, tiff,
 > csv, jpg, jpeg, png, bmp,
@@ -32,8 +32,15 @@ You can install the development version of `SeuratExplorer` and
 `SeuratExplorerServer`like so:
 
 ``` r
+# install dependency
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("ComplexHeatmap")
+
 if(!require(devtools)){install.packages("devtools")}
 install_github("fentouxungui/SeuratExplorer")
+
+# install SeuratExplorerServer
 options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
@@ -132,10 +139,10 @@ data_meta <- data.frame(
 knitr::kable(data_meta)
 ```
 
-| Reports.main                        | Rds.path                    | Reports.second | Sample.name                    | SplitOptions.MaxLevel | Default.DimensionReduction | Default.ClusterResolution | Species | Description |
-|:------------------------------------|:----------------------------|:---------------|:-------------------------------|----------------------:|:---------------------------|:--------------------------|:--------|:------------|
-| inst/extdata/demo/fly-gut-EEs-scRNA | Rds-file/G101_PC20res04.rds | NA             | Fly-Gut-EEs-scRNAseq-GuoXT     |                     1 | tsne                       | res.0.4                   | Fly     | blabla      |
-| inst/extdata/demo/mouse-gut-haber   | haber.tsne.embeding.rds     | NA             | Mouse-Intestine-scRNAseq-Haber |                     4 | umap                       | NA                        | Mouse   | hahaha      |
+| Reports.main | Rds.path | Reports.second | Sample.name | SplitOptions.MaxLevel | Default.DimensionReduction | Default.ClusterResolution | Species | Description |
+|:---|:---|:---|:---|---:|:---|:---|:---|:---|
+| inst/extdata/demo/fly-gut-EEs-scRNA | Rds-file/G101_PC20res04.rds | NA | Fly-Gut-EEs-scRNAseq-GuoXT | 1 | tsne | res.0.4 | Fly | blabla |
+| inst/extdata/demo/mouse-gut-haber | haber.tsne.embeding.rds | NA | Mouse-Intestine-scRNAseq-Haber | 4 | umap | NA | Mouse | hahaha |
 
 ``` r
 # saveRDS(data_meta, file = "sample-paramters.rds")
@@ -145,10 +152,16 @@ Or:
 
 ``` r
 data_meta <- SeuratExplorerServer::initialize_metadata(
-  Reports.main = c("inst/extdata/demo/fly-gut-EEs-scRNA", "inst/extdata/demo/mouse-gut-haber"), # 必填项目
+  Reports.main = c("inst/extdata/demo/fly", "inst/extdata/demo/mouse"), # 必填项目
   Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"), # 必填项目
   Reports.second = c(NA, NA), # 必填项目
   Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber")) # 必填项目
+#> Warning: replacing previous import 'R.utils::validate' by 'shiny::validate'
+#> when loading 'SeuratExplorerServer'
+#> Warning: replacing previous import 'R.utils::setProgress' by
+#> 'shiny::setProgress' when loading 'SeuratExplorerServer'
+#> Warning: replacing previous import 'R.utils::timestamp' by 'utils::timestamp'
+#> when loading 'SeuratExplorerServer'
 #> data meta file check passed!
 #> data meta file initilized successfully!
 ```
@@ -157,10 +170,10 @@ data_meta <- SeuratExplorerServer::initialize_metadata(
 knitr::kable(data_meta)
 ```
 
-| Reports.main                        | Rds.path                    | Reports.second | Sample.name                    | Species | Description | Default.DimensionReduction | Default.ClusterResolution | SplitOptions.MaxLevel |
-|:------------------------------------|:----------------------------|:---------------|:-------------------------------|:--------|:------------|:---------------------------|:--------------------------|:----------------------|
-| inst/extdata/demo/fly-gut-EEs-scRNA | Rds-file/G101_PC20res04.rds | NA             | Fly-Gut-EEs-scRNAseq-GuoXT     | NA      | NA          | NA                         | NA                        | NA                    |
-| inst/extdata/demo/mouse-gut-haber   | haber.tsne.embeding.rds     | NA             | Mouse-Intestine-scRNAseq-Haber | NA      | NA          | NA                         | NA                        | NA                    |
+| Reports.main | Rds.path | Reports.second | Sample.name | Species | Description | Default.DimensionReduction | Default.ClusterResolution | SplitOptions.MaxLevel |
+|:---|:---|:---|:---|:---|:---|:---|:---|:---|
+| inst/extdata/demo/fly | Rds-file/G101_PC20res04.rds | NA | Fly-Gut-EEs-scRNAseq-GuoXT | NA | NA | NA | NA | NA |
+| inst/extdata/demo/mouse | haber.tsne.embeding.rds | NA | Mouse-Intestine-scRNAseq-Haber | NA | NA | NA | NA | NA |
 
 ``` r
 # saveRDS(data_meta, file = "sample-paramters.rds")
@@ -217,7 +230,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
     #>   [7] rmarkdown_2.27                  vctrs_0.6.5                    
     #>   [9] ROCR_1.0-11                     memoise_2.0.1                  
     #>  [11] spatstat.explore_3.2-7          askpass_1.2.0                  
-    #>  [13] htmltools_0.5.8.1               SeuratExplorerServer_0.0.1.0000
+    #>  [13] htmltools_0.5.8.1               SeuratExplorerServer_0.0.1.0002
     #>  [15] sass_0.4.9                      sctransform_0.4.1              
     #>  [17] parallelly_1.37.1               KernSmooth_2.23-24             
     #>  [19] bslib_0.7.0                     htmlwidgets_1.6.4              
@@ -270,7 +283,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
     #> [113] cli_3.6.3                       uwot_0.2.2                     
     #> [115] xtable_1.8-4                    reticulate_1.38.0              
     #> [117] munsell_0.5.1                   jquerylib_0.1.4                
-    #> [119] Rcpp_1.0.12                     SeuratExplorer_0.0.6.0000      
+    #> [119] Rcpp_1.0.12                     SeuratExplorer_0.0.6.2000      
     #> [121] globals_0.16.3                  spatstat.random_3.2-3          
     #> [123] png_0.1-8                       parallel_4.4.1                 
     #> [125] blob_1.2.4                      ggplot2_3.5.1                  
