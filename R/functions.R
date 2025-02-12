@@ -143,22 +143,3 @@ onStart <- function(Encrypted, credentials, paramterfile){
     cat("Session stopped\n")
   })
 }
-
-getExtension <- function(file){
-  ex <- strsplit(basename(file), split="\\.")[[1]]
-  return(ex[-1])
-}
-
-readSeurat <- function(path){
-  # read data
-  if (getExtension(basename(path)) == 'qs2') {
-    seu_obj <- qs2::qs_read(path)
-  }else(
-    seu_obj <- readRDS(path)
-  )
-  # check version
-  if (SeuratObject::Version(seu_obj) < packageVersion('SeuratObject')) {
-    seu_obj <- SeuratObject::UpdateSeuratObject(seu_obj)
-  }
-  return(seu_obj)
-}
