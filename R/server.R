@@ -107,7 +107,7 @@ server <- function(input, output, session) {
 
   # Render metadata table
   # 可以下载全部，参考：https://stackoverflow.com/questions/50039186/add-download-buttons-in-dtrenderdatatable
-  output$dataset_meta <- DT::renderDT(server=FALSE,{
+  output$dataset_meta <- DT::renderDT(server=TRUE,{
     shiny::req(data$obj)
     message("Preparing dataset_meta...")
     # Show data
