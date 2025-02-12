@@ -150,9 +150,15 @@ getExtension <- function(file){
 }
 
 readSeurat <- function(path){
+  # read data
   if (getExtension(basename(path)) == 'qs2') {
-    return(qs2::qs_read(path))
+    seu_obj <- qs2::qs_read(path)
   }else(
-    return(readRDS(path))
+    seu_obj <- readRDS(path)
   )
+  # check version
+  if (SeuratObject::Version(seu_obj) < packageVersion('SeuratObject')) {
+    seu_obj <- SeuratObject::UpdateSeuratObject(seu_obj)
+  }
+  return(seu_obj)
 }
