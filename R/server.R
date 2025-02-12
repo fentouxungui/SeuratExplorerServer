@@ -68,7 +68,7 @@ server <- function(input, output, session) {
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
     if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # 首次加载
-      data$obj <- SeuratExplorer:::prepare_seurat_object(obj = Seurat::UpdateSeuratObject(readRDS(file = input$Choosendata)))
+      data$obj <- SeuratExplorer:::prepare_seurat_object(obj = Seurat::UpdateSeuratObject(readSeurat(path = input$Choosendata)))
       data$Name <- data_meta$Sample.name[which_data]
       data$Path <- input$Choosendata
       data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # 如果是NA值，输出为NULL
