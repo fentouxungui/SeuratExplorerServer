@@ -25,4 +25,5 @@ Imports:
     htmltools,
     data.tree,
     plyr,
-    ggplot2
+    ggplot2,
+    qs2
