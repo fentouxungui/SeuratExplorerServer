@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 > Q: 为什么搞这个R包<br/>
-A: ``SeuratExplorer``相当于一个桌面版软件，可以在本地电脑上查看和分析``Seurat``对象，即使把``SeuratExplorer``安装到服务器上，那也只能通过上传数据来浏览客户端电脑上的``Seurat``对象，无法查看位于服务器上的数据。``SeuratExplorerServer``的开发目的是，允许用户利用服务器硬件资源，通过网页浏览器来查看位于服务器上的``Seurat``对象数据，该R包不仅具有``SeuratExplorer``R 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护功能和自定义部分初始化参数。
+A: ``SeuratExplorer``相当于一个桌面版软件，允许在本地电脑上查看和分析``Seurat``分析结果，即使把``SeuratExplorer``安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而``SeuratExplorerServer``可作为**Shiny app**部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有``SeuratExplorer``R 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护功能和自定义部分初始化参数。
 
 > Q: 为啥要多数据切换<br/>
 A:有时在做完分析后，会需要提取某些cell type的细胞，然后再重新分析，得到新的``Seurat``对象，这样同一个project下就会有多个``Seurat``对象。
