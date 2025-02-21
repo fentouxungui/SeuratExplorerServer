@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 > Q: 为什么搞这个R包<br/> A:
@@ -197,12 +197,7 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 
 <img src="inst/extdata/www/login.png" width="100%" /><img src="inst/extdata/www/dataset.png" width="100%" /><img src="inst/extdata/www/reports-main.png" width="100%" /><img src="inst/extdata/www/reports-2.png" width="100%" /><img src="inst/extdata/www/reports-3.png" width="100%" /><img src="inst/extdata/www/settings.png" width="100%" />
 
-## 7. To Do List
-
-- 支持空间转录组数据，`SeuratExplorer`
-  related，比较复杂，以后有精力再做.
-
-## 8. Rsession info
+## 7. Rsession info
 
     #> R version 4.4.1 (2024-06-14 ucrt)
     #> Platform: x86_64-w64-mingw32/x64

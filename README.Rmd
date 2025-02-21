@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # SeuratExplorerServer
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 > Q: 为什么搞这个R包<br/>
@@ -181,12 +181,7 @@ knitr::include_graphics("inst/extdata/www/reports-3.png")
 knitr::include_graphics("inst/extdata/www/settings.png")
 ```
 
-## 7. To Do List
-
-- 支持空间转录组数据，``SeuratExplorer`` related，比较复杂，以后有精力再做.
-
-
-## 8. Rsession info
+## 7. Rsession info
 
 ```{r echo=FALSE}
 sessionInfo()
