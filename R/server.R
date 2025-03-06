@@ -251,7 +251,7 @@ server <- function(input, output, session) {
 
   output$SetDefaultSplitMaxLevels.UI <- renderUI({
     message("Preparing SetDefaultSplitMaxLevels.UI...")
-    sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 20, value = data$split_maxlevel)
+    sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 50, value = data$split_maxlevel)
   })
 
   observeEvent(input$submitsettings,{
