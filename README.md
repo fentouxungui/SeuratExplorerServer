@@ -84,8 +84,6 @@ demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
 
 ``` r
 # app.R
-options(timeout = max(300, getOption("timeout")))
-
 library(SeuratExplorerServer)
 launchSeuratExplorerServer(Encrypted = TRUE,
                            credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
