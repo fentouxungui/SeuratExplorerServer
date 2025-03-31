@@ -2,7 +2,7 @@
 % Please edit documentation in R/server.R
 \name{server}
 \alias{server}
-\title{Server for SeuratExplorer shiny app}
+\title{Shiny Server}
 \usage{
 server(input, output, session)
 }
@@ -11,8 +11,11 @@ server(input, output, session)
 
 \item{output}{Output to send back to UI}
 
-\item{session}{from shiny server function}
+\item{session}{shiny session}
+}
+\value{
+shiny server functions
 }
 \description{
-Server for SeuratExplorer shiny app
+Shiny Server
 }

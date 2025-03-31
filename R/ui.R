@@ -1,40 +1,39 @@
 # ui.R
-# R shiny UI for SeuratExplorer
+# shiny UI
 
 #' UI for shiny App interface
 #'
-#' @param Encrypted.app 是否要加密App
-#' @param TechnicianEmail 技术人员的联系邮箱
-#' @param TechnicianName 技术人员的名字
-#'
-#' @import shiny SeuratExplorer
+#' @param Encrypted.app weather to encrypt app
+#' @param TechnicianEmail Email of the technician
+#' @param TechnicianName Name of the technician
+#' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
+#' @import SeuratExplorer
 #' @import shinydashboard shinyWidgets shinymanager
+#' @importFrom shinydashboard menuItem menuSubItem sidebarMenu tabItem box
+#' @importFrom shinycssloaders withSpinner
+#' @importFrom DT DTOutput
 #' @export
-ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", TechnicianName = "ZhangYongchao"){
-  requireNamespace("shinydashboard")
-  requireNamespace("shinyWidgets")
-  requireNamespace("SeuratExplorer")
-  requireNamespace("shinymanager")
-
-  # notificationItem 默认函数无法在新页面打开链接; refer to: https://forum.posit.co/t/shinydashboard-notification-item-with-link-in-new-tab/37580/2
+#' @return shiny UI
+#'
+ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", TechnicianName = "Zhang Yongchao"){
+  # shinydashboard::notificationItem: the default function can not open link
+  # to make a new function: refer to: https://forum.posit.co/t/shinydashboard-notification-item-with-link-in-new-tab/37580/2
   notificationItemWithAttr <- function(text, icon = shiny::icon("warning"), status = "success", href = NULL, ...) {
-    if (is.null(href))
-      href <- "#"
-    icon <- tagAppendAttributes(icon, class = paste0("text-",
-                                                     status))
+    if (is.null(href)){href <- "#"}
+    icon <- tagAppendAttributes(icon, class = paste0("text-", status))
     tags$li(a(href = href, icon, text, ...))
   }
 
   # Header ----
-  header = dashboardHeader(
-    title = "SeuratExplorer Server",
-    # Dropdown menu for github
-    dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
+  header = shinydashboard::dashboardHeader(
+    title = p(strong(em("SeuratExplorer Server"))),
+    # Dropdown menu for R package on github page
+    shinydashboard::dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorerServer", href = "https://github.com/fentouxungui/SeuratExplorerServer", target = "_blank")))
 
   # Sidebar ----
-  sidebar = dashboardSidebar(
+  sidebar = shinydashboard::dashboardSidebar(
     sidebarMenu(
       menuItem("Dataset", tabName = "dataset", icon = icon("database")),
       sidebarMenu(menuItem("Reports", tabName = "reports", icon = icon("file"))),
@@ -50,20 +49,17 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
 
   tab_list[["dataset"]] = tabItem(tabName = "dataset",
                                   fluidRow(
-                                    # 选择数据
+                                    # choose a data
                                     box(status = "primary", title = "Select Data", width = 12, collapsible = TRUE, solidHeader = TRUE,
-                                        shinycssloaders::withSpinner(uiOutput("SelectData.UI")),
-                                        actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")
-                                    ),
+                                        withSpinner(uiOutput("SelectData.UI")),
+                                        actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")),
                                     box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
-                                        DT::dataTableOutput("DataList")),
+                                        DTOutput("DataList")),
                                     conditionalPanel(
                                       condition = "output.file_loaded",
                                       box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
-                                          shinycssloaders::withSpinner(DT::dataTableOutput('dataset_meta')))
+                                          withSpinner(DTOutput('dataset_meta'))))
                                     ))
-
-  )
 
   tab_list[["reports"]] = tabItem(tabName = "reports",
                                   fluidRow(
@@ -71,10 +67,9 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                         verbatimTextOutput(outputId = "DirectoryTree"),
                                         actionButton(inputId = "generatereports",label = "Generate/Update Reports", icon = icon("refresh"), class = "btn-primary"),
                                         # https://stackoverflow.com/questions/65767801/adjust-spacing-between-r-shinys-rendertext-elements
-                                        div(style = "margin-top: 10px;"), # 调整与上一个UI的间距，若无此代码，会紧紧的贴着。
-                                        uiOutput("ViewReports.UI")
-                                        ))
- )
+                                        div(style = "margin-top: 10px;"), # adjust the space with the last UI, without this code, it will be too close to the last UI.
+                                        uiOutput("ViewReports.UI"))
+                                    ))
 
   # body part for Seurat Explorer functions
   tab_list <- SeuratExplorer::explorer_body_ui(tab_list = tab_list)
@@ -85,28 +80,23 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                      box(textOutput("settings_warning"), background = "orange", width = 12),
                                      box(status = "primary", width = 12, title = "Set Default Initialization Parameter", collapsible = TRUE, solidHeader = TRUE,
                                          verbatimTextOutput(outputId = "InfoForDataOpened"),
-                                         shinycssloaders::withSpinner(uiOutput("SetSampleName.UI")),
-                                         shinycssloaders::withSpinner(uiOutput("SetSpecies.UI")),
-                                         shinycssloaders::withSpinner(uiOutput("SetDescription.UI")),
-                                         shinycssloaders::withSpinner(uiOutput("SetDefaultReduction.UI")),
-                                         shinycssloaders::withSpinner(uiOutput("SetDefaultCluster.UI")),
-                                         shinycssloaders::withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
-                                         actionButton(inputId = "submitsettings",label = "Save", icon = icon("save"), class = "btn-primary")
+                                         withSpinner(uiOutput("SetSampleName.UI")),
+                                         withSpinner(uiOutput("SetSpecies.UI")),
+                                         withSpinner(uiOutput("SetDescription.UI")),
+                                         withSpinner(uiOutput("SetDefaultReduction.UI")),
+                                         withSpinner(uiOutput("SetDefaultCluster.UI")),
+                                         withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
+                                         actionButton(inputId = "submitsettings",label = "Save", icon = icon("save"), class = "btn-primary"))
                                      ))
- )
 
   body = dashboardBody(
     div(class= "tab-content", tab_list),
-    tags$script(HTML(
-      "document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';"
-    )) # 不显示dropdownMenu中notification的数目， refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
-  )
+    # to hide how many notifications in shinydashboard::dropdownMenu(), refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
+    tags$script(HTML("document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';")))
 
-
-
-  # 整合到一起
-  ui_out <- dashboardPage(header, sidebar, body)
-  # 加密UI
+  # combine
+  ui_out <- dashboardPage(header, sidebar, body, title = "SeuratExplorer Server")
+  # encrypt
   if (Encrypted.app) {
     ui_out <- shinymanager::secure_app(ui = ui_out,
                                        tags_bottom = tags$div(tags$p("For any question, please  contact ",

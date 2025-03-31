@@ -7,21 +7,25 @@
 launchSeuratExplorerServer(
   Encrypted = TRUE,
   credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-  paramterfile = SeuratExplorerServer:::revise_path(),
+  paramterfile = revise_demo_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
-  TechnicianName = "ZhangYongchao"
+  TechnicianName = "ZhangYongchao",
+  verbose = FALSE
 )
 }
 \arguments{
-\item{Encrypted}{是否加密App}
+\item{Encrypted}{weather to encrypt app}
 
-\item{credentials}{密码文件}
+\item{credentials}{a data frame with the credentials}
 
-\item{paramterfile}{参数文件}
+\item{paramterfile}{path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
+SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Species, and Description}
 
-\item{TechnicianEmail}{技术人员邮箱}
+\item{TechnicianEmail}{Email of the technician}
 
-\item{TechnicianName}{技术人员姓名}
+\item{TechnicianName}{Name of the technician}
+
+\item{verbose}{for debug use}
 }
 \value{
 In-browser Shiny Application launch
@@ -30,5 +34,5 @@ In-browser Shiny Application launch
 Launch shiny app
 }
 \examples{
-# launchSeuratExplorerServer()
+if(interactive()){launchSeuratExplorerServer()}
 }

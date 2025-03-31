@@ -7,15 +7,18 @@
 ui(
   Encrypted.app,
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
-  TechnicianName = "ZhangYongchao"
+  TechnicianName = "Zhang Yongchao"
 )
 }
 \arguments{
-\item{Encrypted.app}{是否要加密App}
+\item{Encrypted.app}{weather to encrypt app}
 
-\item{TechnicianEmail}{技术人员的联系邮箱}
+\item{TechnicianEmail}{Email of the technician}
 
-\item{TechnicianName}{技术人员的名字}
+\item{TechnicianName}{Name of the technician}
+}
+\value{
+shiny UI
 }
 \description{
 UI for shiny App interface

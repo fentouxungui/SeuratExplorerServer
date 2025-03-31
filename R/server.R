@@ -1,46 +1,52 @@
 # server.R
-## R shiny server side for SeuratExplorer
+## shiny server
 
-#' Server for SeuratExplorer shiny app
-#' @import shiny ggplot2 utils
-#' @import Seurat SeuratObject SeuratExplorer
+#' Shiny Server
+#' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
+#' @import ggplot2 utils shinydashboard shinyWidgets shinymanager
+#' @import Seurat SeuratObject SeuratExplorer data.tree
+#' @importFrom plyr rbind.fill
+#' @importFrom DT renderDT datatable
+#' @importFrom utils getFromNamespace
+#' @importFrom stats na.omit
 #' @param input Input from the UI
 #' @param output Output to send back to UI
-#' @param session from shiny server function
+#' @param session shiny session
 #' @export
+#' @return shiny server functions
+#'
 server <- function(input, output, session) {
-  requireNamespace("Seurat")
-  requireNamespace("ggplot2")
-  requireNamespace("shinyWidgets")
-  requireNamespace("shinydashboard")
-  requireNamespace("SeuratObject")
-  requireNamespace("shinymanager")
-  requireNamespace("data.tree")
-  requireNamespace("plyr")
-  requireNamespace("SeuratExplorer")
-  requireNamespace("R.utils")
-  requireNamespace("utils")
+  # define some basic functions, ::: is not allowed in R package
+  # Using an un-exported function from annother R package:
+  # https://stackoverflow.com/questions/32535773/using-un-exported-function-from-another-r-package
+  prepare_cluster_options <- getFromNamespace('prepare_cluster_options', 'SeuratExplorer')
+  prepare_qc_options <- getFromNamespace('prepare_qc_options', 'SeuratExplorer')
+  prepare_reduction_options <- getFromNamespace('prepare_reduction_options', 'SeuratExplorer')
+  prepare_seurat_object <- getFromNamespace('prepare_seurat_object', 'SeuratExplorer')
+  prepare_split_options <- getFromNamespace('prepare_split_options', 'SeuratExplorer')
+  readSeurat <- getFromNamespace('readSeurat', 'SeuratExplorer')
 
-  # 加密
-  if (Encrypted.server) {
-    res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = credentials.server))
+  # encrypt
+  if (getOption("SeuratExplorerServerEncrypted")){
+    res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = getOption("SeuratExplorerServerCredentials")))
   }
 
 
-  ############################################################# Dataset Page
-  # 用于缓存数据
+  # Data set Page
+  data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParamterfile")))
+
+  ## to cache data
   cache.rds.list <- list()
-  # 展示元数据
-  output$DataList <- DT::renderDataTable(DT::datatable(data_meta,
-                                                       class = 'cell-border stripe',
-                                                       caption = htmltools::tags$caption(
-                                                         style = 'caption-side: bottom; text-align: center;',
-                                                         'Table 1: ', htmltools::em('Sample metadata for this App')),
-                                                       options = list(searching = FALSE, scrollX = T))
-  )
+  ## data information UI
+  output$DataList <- renderDT(datatable(data_meta,
+                                        class = 'cell-border stripe',
+                                        caption = htmltools::tags$caption(
+                                          style = 'caption-side: bottom; text-align: center;',
+                                          'Table 1: ', htmltools::em('Sample metadata for this App')),
+                                        options = list(searching = FALSE, scrollX = T)))
 
 
-  # 返回数据选择UI
+  ## data selection UI
   output$SelectData.UI <- renderUI({
     choices <- data_meta$Rds.full.path
     names(choices)  <- paste0(data_meta$Sample.name, " [",data_meta$Rds.File.size, "]")
@@ -50,8 +56,8 @@ server <- function(input, output, session) {
                  selected = unname(choices[1]))
   })
 
-  ## Dataset tab ----
-  # reactiveValues: Create an object for storing reactive values,similar to a list,
+  ## create data
+  ## reactiveValues: Create an object for storing reactive values,similar to a list,
   data = reactiveValues(obj = NULL, loaded = FALSE, Name = NULL, Path = NULL,
                         Species = NULL, Description = NULL,
                         reduction_options = NULL, reduction_default = NULL,
@@ -60,28 +66,28 @@ server <- function(input, output, session) {
                         extra_qc_options = NULL)
 
 
-  # 选择好数据后，读入数据
-  # 潜在问题： 在切换数据时，data$obj先发生了变化会引起reactive，此时default reduction等仍为先前数据的配置，后台会抛出一个错误：Warning: Error in [.data.frame: 选择了未定义的列
-  # 但并不影响前台显示。
+  ## read in data after data selection
+  ## possible problem: when switch data, data$obj will change firstly, while the default reduction and other options is still the previous configuration,
+  ## background will throw an error: Warning: Error in [.data.frame: Undefined columns are selected, but the UI will not show the error.
   observeEvent(input$submitdata,{
-    shiny::req(input$Choosendata) # req: Check for required values; Choosendata is a data.frame
+    shiny::req(input$Choosendata)
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
-    if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # 首次加载
-      data$obj <- SeuratExplorer:::prepare_seurat_object(obj = SeuratExplorer:::readSeurat(path = input$Choosendata))
+    if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # first time load
+      data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata))
       data$Name <- data_meta$Sample.name[which_data]
       data$Path <- input$Choosendata
-      data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # 如果是NA值，输出为NULL
-      data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # 如果是NA值，输出为NULL
-      data$reduction_options <- SeuratExplorer:::prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
-      data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # 如果是NA值，输出为NULL
-      data$cluster_options <- SeuratExplorer:::prepare_cluster_options(df = data$obj@meta.data)
-      data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # 如果是NA值，输出为NULL
-      data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){6}else{data_meta$SplitOptions.MaxLevel[which_data]} # 如果是NA值，设为6，决定了split选项
-      data$split_options <- SeuratExplorer:::prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
-      data$extra_qc_options <- SeuratExplorer:::prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
-      cache.rds.list[[data_meta$Sample.name[which_data]]] <<- reactiveValuesToList(data)
-    }else{ # 之前加载过
+      data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
+      data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
+      data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
+      data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
+      data$cluster_options <- prepare_cluster_options(df = data$obj@meta.data)
+      data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # if NA value, return NULL
+      data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){default_split_options_max_level}else{data_meta$SplitOptions.MaxLevel[which_data]} # if NA value, use split options level cutoff
+      data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
+      data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
+      cache.rds.list[[data_meta$Sample.name[which_data]]] <- reactiveValuesToList(data)
+    }else{ # for data loaded before
       data$obj <- cache.rds.list[[data_meta$Sample.name[which_data]]]$obj
       data$Name <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Name
       data$Path <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Path
@@ -95,23 +101,22 @@ server <- function(input, output, session) {
       data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
       data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
     }
-    message("data loaded successfully!")
+    if(getOption("SeuratExplorerServerVerbose")){message("data loaded successfully!")}
     removeModal()
   })
 
-  # 数据加载成功后，设置loaded为TRUE
+  ## when data loaded successfully, set loaded to TRUE
   observe({
     req(data$obj)
     data$loaded = !is.null(data$obj)
   })
 
-  # Render metadata table
-  # 可以下载全部，参考：https://stackoverflow.com/questions/50039186/add-download-buttons-in-dtrenderdatatable
-  output$dataset_meta <- DT::renderDT(server=TRUE,{
+  ## Render metadata table
+  output$dataset_meta <- renderDT(server=TRUE,{
     shiny::req(data$obj)
-    message("Preparing dataset_meta...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing dataset_meta...")}
     # Show data
-    DT::datatable(data$obj@meta.data, extensions = 'Buttons',
+    datatable(data$obj@meta.data, extensions = 'Buttons',
                   caption = htmltools::tags$caption(
                     style = 'caption-side: bottom; text-align: center;',
                     'Table 2: ', htmltools::em('cell metadata')),
@@ -123,20 +128,22 @@ server <- function(input, output, session) {
                              buttons = c('copy', 'csv', 'excel')))
   })
 
-  # Conditional panel control based on loaded obj，条件panel,数据记载成功后，显示：dashboardSidebar -sidebarMenu - menuItem - Explorer和 dashboardBody - dataset - tabItem -  box - Cell Meta Info
+  ## Conditional panel control based on loaded obj
   output$file_loaded = reactive({
     return(data$loaded)
   })
 
-  # Disable suspend for output$file_loaded, 当被隐藏时，禁用暂停，conditionalpanel所需要要的参数
+  ## Disable suspend for output$file_loaded
+  ## When TRUE (the default), the output object will be suspended (not execute) when it is hidden on the web page.
+  ## When FALSE, the output object will not suspend when hidden, and if it was already hidden and suspended, then it will resume immediately.
   outputOptions(output, 'file_loaded', suspendWhenHidden=FALSE)
 
-  ######################################################### Reports page
+  # Reports page
   output$DirectoryTree <- renderPrint({
     path <- gsub("//+","/",data_meta$Reports.main)
     # https://stackoverflow.com/questions/36094183/how-to-build-a-dendrogram-from-a-directory-tree
     x <- lapply(strsplit(path, "/"), function(z) as.data.frame(t(z)))
-    x <- plyr::rbind.fill(x)
+    x <- rbind.fill(x)
     equal.index <- apply(x, 2, function(x)length(unique(x)) == 1)
     if (all(equal.index)) {
       x <- x[,(ncol(x) - 1):ncol(x)]
@@ -146,13 +153,15 @@ server <- function(input, output, session) {
     x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
     x$SampleName <- data_meta$Sample.name
     mytree <- data.tree::as.Node(x)
-    message("Preparing DirectoryTree...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing DirectoryTree...")}
     print(mytree, "SampleName")
-  }, width = 300) # 每行300个字符
+  }, width = 300) # max 300 characters allowed for each line
 
-  # 调试IP地址用的
+  reports_dir <- paste0("../", basename(getwd()), "_reports")
+
+  ## to show data web address
   output$reports_not_work <- renderText({
-    message("Preparing reports_not_work...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing reports_not_work...")}
     full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
     reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
     paste(sep = "",
@@ -168,28 +177,27 @@ server <- function(input, output, session) {
     )
   })
 
-  # 点击generate reports按钮，更新或者生成reports目录，然后加入一个view reports按钮，可链接到分析结果目录。
+  # click generate reports button to update or generate reports web page, and add a view reports button to link the analysis results
   observeEvent(input$generatereports,{
-    reports_dir <- paste0("../", basename(getwd()), "_reports")
-    if (!dir.exists(reports_dir)) { # 生成
+    if (!dir.exists(reports_dir)) { # generate reports directory
       showModal(modalDialog(title = "Generating reports...", "Please wait...", footer= NULL, size = "l"))
-    }else{ # 更新
+    }else{ # update reports directory
       showModal(modalDialog(title = "Updating reports...", "Please wait...", footer= NULL, size = "l"))
       unlink(reports_dir, recursive = TRUE)
     }
     dir.create(reports_dir)
-    message("Preparing the reports direcotry, Please wait a moment...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing the reports direcotry, Please wait a moment...")}
     prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
     removeModal()
-    output$ViewReports.UI <- renderUI({ # 生成view reports UI
-      message("Preparing ReportURL.UI...")
+    output$ViewReports.UI <- renderUI({ # generate view reports UI
+      if(getOption("SeuratExplorerServerVerbose")){message("Preparing ReportURL.UI...")}
       if (session$clientData$url_pathname == "/") {
         verbatimTextOutput(outputId = "reports_not_work")
       }else{
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
         # https://stackoverflow.com/questions/37795760/r-shiny-add-weblink-to-actionbutton
-        message(paste0("Reports url: ", reports_URL))
+        if(getOption("SeuratExplorerServerVerbose")){message(paste0("Reports url: ", reports_URL))}
         actionButton(inputId='openreportswebpage',
                      label="View/Download Reports",
                      onclick = paste0("window.open('", reports_URL, "','_blank')"),
@@ -201,17 +209,17 @@ server <- function(input, output, session) {
 
 
 
-  ##################################### Seurat explorer functions
-  SeuratExplorer::explorer_server(input = input, output = output, session = session, data = data)
+  # Seurat explorer functions
+  SeuratExplorer::explorer_server(input = input, output = output, session = session, data = data, verbose = getOption("SeuratExplorerServerVerbose"))
 
-  ##################################### settings
-  # Warning
+  # settings
+  ## Warning
   output$settings_warning = renderText({
-    paste0('注意：修改参数后，需要您关闭网页后重新打开，修改才能生效。每次只能修改一个样本的参数。')
+    paste0('Note: modifications take effect next time you open this app. Only one sample can be modified at each time.')
   })
 
   output$InfoForDataOpened <- renderText({
-    message("Preparing InfoForDataOpened...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing InfoForDataOpened...")}
     which_data <- match(data$Path, data_meta$Rds.full.path)
     paste(sep = "",
           "Data Opened: ",               data_meta$Sample.name[which_data],     "\n",
@@ -225,32 +233,32 @@ server <- function(input, output, session) {
   })
 
   output$SetSampleName.UI <- renderUI({
-    message("Preparing SetSampleName.UI...")
-    textInput(inputId = "NewName", label = "Sample Name:", value = data$Name, placeholder = "Suggest only use letters, numbers, undersocres. And not too long.")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetSampleName.UI...")}
+    textInput(inputId = "NewName", label = "Sample Name:", value = data$Name, placeholder = "Suggest only use letters, numbers, undersocres, and not too long.")
   })
 
   output$SetSpecies.UI <- renderUI({
-    message("Preparing SetSpecies.UI...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetSpecies.UI...")}
     selectInput(inputId = "NewSpecies", label = "Choose the Species:", choices = c(Human = "Human", Mouse = "Mouse", Fly = "Fly", Others = "Others"), selected = data$Species)
   })
 
   output$SetDescription.UI <- renderUI({
-    message("Preparing SetDescription.UI...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDescription.UI...")}
     textAreaInput(inputId = "NewDescription", label = "Sample Description:", value = data$Description, placeholder = "Do not use special characters")
   })
 
   output$SetDefaultReduction.UI <- renderUI({
-    message("Preparing SetDefaultReduction.UI...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultReduction.UI...")}
     selectInput("NewDefaultReduction", "Dimension Reduction:", choices = data$reduction_options, selected = data$reduction_default)
   })
 
   output$SetDefaultCluster.UI <- renderUI({
-    message("Preparing SetDefaultCluster.UI...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultCluster.UI...")}
     selectInput("NewDefaultCluster","Cluster Resolution:", choices = data$cluster_options, selected = data$cluster_default)
   })
 
   output$SetDefaultSplitMaxLevels.UI <- renderUI({
-    message("Preparing SetDefaultSplitMaxLevels.UI...")
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultSplitMaxLevels.UI...")}
     sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 50, value = data$split_maxlevel)
   })
 
@@ -269,12 +277,12 @@ server <- function(input, output, session) {
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
       data_meta_new$Rds.File.size <- NULL
-      saveRDS(data_meta_new, file = paramterfile.server)
+      saveRDS(data_meta_new, file = getOption("SeuratExplorerServerParamterfile"))
       # R Shiny app shows old data
       # https://stackoverflow.com/questions/37408072/r-shiny-app-shows-old-data
       p <- paste0(getwd(), "/app.R")
       if(file.exists(p)){
-        print("update app.R file, in case of Shiny use cached data when restart.")
+        print("update app.R file, in case of Shiny not refresh when restart.")
         R.utils::touchFile(p)}
       showModal(modalDialog(title = "Success:","New settings has beed saved successfully. restart App to use the latest settings.",easyClose = TRUE,footer = NULL))
       removeUI(selector = "div:has(> #NewName)")
@@ -290,13 +298,12 @@ server <- function(input, output, session) {
   # do something when session ended
   session$onSessionEnded(function() {
     reports_dir <- paste0("../", basename(getwd()), "_reports")
-    if (!Encrypted.server) {
+    if (!getOption("SeuratExplorerServerEncrypted")){
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('Hello, the session finally ended!')
-    }else if(!is.null(isolate({res_auth$user}))){ # 注意，shinymanager登陆成功后也会触发session ended
+    }else if(!is.null(isolate({res_auth$user}))){ # attention: shinymanager load can also cause session ended
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('Hello, the session finally ended!')
     }
   })
-
 }

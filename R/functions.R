@@ -1,87 +1,111 @@
-check_metedata <- function(parameters){
+#' Check and arrange the data in the metadata
+#'
+#' @param parameters a dataframe of the sample metadata info
+#'
+#' @return dataframe: a check passed metadata
+#' @export
+#'
+#' @examples
+#' library(SeuratExplorerServer)
+#' data_meta <- initialize_metadata(Reports.main = c(
+#' system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
+#' system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+#' Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
+#' Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
+#' "Mouse-Intestine-scRNAseq-Haber"))
+#' invisible(check_metadata(parameters = data_meta))
+check_metadata <- function(parameters){
   requireNamespace("shinydashboard")
   requireNamespace("utils")
 
-  # 1. 检查路径是否正确
+  # check the path of rds or qs2 file
   parameters$Rds.full.path <- paste(parameters$Reports.main, parameters$Rds.path,sep = "/")
    if (!all(file.exists(parameters$Rds.full.path))) {
     stop("Please contact data curator to report this error, this error is related to the Reports.main and Rds.path columns in data meta!")
   }else{
-    parameters$Rds.File.size <- sapply(file.size(parameters$Rds.full.path), function(x)utils:::format.object_size(x, "auto"))
-    # 2. 检查Reports.second路径是否都存在
+    format.object_size <- getFromNamespace('format.object_size', 'utils')
+    parameters$Rds.File.size <- sapply(file.size(parameters$Rds.full.path), function(x)format.object_size(x, "auto"))
+    # check Reports.second directory exits
     second_dirs <- as.vector(na.omit(parameters$Reports.second))
     if (length(second_dirs) > 0) {
       if (!all(dir.exists(second_dirs))) {
         stop("Please contact data curator to report this error! this error is related to the second_dirs column in data meta!")
       }
     }
-    # 2. 检查sample name
+
+    # check sample name
+    postfix_pattern_to_be_removed <- paste0("(.", paste0(supported_file_types, collapse = "$)|("), "$)")
     if (is.null(parameters$Sample.name)) {
-      parameters$Sample.name <- gsub(".rds", basename(parameters$Rds.path),fixed = TRUE)
-    }else if (any(is.na(parameters$Sample.name))) {
-      parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(".rds", basename(parameters$Rds.path[is.na(parameters$Sample.name)]),fixed = TRUE)
+      parameters$Sample.name <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path),fixed = TRUE, ignore.case = TRUE)
+    }else if(any(is.na(parameters$Sample.name))) {
+      parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path[is.na(parameters$Sample.name)]),fixed = TRUE, ignore.case = TRUE)
     }
-    # 3. 依据main directory名排序
+    # arrange by main directory
     parameters <- parameters[order(parameters$Reports.main),]
-    message("data meta file check passed!")
     return(parameters)
   }
 }
 
 prepare_reports <- function(reports_dir, data_meta){
-  file.types = "(\\.html$)|(\\.tiff$)|(\\.csv$)|(\\.pdf$)|(\\.jpg$)|(\\.jpeg$)|(\\.png$)|(\\.bmp$)|(\\.svg$)"
-  # 生成from+to data.frame for 主分析目录
+  file.types.pttern = paste0("(\\.", paste0(file_types_included_in_reports, collapse = "$)|(\\."), "$)")
+  # generate from + to data.frame for main directory
   links.db.list <- list()
   for (i in 1:nrow(data_meta)) {
-    links.from <- list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types, full.names = TRUE)
-    links.to <- paste0(reports_dir, "/", data_meta$Sample.name[i], "/", list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types, full.names = FALSE))
+    links.from <- list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types.pttern, full.names = TRUE)
+    links.to <- paste0(reports_dir, "/", data_meta$Sample.name[i], "/", list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types.pttern, full.names = FALSE))
     if (length(links.from) != 0) {
       links.db.list[[data_meta$Sample.name[i]]] <- data.frame(from = links.from, to = links.to)
     }
   }
-  # 次要分析目录（新建连接到others文件目录下） 可能的问题，如果两个目录有相同的文件，会被覆盖！
+  # secondary analysis directory, under others directory, possible problem: link will be rewrite by files with same name.
   second_dirs <- unique(as.vector(na.omit(data_meta$Reports.second)))
   if (length(second_dirs) > 0) {
     links.from <- c()
     links.to <- c()
     for (i in second_dirs) {
-      links.from <- append(links.from, list.files(i, recursive = TRUE, pattern = file.types, full.names = TRUE))
-      links.to <- append(links.to, paste0(reports_dir, "/others/", list.files(i, recursive = TRUE, pattern = file.types, full.names = FALSE)))
+      links.from <- append(links.from, list.files(i, recursive = TRUE, pattern = file.types.pttern, full.names = TRUE))
+      links.to <- append(links.to, paste0(reports_dir, "/others/", list.files(i, recursive = TRUE, pattern = file.types.pttern, full.names = FALSE)))
     }
     if (length(links.from) != 0) {
       links.db.list[["others"]] <- data.frame(from = links.from, to = links.to)
     }
   }
-  if (length(links.db.list) != 0) { # 如果确实存在中间分析文件
+  if (length(links.db.list) != 0) { # if does has reports files
     links.db <- Reduce(rbind, links.db.list)
-    # 创建链接
+    # create links
     if (nrow(links.db) > 0) {
       for (i in 1:nrow(links.db)) {
         suppressWarnings(R.utils::createLink(link = links.db$to[i], target = links.db$from[i], skip = TRUE))
       }
     }
   }
-  message("reports prepared successfully!")
+  if(getOption("SeuratExplorerServerVerbose")){message("reports prepared successfully!")}
 }
 
-#' 初始化样本的元数据信息
+#' initialize sample metadata
 #' @description
-#' 搭建新的app时，用于初始化元数据，记录了数据的分析主要和次要分析目录、Rds文件的在主分析目录中的路径和各样本的名字，主要分析目录会包含Rds文件。
+#' When building a new app, it is used to initialise the metadata, which records the primary and secondary analysis
+#' directories for the data, the path of the rds/qs2 file under the primary analysis directory and the name of each sample;
+#' the primary analysis directory should contain the Rds/qs2 file.
 #'
-#' @param Reports.main 主分析目录, Rds文件位于此目录中，并且所有位于该目录下的指定文件也会被收录到reports中，以sample name进行命名和区分。
-#' @param Rds.path Rds文件在主分析目录中的相对目录
+#' @param Reports.main primary analysis directory, Rds should be included, and all files located in this directory will be included in reports
+#' @param Rds.path relative path of rds/qs2 file under the primary analysis directory
 #' @param Sample.name Sample name
-#' @param Reports.second 次要分析目录，此目录中的分析报告也会被加载到reports临时目录中，比如cellranger的结果。放到Others子目录下。
+#' @param Reports.second secondary analysis directory, and all files located in this directory will also be included in reports, such 'cellranger' outputs will be linked to Others directory
 #'
 #' @return A data.frame
 #' @export
 #' @examples
-#' # data_meta <- initialize_metadata(Reports.main = c("inst/extdata/demo/fly",
-#' #    "inst/extdata/demo/mouse"),
-#' # Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
-#' # Reports.second = c(NA, NA),
-#' # Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))
-#' # saveRDS(data_meta,file = "./inst/extdata/demo/others/sample-paramters.rds")
+#' data_meta <- initialize_metadata(Reports.main = c(
+#' system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
+#' system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+#' Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
+#' Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
+#' "Mouse-Intestine-scRNAseq-Haber"))
+#' data_meta
+#' # saveRDS(data_meta,file = system.file("extdata/demo/others",
+#' # "sample-paramters.rds", package ="SeuratExplorerServer"))
+#'
 initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.name){
   if (all(sapply(list(Reports.main, Rds.path, Reports.second, Sample.name), function(x) length(x) == length(Sample.name)))) {
     if (anyDuplicated(Sample.name) | anyDuplicated(Reports.main)) {
@@ -89,57 +113,38 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
     }
     data_meta <- data.frame(Reports.main = Reports.main,
                       Rds.path = Rds.path,
-                      Reports.second = Reports.second, # 比如cellranger outputs
+                      Reports.second = Reports.second, # such as cellranger outputs
                       Sample.name = Sample.name, stringsAsFactors = FALSE)
     data_meta$Species <- NA
     data_meta$Description <- NA
     data_meta$Default.DimensionReduction <- NA
     data_meta$Default.ClusterResolution <- NA
     data_meta$SplitOptions.MaxLevel <- NA
-    invisible(check_metedata(parameters = data_meta))
-    message("data meta file initilized successfully!")
+    invisible(check_metadata(parameters = data_meta))
     return(data_meta)
   }else{
     stop("Check the parameters length.")
   }
 }
 
-revise_path <- function(paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package ="SeuratExplorerServer")){
+#' Revise demo data path
+#'
+#' @param paramterfile the path to metadata file
+#'
+#' @return path to parameter file
+#' @export
+#'
+#' @examples
+#' revise_demo_path()
+revise_demo_path <- function(paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package ="SeuratExplorerServer")){
   data_meta <- readRDS(paramterfile)
   if(all(!dir.exists(data_meta$Reports.main))){ # run demo mode, try change the path in installation, only work for the first time run.
     main.dir <- dirname(dirname(paramterfile))
     data_meta$Reports.main <- paste(main.dir, basename(data_meta$Reports.main),sep = "/")
-    if(any(!dir.exists(data_meta$Reports.main))){ # 修改后，若仍找不到对应文件
+    if(any(!dir.exists(data_meta$Reports.main))){ # if still can found the files after modification
       stop('Error, can not found the Reports.main directory in demo data.')
     }
     saveRDS(data_meta,file = paramterfile)
   }
-  message("data meta file path revised successfully!")
   return(paramterfile)
-}
-
-# define global variables for server function
-# refer to: https://stackoverflow.com/questions/31118236/how-to-set-global-variable-values-in-the-onstart-parameter-of-shiny-application
-onStart <- function(Encrypted, credentials, paramterfile){
-  Encrypted.server <<- Encrypted # 经测试，必须要在这里重新复制定义Encrypted.server
-  credentials.server <<- credentials
-  # 读入数据配置文件，并作检查
-  paramterfile.server <<- paramterfile
-  data_meta <<- check_metedata(parameters = readRDS(paramterfile))
-  # # 准备reports目录
-  # reports_dir <<- paste0("../", basename(getwd()), "_reports") # 创建一个临时目录，用于存储reports文件的快捷方式
-  # if(!dir.exists(reports_dir)){
-  #   dir.create(reports_dir)
-  # }else{
-  #   unlink(reports_dir, recursive = TRUE)
-  #   dir.create(reports_dir)
-  # }
-  # # 准备reports文件
-  # message("Preparing the reports direcotry, Please wait a moment...")
-  # prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
-  # clean up jobs
-  onStop(function(){
-    if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
-    cat("Session stopped\n")
-  })
 }

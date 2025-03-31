@@ -1,36 +1,40 @@
 # launch.R
-# used to launch the shiny app in a web browser.
+# Run shiny app in a web browser.
 
 
 #' Launch shiny app
 #'
-#' @param Encrypted 是否加密App
-#' @param credentials 密码文件
-#' @param paramterfile 参数文件
-#' @param TechnicianEmail 技术人员邮箱
-#' @param TechnicianName 技术人员姓名
-#'
-#' @import shiny SeuratExplorer SeuratExplorerServer
+#' @param Encrypted weather to encrypt app
+#' @param credentials a data frame with the credentials
+#' @param paramterfile path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
+#' SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Species, and Description
+#' @param TechnicianEmail Email of the technician
+#' @param TechnicianName Name of the technician
+#' @param verbose for debug use
+#' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
+#' @import SeuratExplorer SeuratExplorerServer shinydashboard
+#' @import shinymanager SeuratExplorerServer
 #' @return In-browser Shiny Application launch
 #' @examples
-#' # launchSeuratExplorerServer()
+#' if(interactive()){launchSeuratExplorerServer()}
 #' @export
 #'
 #'
 launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-                                        paramterfile = SeuratExplorerServer:::revise_path(),
+                                        paramterfile = revise_demo_path(),
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
-                                        TechnicianName = "ZhangYongchao"
+                                        TechnicianName = "ZhangYongchao",
+                                        verbose = FALSE
                                        ){
-  requireNamespace("shinydashboard")
-  requireNamespace("shinymanager")
-  requireNamespace("shiny")
-  requireNamespace("SeuratExplorerServer")
+  options("SeuratExplorerServerVerbose" = verbose)
+  options("SeuratExplorerServerEncrypted" = Encrypted)
+  options("SeuratExplorerServerCredentials" = credentials)
+  options("SeuratExplorerServerParamterfile" = paramterfile)
+
   app = shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
-    server = server, onStart = SeuratExplorerServer:::onStart(Encrypted, credentials, paramterfile)
-    )
+    server = server)
   runApp(app, launch.browser = TRUE)
 }
 

@@ -2,16 +2,16 @@
 % Please edit documentation in R/functions.R
 \name{initialize_metadata}
 \alias{initialize_metadata}
-\title{初始化样本的元数据信息}
+\title{initialize sample metadata}
 \usage{
 initialize_metadata(Reports.main, Rds.path, Reports.second, Sample.name)
 }
 \arguments{
-\item{Reports.main}{主分析目录, Rds文件位于此目录中，并且所有位于该目录下的指定文件也会被收录到reports中，以sample name进行命名和区分。}
+\item{Reports.main}{primary analysis directory, Rds should be included, and all files located in this directory will be included in reports}
 
-\item{Rds.path}{Rds文件在主分析目录中的相对目录}
+\item{Rds.path}{relative path of rds/qs2 file under the primary analysis directory}
 
-\item{Reports.second}{次要分析目录，此目录中的分析报告也会被加载到reports临时目录中，比如cellranger的结果。放到Others子目录下。}
+\item{Reports.second}{secondary analysis directory, and all files located in this directory will also be included in reports, such 'cellranger' outputs will be linked to Others directory}
 
 \item{Sample.name}{Sample name}
 }
@@ -19,13 +19,19 @@ initialize_metadata(Reports.main, Rds.path, Reports.second, Sample.name)
 A data.frame
 }
 \description{
-搭建新的app时，用于初始化元数据，记录了数据的分析主要和次要分析目录、Rds文件的在主分析目录中的路径和各样本的名字，主要分析目录会包含Rds文件。
+When building a new app, it is used to initialise the metadata, which records the primary and secondary analysis
+directories for the data, the path of the rds/qs2 file under the primary analysis directory and the name of each sample;
+the primary analysis directory should contain the Rds/qs2 file.
 }
 \examples{
-# data_meta <- initialize_metadata(Reports.main = c("inst/extdata/demo/fly",
-#    "inst/extdata/demo/mouse"),
-# Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
-# Reports.second = c(NA, NA),
-# Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))
-# saveRDS(data_meta,file = "./inst/extdata/demo/others/sample-paramters.rds")
+data_meta <- initialize_metadata(Reports.main = c(
+system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
+system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
+Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
+"Mouse-Intestine-scRNAseq-Haber"))
+data_meta
+# saveRDS(data_meta,file = system.file("extdata/demo/others",
+# "sample-paramters.rds", package ="SeuratExplorerServer"))
+
 }
