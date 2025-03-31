@@ -26,7 +26,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
 
   # Header ----
   header = shinydashboard::dashboardHeader(
-    title = p(strong(em("SeuratExplorer Server"))),
+    title = p(em("SeuratExplorer Server")),
     # Dropdown menu for R package on github page
     shinydashboard::dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
