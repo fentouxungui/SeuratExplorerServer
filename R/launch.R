@@ -31,10 +31,8 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
   options("SeuratExplorerServerEncrypted" = Encrypted)
   options("SeuratExplorerServerCredentials" = credentials)
   options("SeuratExplorerServerParamterfile" = paramterfile)
-
-  app = shinyApp(
+  shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
     server = server)
-  runApp(app, launch.browser = TRUE)
 }
 

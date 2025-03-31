@@ -10,6 +10,8 @@
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
+构建单细胞数据库。在ubuntu服务器上构建一个demo数据库！
+
 > Q: 为什么搞这个R包<br/> A:
 > `SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为**Shiny
 > app**部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`R
