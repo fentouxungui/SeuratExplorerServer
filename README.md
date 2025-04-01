@@ -10,27 +10,47 @@
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
-构建单细胞数据库。在ubuntu服务器上构建一个demo数据库！
+> 可用于搭建单细胞数据库，允许用户访问位于服务器上的分析结果。该R包支持
+> `App`
+> 加密、多数据切换、分析报告浏览及下载、分析结果检索及再分析（基于`SeuratExplorer`）和自定义初始化参数。
 
-> Q: 为什么搞这个R包<br/> A:
-> `SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为**Shiny
-> app**部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`R
-> 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护功能和自定义部分初始化参数。
+## 1. 功能介绍
 
-> Q: 为啥要多数据切换<br/> A:有时在做完分析后，会需要提取某些cell
-> type的细胞，然后再重新分析，得到新的`Seurat`对象，这样同一个project下就会有多个`Seurat`对象。
+***数据加密***
 
-> Q: 为什么需要密码保护<br/>
-> A:对于未公开的数据，一般会仅仅允许数据相关的人员可以获取和查看数据。对于已发表的数据，可以选择不设置密码。
+对于未公开数据，可对 `App` 设置密码，限制访问。
 
-> Q: `SeuratExplorer`与`SeuratExplorerServer`的关系<br/>
-> A:`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
+***多数据切换***
 
-> Q: `SeuratExplorerServer`支持的分析报告类型<br/> A: pdf, html, tiff,
-> csv, jpg, jpeg, png, bmp,
-> svg等，也可以通过修改`configuration.R`里的`file_types_included_in_reports`变量，来指定其它类型的文件。
+做完某个分析后，可能会提取某种细胞类型，进行再分析，将得到新的 `Seurat`
+对象，这样多个 `Seurat` 对象可以放到同一个 `App`
+中；或者某篇文章里做了多个单细胞数据分析，所有的分析结果也都可以放到同一个
+`App` 中。
 
-## 1. Installation
+***分析报告浏览***
+
+支持浏览、查看和下载分析过程中产生的分析报告文件，包括`pdf, html, tiff, csv, jpg, jpeg, png, bmp, svg`
+等格式，也可通过修改参数指定其它类型文件。
+
+***支持自定义数据的初始化参数***
+
+可以设置数据加载后的默认参数，比如`Cluster Resolution、Species、Dimension Reduction`
+等。
+
+***可拓展性***
+
+多个由`SeuratExplorerServer` 搭建的
+`App`，可组成一个小型单细胞数据库，分别通过对应目录进行访问。将每个
+`App` 的访问地址及数据信息汇总到一个 `index`
+网页中，这样用户可以查找相关数据，并访问。这部分暂不提供相关 `DEMO`
+代码。
+
+***与`SeuratExplorer`的关系与区别***
+
+`SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析单个`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为`Shiny app`部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`
+包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护和自定义部分初始化参数等功能。`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
+
+## 2. 安装及运行
 
 You can install the development version of `SeuratExplorer` and
 `SeuratExplorerServer`like so:
@@ -45,44 +65,38 @@ options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-## 2. Run a demo
+Run App:
 
 ``` r
 library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-`launchSeuratExplorerServer` Parameters:
-
-- `Encrypted`: whether to encrypt the App
-
-- `credentials`: You must specify this parameter when `Encrypted` is set
-  to `TRUE`
-
-- `paramterfile`: see bellow for detailed information
-
-## 3. Workflow introduction
+## 4. 软件工作流
 
 - 登录：输入账户和密码。
 
+- 数据选择、加载和切换。
+
 - `sample meta`信息展示及下载。
 
-- 选择或切换数据。
-
-- 浏览分析报告：单击`Generate/Update Reports`
-  按钮，会在App所在目录（比如：***Fly-Gut-EEs-scRNAseq***）的上层目录创建同名的并以`_reports`为后缀的目录（***Fly-Gut-EEs-scRNAseq_reports***），sample
-  meta中`Reports.main`列和`Reports.second`列对应目录中里的特定类型的文件，会以快捷连接方式被放到***reports***目录中。
+- 浏览分析报告：单击`Generate/Update Reports` 按钮，会在 `App`
+  所在目录（如：`Fly-Gut-EEs-scRNAseq`）的上层目录创建同名但以
+  `_reports` 为后缀的目录（如：
+  `Fly-Gut-EEs-scRNAseq_reports`），`sample meta` 中 `Reports.main` 列和
+  `Reports.second`列的对应目录中里的符合类型的文件，会以快捷连接方式放到
+  `_reports` 目录中。
 
 - `SeuratExplorer`里的功能。
 
 - 修改样本元信息的默认参数，重启后生效。
 
-- 关闭时会删除`_reports`目录（***Fly-Gut-EEs-scRNAseq_reports***）
+- 关闭时会删除`_reports`目录（如：`Fly-Gut-EEs-scRNAseq_reports`）
 
-## 4. Examples deployed on Shinyserver
+## 5. Examples deployed on Shinyserver
 
-[**A live
-demo**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/).
+[**Open**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/) a live
+demo .
 
 ``` r
 # app.R
@@ -95,13 +109,13 @@ launchSeuratExplorerServer(Encrypted = TRUE,
                            verbose = FALSE)
 ```
 
-## 5. Tutorials
+## 6. Tutorials
 
-### 5.1 Generate credentials
+### 6.1 Generate credentials
 
 Please refer to R package
 [shinymanager](https://github.com/datastorm-open/shinymanager) for
-detailed tutorial to generate a credentials data in `data.frame`.
+details to generate a credentials data.
 
 ``` r
 # Init DB using credentials data
@@ -112,13 +126,9 @@ credentials <- data.frame(
 )
 ```
 
-### 5.2 Generate sample metadata parameters
+### 6.2 Generate sample metadata parameters
 
-``` r
-library(SeuratExplorerServer)
-```
-
-从dataframe生成metadata。
+从 `dataframe` 生成 `metadata`。
 
 ``` r
 data_meta <- data.frame(
@@ -141,6 +151,7 @@ data_meta <- data.frame(
   # 选填：description of the sample or the analysis, or whatever.
   Description = c("blabla","hahaha"), 
   stringsAsFactors = FALSE)
+
 data_meta
 #>                                                                              Reports.main
 #> 1   C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/fly
@@ -159,18 +170,21 @@ data_meta
 ``` r
 
 # check the meta data
+library(SeuratExplorerServer)
 invisible(check_metadata(parameters = data_meta))
 # if check passed, save the meta data
 # saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-或者直接使用`initialize_metadata`function生成meta data:
+或直接使用 `initialize_metadata` 函数生成 `meta data`:
 
 ``` r
+library(SeuratExplorerServer)
 data_meta <- initialize_metadata(
   Reports.main = c(system.file("extdata/demo", "fly", package ="SeuratExplorerServer"), system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
   Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
   Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))
+
 data_meta
 #>                                                                              Reports.main
 #> 1   C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/fly
@@ -192,10 +206,10 @@ data_meta
 # saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-必填项目一般是由数据分析员设定的，其他参数可以在App运行过程中进行修改,
-即允许用户自行设定。
+必填项目一般是由数据分析员设定的，其他参数可以在 `App`
+运行过程中进行修改, 即允许用户自行设定。
 
-### 5.3 Run app
+### 6.3 Run app
 
 ``` r
 library(SeuratExplorerServer)
@@ -206,11 +220,13 @@ launchSeuratExplorerServer(Encrypted = TRUE,
                            TechnicianName = "your-name")
 ```
 
-## 6. Screenshots
+## 7. Screenshots
 
-<img src="inst/extdata/www/login.png" width="100%" /><img src="inst/extdata/www/dataset.png" width="100%" /><img src="inst/extdata/www/reports-main.png" width="100%" /><img src="inst/extdata/www/reports-2.png" width="100%" /><img src="inst/extdata/www/reports-3.png" width="100%" /><img src="inst/extdata/www/settings.png" width="100%" />
+<img src="inst/extdata/www/login.png" width="50%" />
 
-## 7. Rsession info
+<img src="inst/extdata/www/dataset.png" width="80%" /><img src="inst/extdata/www/reports-main.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/reports-3.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
+
+## 8. Rsession info
 
     #> R version 4.4.3 (2025-02-28 ucrt)
     #> Platform: x86_64-w64-mingw32/x64
