@@ -10,9 +10,15 @@
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
-> 可用于搭建单细胞数据库，允许用户访问位于服务器上的分析结果。该R包支持
-> `App`
-> 加密、多数据切换、分析报告浏览及下载、分析结果检索及再分析（基于`SeuratExplorer`）和自定义初始化参数。
+搭建您的单细胞数据库网站。
+
+> 允许用户访问位于服务器上的分析结果。支持 `App`
+> 加密、多数据切换、分析报告浏览及下载、分析结果检索及再分析（基于`SeuratExplorer`）和自定义初始化参数等功能。
+
+> 生信工程师可通过`SeuratExplorerServer` 搭建多个
+> `App`，从而组建成一个单细胞数据库，每个 `App`
+> 分别通过各自目录进行访问，将所有 `App` 的访问地址及数据信息汇总到一个
+> `index` 网页中，这样用户可通过该网页查找和访问相关数据。
 
 ## 1. 功能介绍
 
@@ -37,15 +43,7 @@
 可以设置数据加载后的默认参数，比如`Cluster Resolution、Species、Dimension Reduction`
 等。
 
-***可拓展性***
-
-多个由`SeuratExplorerServer` 搭建的
-`App`，可组成一个小型单细胞数据库，分别通过对应目录进行访问。将每个
-`App` 的访问地址及数据信息汇总到一个 `index`
-网页中，这样用户可以查找相关数据，并访问。这部分暂不提供相关 `DEMO`
-代码。
-
-***与`SeuratExplorer`的关系与区别***
+***与`SeuratExplorer`的区别与联系***
 
 `SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析单个`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为`Shiny app`部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`
 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护和自定义部分初始化参数等功能。`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
