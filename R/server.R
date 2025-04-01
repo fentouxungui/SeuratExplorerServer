@@ -17,7 +17,7 @@
 #'
 server <- function(input, output, session) {
   # define some basic functions, ::: is not allowed in R package
-  # Using an un-exported function from annother R package:
+  # Using an un-exported function from another R package:
   # https://stackoverflow.com/questions/32535773/using-un-exported-function-from-another-r-package
   prepare_cluster_options <- getFromNamespace('prepare_cluster_options', 'SeuratExplorer')
   prepare_qc_options <- getFromNamespace('prepare_qc_options', 'SeuratExplorer')
@@ -79,7 +79,7 @@ server <- function(input, output, session) {
       data$Path <- input$Choosendata
       data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
       data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
-      data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = c("umap","tsne"))
+      data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = getOption("SeuratExplorerServerReductionKeyWords"))
       data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
       data$cluster_options <- prepare_cluster_options(df = data$obj@meta.data)
       data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # if NA value, return NULL

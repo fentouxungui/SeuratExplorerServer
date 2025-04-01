@@ -10,6 +10,7 @@ launchSeuratExplorerServer(
   paramterfile = revise_demo_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
+  ReductionKeyWords = c("umap", "tsne"),
   ReportsFileTypes = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg"),
   DefaultSplitMaxLevel = 6,
   SupportedFileTypes = c("rds", "qs2"),
@@ -27,6 +28,8 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 \item{TechnicianEmail}{Email of the technician}
 
 \item{TechnicianName}{Name of the technician}
+
+\item{ReductionKeyWords}{keywords to extract reductions for the reduction options}
 
 \item{ReportsFileTypes}{File types to be included in reports}
 

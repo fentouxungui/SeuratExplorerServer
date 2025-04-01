@@ -13,11 +13,10 @@
 #' @param ReportsFileTypes File types to be included in reports
 #' @param DefaultSplitMaxLevel the max factor level of the column from metadata to be included in split option
 #' @param SupportedFileTypes supported file types
-#' @param verbose TRUE for debug use
+#' @param verbose default FALSE, messages for debug use
+#' @param ReductionKeyWords keywords to extract reductions for the reduction options
 #'
 #' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
-#' @import SeuratExplorer SeuratExplorerServer shinydashboard
-#' @import shinymanager SeuratExplorerServer
 #' @return In-browser Shiny Application launch
 #' @examples
 #' if(interactive()){launchSeuratExplorerServer()}
@@ -29,6 +28,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         paramterfile = revise_demo_path(),
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
                                         TechnicianName = "ZhangYongchao",
+                                        ReductionKeyWords = c("umap","tsne"),
                                         ReportsFileTypes = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg"),
                                         DefaultSplitMaxLevel = 6,
                                         SupportedFileTypes = c("rds", "qs2"),
@@ -41,6 +41,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
   options("SeuratExplorerServerReportsFileTypes" = ReportsFileTypes)
   options("SeuratExplorerServerDefaultSplitLevel" =  DefaultSplitMaxLevel)
   options("SeuratExplorerServerSupportedFiles" =  SupportedFileTypes)
+  options("SeuratExplorerServerReductionKeyWords" =  ReductionKeyWords)
 
   shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
