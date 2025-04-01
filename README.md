@@ -65,9 +65,18 @@ options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-Run App:
+Run a demo app on local:
 
 ``` r
+library(SeuratExplorerServer)
+launchSeuratExplorerServer()
+```
+
+Demo deployed by `shinyserver`
+[**Open**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/):
+
+``` r
+# app.R
 library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
@@ -93,25 +102,9 @@ launchSeuratExplorerServer()
 
 - 关闭时会删除`_reports`目录（如：`Fly-Gut-EEs-scRNAseq_reports`）
 
-## 5. Examples deployed on Shinyserver
+## 5. Tutorials
 
-[**Open**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/) a live
-demo .
-
-``` r
-# app.R
-library(SeuratExplorerServer)
-launchSeuratExplorerServer(Encrypted = TRUE,
-                           credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-                           paramterfile = revise_demo_path(),
-                           TechnicianEmail = "zhangyongchao@nibs.ac.cn",
-                           TechnicianName = "ZhangYongchao",
-                           verbose = FALSE)
-```
-
-## 6. Tutorials
-
-### 6.1 Generate credentials
+### 5.1 Generate credentials
 
 Please refer to R package
 [shinymanager](https://github.com/datastorm-open/shinymanager) for
@@ -126,7 +119,7 @@ credentials <- data.frame(
 )
 ```
 
-### 6.2 Generate sample metadata parameters
+### 5.2 Generate sample metadata parameters
 
 从 `dataframe` 生成 `metadata`。
 
@@ -209,7 +202,7 @@ data_meta
 必填项目一般是由数据分析员设定的，其他参数可以在 `App`
 运行过程中进行修改, 即允许用户自行设定。
 
-### 6.3 Run app
+### 5.3 Run app
 
 ``` r
 library(SeuratExplorerServer)
@@ -220,13 +213,13 @@ launchSeuratExplorerServer(Encrypted = TRUE,
                            TechnicianName = "your-name")
 ```
 
-## 7. Screenshots
+## 6. Screenshots
 
 <img src="inst/extdata/www/login.png" width="50%" />
 
 <img src="inst/extdata/www/dataset.png" width="80%" /><img src="inst/extdata/www/reports-main.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/reports-3.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
 
-## 8. Rsession info
+## 7. Rsession info
 
     #> R version 4.4.3 (2025-02-28 ucrt)
     #> Platform: x86_64-w64-mingw32/x64
