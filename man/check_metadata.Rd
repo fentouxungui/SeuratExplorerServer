@@ -4,10 +4,12 @@
 \alias{check_metadata}
 \title{Check and arrange the data in the metadata}
 \usage{
-check_metadata(parameters)
+check_metadata(parameters, supported_file_types = c("rds", "qs2"))
 }
 \arguments{
 \item{parameters}{a dataframe of the sample metadata info}
+
+\item{supported_file_types}{file types to included in reports}
 }
 \value{
 dataframe: a check passed metadata

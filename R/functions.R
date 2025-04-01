@@ -1,6 +1,7 @@
 #' Check and arrange the data in the metadata
 #'
 #' @param parameters a dataframe of the sample metadata info
+#' @param supported_file_types file types to included in reports
 #'
 #' @return dataframe: a check passed metadata
 #' @export
@@ -14,7 +15,7 @@
 #' Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
 #' "Mouse-Intestine-scRNAseq-Haber"))
 #' invisible(check_metadata(parameters = data_meta))
-check_metadata <- function(parameters){
+check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
   requireNamespace("shinydashboard")
   requireNamespace("utils")
 
@@ -46,8 +47,8 @@ check_metadata <- function(parameters){
   }
 }
 
-prepare_reports <- function(reports_dir, data_meta){
-  file.types.pttern = paste0("(\\.", paste0(file_types_included_in_reports, collapse = "$)|(\\."), "$)")
+prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg")){
+  file.types.pttern = paste0("(\\.", paste0(file_types_included, collapse = "$)|(\\."), "$)")
   # generate from + to data.frame for main directory
   links.db.list <- list()
   for (i in 1:nrow(data_meta)) {

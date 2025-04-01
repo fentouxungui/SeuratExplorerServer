@@ -10,7 +10,11 @@
 #' SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Species, and Description
 #' @param TechnicianEmail Email of the technician
 #' @param TechnicianName Name of the technician
-#' @param verbose for debug use
+#' @param ReportsFileTypes File types to be included in reports
+#' @param DefaultSplitMaxLevel the max factor level of the column from metadata to be included in split option
+#' @param SupportedFileTypes supported file types
+#' @param verbose TRUE for debug use
+#'
 #' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
 #' @import SeuratExplorer SeuratExplorerServer shinydashboard
 #' @import shinymanager SeuratExplorerServer
@@ -25,12 +29,19 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         paramterfile = revise_demo_path(),
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
                                         TechnicianName = "ZhangYongchao",
+                                        ReportsFileTypes = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg"),
+                                        DefaultSplitMaxLevel = 6,
+                                        SupportedFileTypes = c("rds", "qs2"),
                                         verbose = FALSE
                                        ){
   options("SeuratExplorerServerVerbose" = verbose)
   options("SeuratExplorerServerEncrypted" = Encrypted)
   options("SeuratExplorerServerCredentials" = credentials)
   options("SeuratExplorerServerParamterfile" = paramterfile)
+  options("SeuratExplorerServerReportsFileTypes" = ReportsFileTypes)
+  options("SeuratExplorerServerDefaultSplitLevel" =  DefaultSplitMaxLevel)
+  options("SeuratExplorerServerSupportedFiles" =  SupportedFileTypes)
+
   shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),
     server = server)

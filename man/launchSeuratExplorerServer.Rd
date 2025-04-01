@@ -10,6 +10,9 @@ launchSeuratExplorerServer(
   paramterfile = revise_demo_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
+  ReportsFileTypes = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg"),
+  DefaultSplitMaxLevel = 6,
+  SupportedFileTypes = c("rds", "qs2"),
   verbose = FALSE
 )
 }
@@ -25,7 +28,13 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 
 \item{TechnicianName}{Name of the technician}
 
-\item{verbose}{for debug use}
+\item{ReportsFileTypes}{File types to be included in reports}
+
+\item{DefaultSplitMaxLevel}{the max factor level of the column from metadata to be included in split option}
+
+\item{SupportedFileTypes}{supported file types}
+
+\item{verbose}{TRUE for debug use}
 }
 \value{
 In-browser Shiny Application launch

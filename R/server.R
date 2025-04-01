@@ -33,7 +33,7 @@ server <- function(input, output, session) {
 
 
   # Data set Page
-  data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParamterfile")))
+  data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParamterfile")), getOption("SeuratExplorerServerSupportedFiles"))
 
   ## to cache data
   cache.rds.list <- list()
@@ -83,7 +83,7 @@ server <- function(input, output, session) {
       data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
       data$cluster_options <- prepare_cluster_options(df = data$obj@meta.data)
       data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # if NA value, return NULL
-      data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){default_split_options_max_level}else{data_meta$SplitOptions.MaxLevel[which_data]} # if NA value, use split options level cutoff
+      data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){getOption("SeuratExplorerServerDefaultSplitLevel")}else{data_meta$SplitOptions.MaxLevel[which_data]} # if NA value, use split options level cutoff
       data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
       cache.rds.list[[data_meta$Sample.name[which_data]]] <- reactiveValuesToList(data)
@@ -187,7 +187,7 @@ server <- function(input, output, session) {
     }
     dir.create(reports_dir)
     if(getOption("SeuratExplorerServerVerbose")){message("Preparing the reports direcotry, Please wait a moment...")}
-    prepare_reports(reports_dir = reports_dir, data_meta = data_meta)
+    prepare_reports(reports_dir = reports_dir, data_meta = data_meta, file_types_included = getOption("SeuratExplorerServerReportsFileTypes"))
     removeModal()
     output$ViewReports.UI <- renderUI({ # generate view reports UI
       if(getOption("SeuratExplorerServerVerbose")){message("Preparing ReportURL.UI...")}
