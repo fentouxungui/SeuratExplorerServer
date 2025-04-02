@@ -71,7 +71,7 @@ launchSeuratExplorerServer()
 ```
 
 Demo deployed by `shinyserver`
-[**Open**](http://www.nibs.ac.cn:666/Test-SeuratExplorer-Server/):
+[**Open**](http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/):
 
 ``` r
 # app.R
