@@ -25,13 +25,13 @@ the primary analysis directory should contain the Rds/qs2 file.
 }
 \examples{
 data_meta <- initialize_metadata(Reports.main = c(
-system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
-system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+system.file("extdata/source-data", "fly", package ="SeuratExplorerServer"),
+system.file("extdata/source-data", "mouse", package ="SeuratExplorerServer")),
 Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
 Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
 "Mouse-Intestine-scRNAseq-Haber"))
 data_meta
-# saveRDS(data_meta,file = system.file("extdata/demo/others",
-# "sample-paramters.rds", package ="SeuratExplorerServer"))
+# saveRDS(data_meta,file = system.file("extdata", "data_meta.rds",
+# package ="SeuratExplorerServer"))
 
 }

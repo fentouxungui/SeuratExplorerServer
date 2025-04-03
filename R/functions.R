@@ -9,16 +9,14 @@
 #' @examples
 #' library(SeuratExplorerServer)
 #' data_meta <- initialize_metadata(Reports.main = c(
-#' system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
-#' system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+#' system.file("extdata/source-data", "fly", package ="SeuratExplorerServer"),
+#' system.file("extdata/source-data", "mouse", package ="SeuratExplorerServer")),
 #' Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
 #' Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
 #' "Mouse-Intestine-scRNAseq-Haber"))
 #' invisible(check_metadata(parameters = data_meta))
 check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
-  requireNamespace("shinydashboard")
   requireNamespace("utils")
-
   # check the path of rds or qs2 file
   parameters$Rds.full.path <- paste(parameters$Reports.main, parameters$Rds.path,sep = "/")
    if (!all(file.exists(parameters$Rds.full.path))) {
@@ -98,14 +96,14 @@ prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf
 #' @export
 #' @examples
 #' data_meta <- initialize_metadata(Reports.main = c(
-#' system.file("extdata/demo", "fly", package ="SeuratExplorerServer"),
-#' system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
+#' system.file("extdata/source-data", "fly", package ="SeuratExplorerServer"),
+#' system.file("extdata/source-data", "mouse", package ="SeuratExplorerServer")),
 #' Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
 #' Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT",
 #' "Mouse-Intestine-scRNAseq-Haber"))
 #' data_meta
-#' # saveRDS(data_meta,file = system.file("extdata/demo/others",
-#' # "sample-paramters.rds", package ="SeuratExplorerServer"))
+#' # saveRDS(data_meta,file = system.file("extdata", "data_meta.rds",
+#' # package ="SeuratExplorerServer"))
 #'
 initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.name){
   if (all(sapply(list(Reports.main, Rds.path, Reports.second, Sample.name), function(x) length(x) == length(Sample.name)))) {
@@ -137,15 +135,14 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
 #'
 #' @examples
 #' revise_demo_path()
-revise_demo_path <- function(paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package ="SeuratExplorerServer")){
+revise_demo_path <- function(paramterfile = system.file("extdata", "data_meta.rds", package ="SeuratExplorerServer")){
   data_meta <- readRDS(paramterfile)
   if(all(!dir.exists(data_meta$Reports.main))){ # run demo mode, try change the path in installation, only work for the first time run.
-    main.dir <- dirname(dirname(paramterfile))
-    data_meta$Reports.main <- paste(main.dir, basename(data_meta$Reports.main),sep = "/")
+    data_meta$Reports.main <- paste(system.file("extdata", "source-data", package ="SeuratExplorerServer"), data_meta$Reports.main,sep = "/")
     if(any(!dir.exists(data_meta$Reports.main))){ # if still can found the files after modification
       stop('Error, can not found the Reports.main directory in demo data.')
     }
-    saveRDS(data_meta,file = paramterfile)
+    saveRDS(data_meta, file = paramterfile)
   }
   return(paramterfile)
 }

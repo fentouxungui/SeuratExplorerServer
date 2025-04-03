@@ -5,7 +5,7 @@
 \title{Revise demo data path}
 \usage{
 revise_demo_path(
-  paramterfile = system.file("extdata/demo/others", "sample-paramters.rds", package =
+  paramterfile = system.file("extdata", "data_meta.rds", package =
     "SeuratExplorerServer")
 )
 }

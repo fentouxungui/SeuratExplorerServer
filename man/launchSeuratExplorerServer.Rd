@@ -37,7 +37,7 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 
 \item{SupportedFileTypes}{supported file types}
 
-\item{verbose}{TRUE for debug use}
+\item{verbose}{default FALSE, messages for debug use}
 }
 \value{
 In-browser Shiny Application launch
