@@ -48,7 +48,25 @@
 `SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析单个`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为`Shiny app`部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`
 包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护和自定义部分初始化参数等功能。`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
 
-## 2. 安装及运行
+## 2. Build Data Hub
+
+You can check this minimal demo (**full functions**) deployed by
+`shinyserver`
+[**Open**](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/):
+
+### 3.1 Prerequisties
+
+**1. install `shinyserver`**
+
+- install: <https://posit.co/download/shiny-server/>
+
+- docs: <https://docs.posit.co/shiny-server/>
+
+after installation, you need to set the `site_dir` in
+`/etc/shiny-server/shiny-server.conf`, for this demo case
+`site_dir /home/zhangyc/ShinyServer;` is used.
+
+**2. install `SeuratExplorerServer`**
 
 You can install the development version of `SeuratExplorer` and
 `SeuratExplorerServer`like so:
@@ -63,50 +81,57 @@ options(timeout = max(300, getOption("timeout")))
 install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-Run a demo app on local:
+To test installation:
 
 ``` r
 library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-Demo deployed by `shinyserver`
-[**Open**](http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/):
+**3. Source data**
+
+Analysis results by `Seurat`, which can be saved as
+`rds, png, tiff, pdf, csv, html`etc.. Bellow is the files structure used
+in this demo:
 
 ``` r
-# app.R
-library(SeuratExplorerServer)
-launchSeuratExplorerServer()
+|-- fly
+|   |-- CellCycle
+|   |   |-- G22M-transition.txt
+|   |   |-- TSNE-CellCycle.jpeg
+|   |   |-- cellcycle-counts-in-each-cluster.csv
+|   |   `-- counts.info.pdf
+|   |-- DIMPLOT.pdf
+|   |-- Fly-Gut-EEs+res-0.4+Default.csv
+|   |-- Rds-file
+|   |   `-- G101_PC20res04.rds
+|   |-- cells.txt
+|   `-- exclusive-TFs-in-Two-Major-celltypes.html
+`-- mouse
+    |-- Subset
+    |   `-- subset-goblet
+    |       `-- goblet.rds
+    |-- anno.jpeg
+    |-- cluster.markers.res0.6.csv
+    `-- haber.tsne.embeding.rds
 ```
 
-## 4. 软件工作流
+This demo has two separated analysis named `fly` and `mouse`, for the
+`fly` analysis, only one `rds` file existed, and for the `mouse`
+analysis, two `rds` are generated, which means this analysis has two
+`data` to be shown. besides, you can also found some other related
+reports file, saved as `csv, html, jpeg` in each analysis. Separated
+analysis can be under different directory.
 
-- 登录：输入账户和密码。
+Attention, the analysis results should not under the `site_dir`
+directory defined in `/etc/shiny-server/shiny-server.conf` file.
 
-- 数据选择、加载和切换。
+### 3.2 Generate credentials
 
-- `sample meta`信息展示及下载。
-
-- 浏览分析报告：单击`Generate/Update Reports` 按钮，会在 `App`
-  所在目录（如：`Fly-Gut-EEs-scRNAseq`）的上层目录创建同名但以
-  `_reports` 为后缀的目录（如：
-  `Fly-Gut-EEs-scRNAseq_reports`），`sample meta` 中 `Reports.main` 列和
-  `Reports.second`列的对应目录中里的符合类型的文件，会以快捷连接方式放到
-  `_reports` 目录中。
-
-- `SeuratExplorer`里的功能。
-
-- 修改样本元信息的默认参数，重启后生效。
-
-- 关闭时会删除`_reports`目录（如：`Fly-Gut-EEs-scRNAseq_reports`）
-
-## 5. Tutorials
-
-### 5.1 Generate credentials
-
-Please refer to R package
+You can refer to R package
 [shinymanager](https://github.com/datastorm-open/shinymanager) for
-details to generate a credentials data.
+details to generate a credentials file. Bellow codes is used for this
+demo.
 
 ``` r
 # Init DB using credentials data
@@ -115,101 +140,220 @@ credentials <- data.frame(
   password = "12345",
   stringsAsFactors = FALSE
 )
+saveRDS(credentials, file = "credentials.rds")
 ```
 
-### 5.2 Generate sample metadata parameters
+### 3.3 Build data apps for each analysis
 
-从 `dataframe` 生成 `metadata`。
+For each analysis, we need to build a app, and each app should be under
+the `site_dir` directory defined in
+`/etc/shiny-server/shiny-server.conf` file.
+
+**3.3.1 Generate data meta**
+
+***method 1***: Generate sample meta data from `dataframe`
 
 ``` r
+# demo
+# Use the mouse analysis as demo, and if mouse analysis directory is located in /home/somebody/scRNAseq
+# demo data meta file1:inst/extdata/shinyserver_demo/data-page/demo_1/data_meta.rds
+# demo data meta file2:inst/extdata/shinyserver_demo/data-page/demo_2/data_meta.rds
 data_meta <- data.frame(
-  # 必填：主分析目录, Rds文件位于此目录中，并且所有位于该目录下的指定文件也会被收录到reports中，以sample name进行命名和区分。
-  Reports.main = c(system.file("extdata/demo", "fly", package ="SeuratExplorerServer"), system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")), 
-  # 必填：Rds文件在主分析目录中的相对目录
-  Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
-  # 必填：次要分析目录，此目录中的分析报告也会被加载到reports临时目录中，比如cellranger的结果，会被放到Others子目录下。
+  # Required: main analysis directory, Rds file should be contained, and all files under the directory meet the specified file formats 
+  # will be included in the reports directory which is named by the Sample.name
+  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
+  # Required: Rds file path relative to the main analysis directory
+  Rds.path = c("haber.tsne.embeding.rds", "goblet.rds"),
+  # Optional: secondary analysis directory, all files under the directory meet the specified file formats will as be included in the reports directory 'others', such as results from cellranger command
   Reports.second = c(NA, NA), 
-  # 必填：Sample name
-  Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"), 
-  # 选填： 用于设定split选项的参数,如果是多样本数据合并，一般该值要大于或等于样本数。
+  # Required: Sample name will be shown in the data option
+  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'), 
+  # Optional: used for set Split options
   SplitOptions.MaxLevel = c(1, 4), 
-  # 选填： dimension reduction的默认值。
+  # Optional: default dimension reduction
   Default.DimensionReduction = c("tsne", "umap"),
-  # 选填： cluster的默认值。
+  # Optional: default cluster
   Default.ClusterResolution = c("res.0.4", NA),
-  # 选填： Human, Mouse, Fly or Others
+  # Optional: Human, Mouse, Fly or Others
   Species = c("Fly", "Mouse"), 
-  # 选填：description of the sample or the analysis, or whatever.
+  # Optional: description of the sample or the analysis, or whatever.
   Description = c("blabla","hahaha"), 
   stringsAsFactors = FALSE)
 
 data_meta
-#>                                                                              Reports.main
-#> 1   C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/fly
-#> 2 C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/mouse
-#>                      Rds.path Reports.second                    Sample.name
-#> 1 Rds-file/G101_PC20res04.rds             NA     Fly-Gut-EEs-scRNAseq-GuoXT
-#> 2     haber.tsne.embeding.rds             NA Mouse-Intestine-scRNAseq-Haber
-#>   SplitOptions.MaxLevel Default.DimensionReduction Default.ClusterResolution
-#> 1                     1                       tsne                   res.0.4
-#> 2                     4                       umap                      <NA>
-#>   Species Description
-#> 1     Fly      blabla
-#> 2   Mouse      hahaha
-```
-
-``` r
 
 # check the meta data
 library(SeuratExplorerServer)
 invisible(check_metadata(parameters = data_meta))
 # if check passed, save the meta data
-# saveRDS(data_meta, file = "data_meta.rds")
+saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-或直接使用 `initialize_metadata` 函数生成 `meta data`:
+The optional parameters can also be set when running `App`.
+
+***method 2***: or use `initialize_metadata` function to generate sample
+meta data:
 
 ``` r
+# demo
 library(SeuratExplorerServer)
 data_meta <- initialize_metadata(
-  Reports.main = c(system.file("extdata/demo", "fly", package ="SeuratExplorerServer"), system.file("extdata/demo", "mouse", package ="SeuratExplorerServer")),
-  Rds.path = c("Rds-file/G101_PC20res04.rds", "haber.tsne.embeding.rds"),
-  Reports.second = c(NA, NA), Sample.name = c("Fly-Gut-EEs-scRNAseq-GuoXT", "Mouse-Intestine-scRNAseq-Haber"))
-
+  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
+  Rds.path =c("haber.tsne.embeding.rds", "goblet.rds"),
+  Reports.second = c(NA, NA), 
+  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'))
 data_meta
-#>                                                                              Reports.main
-#> 1   C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/fly
-#> 2 C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorerServer/extdata/demo/mouse
-#>                      Rds.path Reports.second                    Sample.name
-#> 1 Rds-file/G101_PC20res04.rds             NA     Fly-Gut-EEs-scRNAseq-GuoXT
-#> 2     haber.tsne.embeding.rds             NA Mouse-Intestine-scRNAseq-Haber
-#>   Species Description Default.DimensionReduction Default.ClusterResolution
-#> 1      NA          NA                         NA                        NA
-#> 2      NA          NA                         NA                        NA
-#>   SplitOptions.MaxLevel
-#> 1                    NA
-#> 2                    NA
+
+saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-``` r
-
-# save metadata
-# saveRDS(data_meta, file = "data_meta.rds")
-```
-
-必填项目一般是由数据分析员设定的，其他参数可以在 `App`
-运行过程中进行修改, 即允许用户自行设定。
-
-### 5.3 Run app
+**3.3.2 build data app**
 
 ``` r
+# app.R
+# demo codes1: inst/extdata/shinyserver_demo/data-page/demo_1/app.R
+# demo codes2: inst/extdata/shinyserver_demo/data-page/demo_2/app.R
 library(SeuratExplorerServer)
-launchSeuratExplorerServer(Encrypted = TRUE, 
+credentials <- readRDS("path/to/credentials.rds"))
+launchSeuratExplorerServer(Encrypted = TRUE,
                            credentials = credentials,
-                           paramterfile = "sample-paramters.rds",
+                           paramterfile = 'data_meta.rds',
                            TechnicianEmail = "your-email",
-                           TechnicianName = "your-name")
+                           TechnicianName = "your-name",
+                           verbose = FALSE)
 ```
+
+For now, you can use the link (IP\[Port\] + the relative path to
+`site_dir` directory) to visit this app.
+
+### 3.4 Build index app
+
+Next, what we do is to put all app links into a file and build a UI for
+users to browse all apps.
+
+**analysis meta data**
+
+``` r
+# analysis metadata
+# a demo located in: inst/extdata/shinyserver_demo/index-page/Entry.csv
+entry_info <- data.frame(DataType = c("scRNAseq", "scRNAseq"),
+                         Species = c("Fly", "Mouse"),
+                         Organ = c("Gut", "Gut"),
+                         CellType = c("EEs", "Whole"),
+                         scRNAseq.Method = c("10X genomics", "10X genomics"),
+                         # Required, please change it to your data link
+                         Data.Link = c("http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/", "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_2/"),
+                         Official.Link = c("https://xilab.shinyapps.io/database/", "https://www.flyrnai.org/tools/rna_seq/web/showProject/23/plot_coord=1/sample_id=all"),
+                         note = c("CG32547-GAL4 > GFP; GFP+ EE cells; Female Flies; 4661 cells;", "10,605 midgut epithelial cells from 7-d-old females expressing GFP in progenitors"),
+                         Source = c("Guo, 2019, Cell Reports", "Hung, 2020, PNAS"),
+                         Paper = c("The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells", "A cell atlas of the adult Drosophila midgut"),
+                         Paper.Link = c("https://doi.org/10.1016/j.celrep.2019.11.048", "https://doi.org/10.1073/pnas.1916820117"))
+entry_info
+#>   DataType Species Organ CellType scRNAseq.Method
+#> 1 scRNAseq     Fly   Gut      EEs    10X genomics
+#> 2 scRNAseq   Mouse   Gut    Whole    10X genomics
+#>                                                     Data.Link
+#> 1 http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/
+#> 2 http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_2/
+#>                                                                         Official.Link
+#> 1                                                https://xilab.shinyapps.io/database/
+#> 2 https://www.flyrnai.org/tools/rna_seq/web/showProject/23/plot_coord=1/sample_id=all
+#>                                                                                note
+#> 1                      CG32547-GAL4 > GFP; GFP+ EE cells; Female Flies; 4661 cells;
+#> 2 10,605 midgut epithelial cells from 7-d-old females expressing GFP in progenitors
+#>                    Source
+#> 1 Guo, 2019, Cell Reports
+#> 2        Hung, 2020, PNAS
+#>                                                                                      Paper
+#> 1 The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells
+#> 2                                              A cell atlas of the adult Drosophila midgut
+#>                                     Paper.Link
+#> 1 https://doi.org/10.1016/j.celrep.2019.11.048
+#> 2      https://doi.org/10.1073/pnas.1916820117
+```
+
+``` r
+write.csv(entry_info, file = "Entry.csv", row.names = FALSE)
+```
+
+**analysis UI**
+
+This app should located under the `site_dir` directory defined in
+`/etc/shiny-server/shiny-server.conf` file.
+
+``` r
+# app.R
+# A minimal example to build a data index page
+# located in: inst/extdata/shinyserver_demo/index-page/app.R
+library(shiny)
+library(shinydashboard)
+library(DT)
+
+# trans characters to links
+tans_link <- function(Avector,label = "View Data"){
+  res <- c()
+  for (i in Avector) {
+    if (!i %in% c("","-",NA)) {
+      res <- append(res,paste(paste0("<a href='",unlist(strsplit(i,split = ";")),"' target='_blank'>",label,"</a>"),collapse = "<br>"))
+    }else{
+      res <- append(res,"-")
+    }
+  }
+  return(res)
+}
+
+ui <- dashboardPage( title = "Demo Data Hub",
+                     dashboardHeader( title = strong("Demo Data Hub"), titleWidth = 240),
+                     dashboardSidebar(width = 240,
+                                      sidebarMenu(menuItem(strong("Data"), tabName = "Data", icon = icon("tachometer-alt")))),
+                     dashboardBody(tags$style("@import url(https://use.fontawesome.com/releases/v5.7.2/css/all.css);"),
+                                   tabItems(tabItem(tabName = "Data",
+                                                    h2(strong("Data")),
+                                                    # Attention, you need to change the link bellow, suggest put all data apps under a common directory, here is SeuratExplorerServer-Data.
+                                                    h3("Main Entrance: ", tags$a(href = "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/","Link Here!")),
+                                                    br(),
+                                                    fluidRow(box(title = "Included Data", width = 12, status = "primary",
+                                                                 DT::dataTableOutput("DataIndex")))
+                                   ))))
+
+server <- function(input, output, session) {
+  # Data
+  Data <- read.csv("path/to/Entry.csv", stringsAsFactors = FALSE)
+  Data$Data.Link <- tans_link(Data$Data.Link)
+  Data$Official.Link <- tans_link(Data$Official.Link)
+  Data$Paper.Link <- tans_link(Data$Paper.Link, "View Paper")
+  output$DataIndex <- DT::renderDataTable(DT::datatable(Data,escape = FALSE))
+}
+
+shinyApp(ui, server)
+```
+
+Finally, you can use the link (IP\[Port\] + the relative path to
+`site_dir` directory of this app) to browse and search all analysis,
+then visit the interested data by click the link of data app.
+
+## 4. Workflow when loading a data app
+
+- Login: account and password
+
+- Data selection, loading and switch
+
+- `sample meta` info
+
+- Browse analysis reports, click `Generate/Update Reports` button, `App`
+  will create a directory named by directory name plus `_reports`, such
+  as for app located in `Fly-Gut-EEs-scRNAseq` directory, will create a
+  directory named with `Fly-Gut-EEs-scRNAseq_reports`, and all files of
+  specified format located in directories of `Reports.main` and
+  `Reports.second` columns from meta data will be linked to the reports
+  directory
+
+- functions from `SeuratExplorer`
+
+- modify the settings which takes effect when restart
+
+- the reports directory(`Fly-Gut-EEs-scRNAseq_reports`) will be deleted
+  when web page closed.
 
 ## 6. Screenshots
 
@@ -240,54 +384,21 @@ launchSeuratExplorerServer(Encrypted = TRUE,
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] SeuratExplorerServer_0.1.1 badger_0.2.4              
+    #> [1] badger_0.2.4
     #> 
     #> loaded via a namespace (and not attached):
-    #>   [1] RColorBrewer_1.1-3     rstudioapi_0.16.0      dlstats_0.1.7         
-    #>   [4] jsonlite_1.8.8         billboarder_0.4.1      magrittr_2.0.3        
-    #>   [7] spatstat.utils_3.0-5   rmarkdown_2.27         fs_1.6.4              
-    #>  [10] vctrs_0.6.5            ROCR_1.0-11            memoise_2.0.1         
-    #>  [13] spatstat.explore_3.2-7 askpass_1.2.0          htmltools_0.5.8.1     
-    #>  [16] sass_0.4.9             sctransform_0.4.1      parallelly_1.37.1     
-    #>  [19] KernSmooth_2.23-26     bslib_0.7.0            htmlwidgets_1.6.4     
-    #>  [22] desc_1.4.3             ica_1.0-3              plyr_1.8.9            
-    #>  [25] plotly_4.10.4          zoo_1.8-12             cachem_1.1.0          
-    #>  [28] igraph_2.0.3           mime_0.12              lifecycle_1.0.4       
-    #>  [31] pkgconfig_2.0.3        Matrix_1.7-2           R6_2.5.1              
-    #>  [34] fastmap_1.2.0          fitdistrplus_1.1-11    future_1.33.2         
-    #>  [37] shiny_1.8.1.1          digest_0.6.36          colorspace_2.1-0      
-    #>  [40] shinycssloaders_1.0.0  patchwork_1.2.0        Seurat_5.2.1          
-    #>  [43] tensor_1.5             RSpectra_0.16-1        irlba_2.3.5.1         
-    #>  [46] RSQLite_2.3.7          progressr_0.14.0       fansi_1.0.6           
-    #>  [49] spatstat.sparse_3.1-0  httr_1.4.7             polyclip_1.10-6       
-    #>  [52] abind_1.4-5            compiler_4.4.3         bit64_4.0.5           
-    #>  [55] DBI_1.2.3              fastDummies_1.7.3      highr_0.11            
-    #>  [58] R.utils_2.12.3         MASS_7.3-64            openssl_2.2.0         
-    #>  [61] tools_4.4.3            lmtest_0.9-40          httpuv_1.6.15         
-    #>  [64] future.apply_1.11.2    goftest_1.2-3          R.oo_1.26.0           
-    #>  [67] glue_1.7.0             nlme_3.1-167           promises_1.3.0        
-    #>  [70] grid_4.4.3             Rtsne_0.17             cluster_2.1.8         
-    #>  [73] reshape2_1.4.4         generics_0.1.3         gtable_0.3.5          
-    #>  [76] spatstat.data_3.1-2    R.methodsS3_1.8.2      shinyBS_0.61.1        
-    #>  [79] tidyr_1.3.1            data.table_1.15.4      sp_2.1-4              
-    #>  [82] utf8_1.2.4             spatstat.geom_3.2-9    RcppAnnoy_0.0.22      
-    #>  [85] shinymanager_1.0.410   ggrepel_0.9.5          RANN_2.6.1            
-    #>  [88] pillar_1.9.0           stringr_1.5.1          yulab.utils_0.1.4     
-    #>  [91] spam_2.10-0            RcppHNSW_0.6.0         later_1.3.2           
-    #>  [94] splines_4.4.3          dplyr_1.1.4            lattice_0.22-6        
-    #>  [97] bit_4.0.5              survival_3.8-3         deldir_2.0-4          
-    #> [100] tidyselect_1.2.1       rvcheck_0.2.1          miniUI_0.1.1.1        
-    #> [103] pbapply_1.7-2          knitr_1.47             gridExtra_2.3         
-    #> [106] scattermore_1.2        shinydashboard_0.7.2   xfun_0.45             
-    #> [109] matrixStats_1.3.0      DT_0.33                stringi_1.8.4         
-    #> [112] scrypt_0.1.6           lazyeval_0.2.2         yaml_2.3.8            
-    #> [115] shinyWidgets_0.8.6     evaluate_0.24.0        codetools_0.2-20      
-    #> [118] data.tree_1.1.0        tibble_3.2.1           BiocManager_1.30.23   
-    #> [121] cli_3.6.3              uwot_0.2.2             xtable_1.8-4          
-    #> [124] reticulate_1.38.0      munsell_0.5.1          jquerylib_0.1.4       
-    #> [127] Rcpp_1.0.12            SeuratExplorer_0.1.1   globals_0.16.3        
-    #> [130] spatstat.random_3.2-3  png_0.1-8              parallel_4.4.3        
-    #> [133] blob_1.2.4             ggplot2_3.5.1          dotCall64_1.1-1       
-    #> [136] listenv_0.9.1          viridisLite_0.4.2      scales_1.3.0          
-    #> [139] ggridges_0.5.6         SeuratObject_5.0.2     purrr_1.0.2           
-    #> [142] rlang_1.1.4            cowplot_1.1.3
+    #>  [1] gtable_0.3.5        jsonlite_1.8.8      dplyr_1.1.4        
+    #>  [4] compiler_4.4.3      BiocManager_1.30.23 highr_0.11         
+    #>  [7] tidyselect_1.2.1    rvcheck_0.2.1       scales_1.3.0       
+    #> [10] yaml_2.3.8          fastmap_1.2.0       ggplot2_3.5.1      
+    #> [13] R6_2.5.1            generics_0.1.3      knitr_1.47         
+    #> [16] yulab.utils_0.1.4   tibble_3.2.1        desc_1.4.3         
+    #> [19] dlstats_0.1.7       munsell_0.5.1       pillar_1.9.0       
+    #> [22] RColorBrewer_1.1-3  rlang_1.1.4         utf8_1.2.4         
+    #> [25] cachem_1.1.0        xfun_0.45           fs_1.6.4           
+    #> [28] memoise_2.0.1       cli_3.6.3           magrittr_2.0.3     
+    #> [31] digest_0.6.36       grid_4.4.3          rstudioapi_0.16.0  
+    #> [34] lifecycle_1.0.4     vctrs_0.6.5         evaluate_0.24.0    
+    #> [37] glue_1.7.0          fansi_1.0.6         colorspace_2.1-0   
+    #> [40] rmarkdown_2.27      tools_4.4.3         pkgconfig_2.0.3    
+    #> [43] htmltools_0.5.8.1
