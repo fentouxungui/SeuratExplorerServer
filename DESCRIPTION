@@ -1,5 +1,5 @@
 Package: SeuratExplorerServer
-Title: An 'Shiny' App for Exploring scRNA-seq Analysis Results from 'Seurat'
+Title: Build your own scRNAseq database based on ``SeuratExplorer``
 Version: 0.1.1
 Authors@R: 
     person("Zhang", "Yongchao", , "zhangyongchao@nibs.ac.cn", role = c("aut", "cre"),
