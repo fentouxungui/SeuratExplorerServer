@@ -50,13 +50,13 @@
 
 ## 2. Build Data Hub
 
-You can check this minimal demo (**full functions**) deployed by
-`shinyserver`
-[**Open**](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/):
+You can check this [minimal
+demo](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/) (**full
+functions**) deployed by `shinyserver`.
 
-### 3.1 Prerequisties
+### 2.1 Prerequisties
 
-**1. install `shinyserver`**
+**2.1.1 install `shinyserver`**
 
 - install: <https://posit.co/download/shiny-server/>
 
@@ -66,7 +66,7 @@ after installation, you need to set the `site_dir` in
 `/etc/shiny-server/shiny-server.conf`, for this demo case
 `site_dir /home/zhangyc/ShinyServer;` is used.
 
-**2. install `SeuratExplorerServer`**
+**2.1.2 install `SeuratExplorerServer`**
 
 You can install the development version of `SeuratExplorer` and
 `SeuratExplorerServer`like so:
@@ -88,7 +88,7 @@ library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-**3. Source data**
+**2.1.3 Source data**
 
 Analysis results by `Seurat`, which can be saved as
 `rds, png, tiff, pdf, csv, html`etc.. Bellow is the files structure used
@@ -126,7 +126,9 @@ analysis can be under different directory.
 Attention, the analysis results should not under the `site_dir`
 directory defined in `/etc/shiny-server/shiny-server.conf` file.
 
-### 3.2 Generate credentials
+### 2.2 Generate credentials
+
+Set the accounts and passwords for your data hub.
 
 You can refer to R package
 [shinymanager](https://github.com/datastorm-open/shinymanager) for
@@ -143,13 +145,13 @@ credentials <- data.frame(
 saveRDS(credentials, file = "credentials.rds")
 ```
 
-### 3.3 Build data apps for each analysis
+### 2.3 Build data apps for each analysis
 
 For each analysis, we need to build a app, and each app should be under
 the `site_dir` directory defined in
 `/etc/shiny-server/shiny-server.conf` file.
 
-**3.3.1 Generate data meta**
+**2.3.1 meta data**
 
 ***method 1***: Generate sample meta data from `dataframe`
 
@@ -204,10 +206,10 @@ data_meta <- initialize_metadata(
   Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'))
 data_meta
 
-saveRDS(data_meta, file = "data_meta.rds")
+# saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-**3.3.2 build data app**
+**2.3.2 data app**
 
 ``` r
 # app.R
@@ -226,12 +228,12 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 For now, you can use the link (IP\[Port\] + the relative path to
 `site_dir` directory) to visit this app.
 
-### 3.4 Build index app
+### 2.4 Build index app
 
 Next, what we do is to put all app links into a file and build a UI for
 users to browse all apps.
 
-**analysis meta data**
+**2.4.1 meta data**
 
 ``` r
 # analysis metadata
@@ -249,34 +251,10 @@ entry_info <- data.frame(DataType = c("scRNAseq", "scRNAseq"),
                          Paper = c("The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells", "A cell atlas of the adult Drosophila midgut"),
                          Paper.Link = c("https://doi.org/10.1016/j.celrep.2019.11.048", "https://doi.org/10.1073/pnas.1916820117"))
 entry_info
-#>   DataType Species Organ CellType scRNAseq.Method
-#> 1 scRNAseq     Fly   Gut      EEs    10X genomics
-#> 2 scRNAseq   Mouse   Gut    Whole    10X genomics
-#>                                                     Data.Link
-#> 1 http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/
-#> 2 http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_2/
-#>                                                                         Official.Link
-#> 1                                                https://xilab.shinyapps.io/database/
-#> 2 https://www.flyrnai.org/tools/rna_seq/web/showProject/23/plot_coord=1/sample_id=all
-#>                                                                                note
-#> 1                      CG32547-GAL4 > GFP; GFP+ EE cells; Female Flies; 4661 cells;
-#> 2 10,605 midgut epithelial cells from 7-d-old females expressing GFP in progenitors
-#>                    Source
-#> 1 Guo, 2019, Cell Reports
-#> 2        Hung, 2020, PNAS
-#>                                                                                      Paper
-#> 1 The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells
-#> 2                                              A cell atlas of the adult Drosophila midgut
-#>                                     Paper.Link
-#> 1 https://doi.org/10.1016/j.celrep.2019.11.048
-#> 2      https://doi.org/10.1073/pnas.1916820117
-```
-
-``` r
 write.csv(entry_info, file = "Entry.csv", row.names = FALSE)
 ```
 
-**analysis UI**
+**2.4.2 UI**
 
 This app should located under the `site_dir` directory defined in
 `/etc/shiny-server/shiny-server.conf` file.
@@ -332,13 +310,13 @@ Finally, you can use the link (IP\[Port\] + the relative path to
 `site_dir` directory of this app) to browse and search all analysis,
 then visit the interested data by click the link of data app.
 
-## 4. Workflow when loading a data app
+## 3. Workflow when loading a data app
 
-- Login: account and password
+- Login: input account and password
 
 - Data selection, loading and switch
 
-- `sample meta` info
+- Show data meta info
 
 - Browse analysis reports, click `Generate/Update Reports` button, `App`
   will create a directory named by directory name plus `_reports`, such
@@ -348,20 +326,20 @@ then visit the interested data by click the link of data app.
   `Reports.second` columns from meta data will be linked to the reports
   directory
 
-- functions from `SeuratExplorer`
+- full functions from `SeuratExplorer`
 
-- modify the settings which takes effect when restart
+- modify the settings which will takes effect when restart
 
 - the reports directory(`Fly-Gut-EEs-scRNAseq_reports`) will be deleted
-  when web page closed.
+  when close the app
 
-## 6. Screenshots
+## 4. Screenshots
 
 <img src="inst/extdata/www/login.png" width="50%" />
 
 <img src="inst/extdata/www/dataset.png" width="80%" /><img src="inst/extdata/www/reports-main.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/reports-3.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
 
-## 7. Rsession info
+## 5. Rsession info
 
     #> R version 4.4.3 (2025-02-28 ucrt)
     #> Platform: x86_64-w64-mingw32/x64
