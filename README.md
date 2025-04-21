@@ -54,6 +54,31 @@ You can check this [minimal
 demo](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/) (**full
 functions**) deployed by `shinyserver`.
 
+Apps related files structure:
+
+``` r
+ShinyServer/
+├── SeuratExplorerServer-Data
+│   ├── demo_1
+│   │   ├── app.R
+│   │   ├── data_meta.rds
+│   │   └── temp_files
+│   └── demo_2
+│       ├── app.R
+│       └── data_meta.rds
+└── SeuratExplorerServer-Index
+    └── app.R
+```
+
+`ShinyServer` is the `site_dir` set in
+`/etc/shiny-server/shiny-server.conf`
+
+`SeuratExplorerServer-Data` is the directory contain all the data apps.
+two apps are included in this demo
+
+`SeuratExplorerServer-Index` is the app index directory, which contains
+all the links to each data app.
+
 ### 2.1 Prerequisties
 
 **2.1.1 install `shinyserver`**
@@ -96,17 +121,17 @@ in this demo:
 
 ``` r
 |-- fly
-|   |-- CellCycle
-|   |   |-- G22M-transition.txt
-|   |   |-- TSNE-CellCycle.jpeg
-|   |   |-- cellcycle-counts-in-each-cluster.csv
-|   |   `-- counts.info.pdf
-|   |-- DIMPLOT.pdf
-|   |-- Fly-Gut-EEs+res-0.4+Default.csv
-|   |-- Rds-file
-|   |   `-- G101_PC20res04.rds
-|   |-- cells.txt
-|   `-- exclusive-TFs-in-Two-Major-celltypes.html
+|   |-- CellCycle
+|   |   |-- G22M-transition.txt
+|   |   |-- TSNE-CellCycle.jpeg
+|   |   |-- cellcycle-counts-in-each-cluster.csv
+|   |   `-- counts.info.pdf
+|   |-- DIMPLOT.pdf
+|   |-- Fly-Gut-EEs+res-0.4+Default.csv
+|   |-- Rds-file
+|   |   `-- G101_PC20res04.rds
+|   |-- cells.txt
+|   `-- exclusive-TFs-in-Two-Major-celltypes.html
 `-- mouse
     |-- Subset
     |   `-- subset-goblet
