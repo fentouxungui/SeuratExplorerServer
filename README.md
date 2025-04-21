@@ -61,8 +61,7 @@ ShinyServer/
 ├── SeuratExplorerServer-Data
 │   ├── demo_1
 │   │   ├── app.R
-│   │   ├── data_meta.rds
-│   │   └── temp_files
+│   │   └── data_meta.rds
 │   └── demo_2
 │       ├── app.R
 │       └── data_meta.rds
@@ -120,25 +119,25 @@ Analysis results by `Seurat`, which can be saved as
 in this demo:
 
 ``` r
-|-- fly
-|   |-- CellCycle
-|   |   |-- G22M-transition.txt
-|   |   |-- TSNE-CellCycle.jpeg
-|   |   |-- cellcycle-counts-in-each-cluster.csv
-|   |   `-- counts.info.pdf
-|   |-- DIMPLOT.pdf
-|   |-- Fly-Gut-EEs+res-0.4+Default.csv
-|   |-- Rds-file
-|   |   `-- G101_PC20res04.rds
-|   |-- cells.txt
-|   `-- exclusive-TFs-in-Two-Major-celltypes.html
-`-- mouse
-    |-- Subset
-    |   `-- subset-goblet
-    |       `-- goblet.rds
-    |-- anno.jpeg
-    |-- cluster.markers.res0.6.csv
-    `-- haber.tsne.embeding.rds
+├── fly
+│   ├── CellCycle
+│   │   ├── G22M-transition.txt
+│   │   ├── TSNE-CellCycle.jpeg
+│   │   ├── cellcycle-counts-in-each-cluster.csv
+│   │   └──  counts.info.pdf
+│   ├── DIMPLOT.pdf
+│   ├── Fly-Gut-EEs+res-0.4+Default.csv
+│   ├── Rds-file
+│   │   └── G101_PC20res04.rds
+│   ├── cells.txt
+│   └── exclusive-TFs-in-Two-Major-celltypes.html
+└── mouse
+    ├── Subset
+    │   └── subset-goblet
+    │       └── goblet.rds
+    ├── anno.jpeg
+    ├── cluster.markers.res0.6.csv
+    └── haber.tsne.embeding.rds
 ```
 
 This demo has two separated analysis named `fly` and `mouse`, for the
@@ -360,9 +359,11 @@ then visit the interested data by click the link of data app.
 
 ## 4. Screenshots
 
+<img src="inst/extdata/www/index.png" width="80%" />
+
 <img src="inst/extdata/www/login.png" width="50%" />
 
-<img src="inst/extdata/www/dataset.png" width="80%" /><img src="inst/extdata/www/reports-main.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/reports-3.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
+<img src="inst/extdata/www/select-data.png" width="80%" /><img src="inst/extdata/www/reports.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
 
 ## 5. Rsession info
 

@@ -65,8 +65,7 @@ ShinyServer/
 ├── SeuratExplorerServer-Data
 │   ├── demo_1
 │   │   ├── app.R
-│   │   ├── data_meta.rds
-│   │   └── temp_files
+│   │   └── data_meta.rds
 │   └── demo_2
 │       ├── app.R
 │       └── data_meta.rds
@@ -116,25 +115,25 @@ launchSeuratExplorerServer()
 Analysis results by ``Seurat``, which can be saved as ``rds, png, tiff, pdf, csv, html``etc.. Bellow is the files structure used in this demo:
 
 ```{r eval=FALSE}
-|-- fly
-|   |-- CellCycle
-|   |   |-- G22M-transition.txt
-|   |   |-- TSNE-CellCycle.jpeg
-|   |   |-- cellcycle-counts-in-each-cluster.csv
-|   |   `-- counts.info.pdf
-|   |-- DIMPLOT.pdf
-|   |-- Fly-Gut-EEs+res-0.4+Default.csv
-|   |-- Rds-file
-|   |   `-- G101_PC20res04.rds
-|   |-- cells.txt
-|   `-- exclusive-TFs-in-Two-Major-celltypes.html
-`-- mouse
-    |-- Subset
-    |   `-- subset-goblet
-    |       `-- goblet.rds
-    |-- anno.jpeg
-    |-- cluster.markers.res0.6.csv
-    `-- haber.tsne.embeding.rds
+├── fly
+│   ├── CellCycle
+│   │   ├── G22M-transition.txt
+│   │   ├── TSNE-CellCycle.jpeg
+│   │   ├── cellcycle-counts-in-each-cluster.csv
+│   │   └──  counts.info.pdf
+│   ├── DIMPLOT.pdf
+│   ├── Fly-Gut-EEs+res-0.4+Default.csv
+│   ├── Rds-file
+│   │   └── G101_PC20res04.rds
+│   ├── cells.txt
+│   └── exclusive-TFs-in-Two-Major-celltypes.html
+└── mouse
+    ├── Subset
+    │   └── subset-goblet
+    │       └── goblet.rds
+    ├── anno.jpeg
+    ├── cluster.markers.res0.6.csv
+    └── haber.tsne.embeding.rds
 ```
 
 This demo has two separated analysis named ``fly`` and ``mouse``, for the ``fly`` analysis, only one ``rds`` file existed, and for the ``mouse`` analysis, two ``rds`` are generated, which means this analysis has two ``data`` to be shown. besides, you can also found some other related reports file, saved as ``csv, html, jpeg`` in each analysis. Separated analysis can be under different directory.
@@ -333,16 +332,18 @@ Finally, you can use the link (IP[Port] + the relative path to ``site_dir`` dire
 
 ## 4. Screenshots
 
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics("inst/extdata/www/index.png")
+```
 
 ```{r echo=FALSE, out.width="50%"}
 knitr::include_graphics("inst/extdata/www/login.png")
 ```
 
 ```{r echo=FALSE, out.width="80%"}
-knitr::include_graphics("inst/extdata/www/dataset.png")
-knitr::include_graphics("inst/extdata/www/reports-main.png")
+knitr::include_graphics("inst/extdata/www/select-data.png")
+knitr::include_graphics("inst/extdata/www/reports.png")
 knitr::include_graphics("inst/extdata/www/reports-2.png")
-knitr::include_graphics("inst/extdata/www/reports-3.png")
 knitr::include_graphics("inst/extdata/www/settings.png")
 ```
 
