@@ -352,3 +352,7 @@ knitr::include_graphics("inst/extdata/www/settings.png")
 ```{r echo=FALSE}
 sessionInfo()
 ```
+
+## 6. 中文介绍
+
+[微信公众号：分析力工厂](https://mp.weixin.qq.com/s/g612UEp3DZF-oOHUY13BDA)

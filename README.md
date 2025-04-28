@@ -406,3 +406,7 @@ then visit the interested data by click the link of data app.
     #> [37] glue_1.7.0          fansi_1.0.6         colorspace_2.1-0   
     #> [40] rmarkdown_2.27      tools_4.4.3         pkgconfig_2.0.3    
     #> [43] htmltools_0.5.8.1
+
+## 6. 中文介绍
+
+[微信公众号：分析力工厂](https://mp.weixin.qq.com/s/g612UEp3DZF-oOHUY13BDA)
