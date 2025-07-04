@@ -133,6 +133,13 @@ server <- function(input, output, session) {
     return(data$loaded)
   })
 
+  ############################### Render Object structure
+  output$object_structure <- renderPrint({
+    req(data$obj)
+    str(data$obj, max.level = 3) # Display the structure of the data frame
+  })
+
+
   ## Disable suspend for output$file_loaded
   ## When TRUE (the default), the output object will be suspended (not execute) when it is hidden on the web page.
   ## When FALSE, the output object will not suspend when hidden, and if it was already hidden and suspended, then it will resume immediately.

@@ -58,7 +58,9 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     conditionalPanel(
                                       condition = "output.file_loaded",
                                       box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
-                                          withSpinner(DTOutput('dataset_meta'))))
+                                          withSpinner(DTOutput('dataset_meta'))),
+                                      box(title = "Structure of Seurat Object", collapsible = TRUE, collapsed = FALSE, width = 12,solidHeader = TRUE, status = "primary",
+                                          withSpinner(verbatimTextOutput("object_structure"))))
                                     ))
 
   tab_list[["reports"]] = tabItem(tabName = "reports",
