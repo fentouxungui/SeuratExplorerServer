@@ -57,7 +57,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                         DTOutput("DataList")),
                                     conditionalPanel(
                                       condition = "output.file_loaded",
-                                      box(title = "Metadata of Cells", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
+                                      box(title = "Metadata of Cells from loaded data", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
                                           withSpinner(DTOutput('dataset_meta'))),
                                       box(title = "Structure of Seurat Object", collapsible = TRUE, collapsed = FALSE, width = 12,solidHeader = TRUE, status = "primary",
                                           withSpinner(verbatimTextOutput("object_structure"))))

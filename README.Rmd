@@ -23,6 +23,7 @@ library(badger)
 `r badge_lifecycle("stable")`
 `r badge_devel("fentouxungui/SeuratExplorerServer", "rossellhayes")`
 `r badge_code_size("fentouxungui/SeuratExplorerServer")`
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
 搭建您的单细胞数据库网站。
