@@ -71,6 +71,7 @@ prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf
   }
   if (length(links.db.list) != 0) { # if does has reports files
     links.db <- Reduce(rbind, links.db.list)
+    links.db <- links.db[!duplicated(links.db),] # remove duplicated links
     # create links
     if (nrow(links.db) > 0) {
       for (i in 1:nrow(links.db)) {
