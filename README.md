@@ -1,504 +1,412 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-<!-- 如果要生成github主页上的README.md, 需要将此文件复制到R包的主目录下,然后设置for_github参数为TRUE,然后knit,运行完成后删除主目录下的README.Rmd文件 -->
 
-
-
-
-
-
-# SeuratExplorer
+# SeuratExplorerServer
 
 <!-- badges: start -->
+
 [![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![](https://www.r-pkg.org/badges/version/SeuratExplorer)](https://cran.r-project.org/package=SeuratExplorer)
-[![](https://img.shields.io/badge/devel%20version-0.1.2-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorer)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/SeuratExplorer)](https://cran.r-project.org/package=SeuratExplorer)
-[![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorer.svg)](https://github.com/fentouxungui/SeuratExplorer)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorer)
+[![](https://img.shields.io/badge/devel%20version-0.1.12-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![Ask
+DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
-> An ``Shiny`` App for Exploring scRNA-seq Data Processed in ``Seurat``
+搭建您的单细胞数据库网站。
 
-A simple, one-command package which runs an interactive dashboard capable of common visualizations for single cell RNA-seq. ``SeuratExplorer`` requires a processed ``Seurat`` object, which is saved as ``rds`` or ``qs2`` file.
+> 允许用户访问位于服务器上的分析结果。支持 `App`
+> 加密、多数据切换、分析报告浏览及下载、分析结果检索及再分析（基于`SeuratExplorer`）和自定义初始化参数等功能。
 
-## Why build this R package
+> 生信工程师可通过`SeuratExplorerServer` 搭建多个
+> `App`，从而组建成一个单细胞数据库，每个 `App`
+> 分别通过各自目录进行访问，将所有 `App` 的访问地址及数据信息汇总到一个
+> `index` 网页中，这样用户可通过该网页查找和访问相关数据。
 
-> Currently, there is still no good tools for visualising the analysis results from ``Seurat``, when the bioinformatics analyst hands over the results to the user, if the user does not have any R language foundation, it is still difficult to retrieve the results and re-analysis on their own, and this R package is designed to help such users to visualize and explore the anaysis results. The only thing to do for such users is to configure R and Rstudio on their own computers, and then install ``SeuratExplorer``, without any other operations, an optional way is to upload the ``Seurat object`` file to a server which has been deployed with ``shinyserver`` and ``SeuratExplorer``.
+## 1. 功能介绍
 
-> Essentially, what ``SeuratExplorer`` done is just to perform visual operations for command line tools from ``Seurat`` or other packages.
+***数据加密***
 
-## Installation
+对于未公开数据，可对 `App` 设置密码，限制访问。
 
-Install the latest version from github - ***Recommended***:
+***多数据切换***
 
+做完某个分析后，可能会提取某种细胞类型，进行再分析，将得到新的 `Seurat`
+对象，这样多个 `Seurat` 对象可以放到同一个 `App`
+中；或者某篇文章里做了多个单细胞数据分析，所有的分析结果也都可以放到同一个
+`App` 中。
+
+***分析报告浏览***
+
+支持浏览、查看和下载分析过程中产生的分析报告文件，包括`pdf, html, tiff, csv, jpg, jpeg, png, bmp, svg`
+等格式，也可通过修改参数指定其它类型文件。
+
+***支持自定义数据的初始化参数***
+
+可以设置数据加载后的默认参数，比如`Cluster Resolution、Species、Dimension Reduction`
+等。
+
+***与`SeuratExplorer`的区别与联系***
+
+`SeuratExplorer`相当于一个桌面版软件，允许在本地电脑上查看和分析单个`Seurat`分析结果，即使把`SeuratExplorer`安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而`SeuratExplorerServer`可作为`Shiny app`部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有`SeuratExplorer`
+包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护和自定义部分初始化参数等功能。`SeuratExplorerServer`依赖于`SeuratExplorer`，并且具备所有`SeuratExplorer`里的数据分析功能。
+
+## 2. Build Data Hub
+
+You can check this [minimal
+demo](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/) (**full
+functions**) deployed by `shinyserver`.
+
+Apps related files structure:
 
 ``` r
+ShinyServer/
+├── SeuratExplorerServer-Data
+│   ├── demo_1
+│   │   ├── app.R
+│   │   └── data_meta.rds
+│   └── demo_2
+│       ├── app.R
+│       └── data_meta.rds
+└── SeuratExplorerServer-Index
+    └── app.R
+```
+
+`ShinyServer` is the `site_dir` set in
+`/etc/shiny-server/shiny-server.conf`
+
+`SeuratExplorerServer-Data` is the directory contain all the data apps.
+two apps are included in this demo
+
+`SeuratExplorerServer-Index` is the app index directory, which contains
+all the links to each data app.
+
+### 2.1 Prerequisties
+
+**2.1.1 install `shinyserver`**
+
+- install: <https://posit.co/download/shiny-server/>
+
+- docs: <https://docs.posit.co/shiny-server/>
+
+after installation, you need to set the `site_dir` in
+`/etc/shiny-server/shiny-server.conf`, for this demo case
+`site_dir /home/zhangyc/ShinyServer;` is used.
+
+**2.1.2 install `SeuratExplorerServer`**
+
+You can install the development version of `SeuratExplorer` and
+`SeuratExplorerServer`like so:
+
+``` r
+# install dependency
 if(!require(devtools)){install.packages("devtools")}
-install_github("fentouxungui/SeuratExplorer", dependencies = TRUE)
+install_github("fentouxungui/SeuratExplorer")
+
+# install SeuratExplorerServer
+options(timeout = max(300, getOption("timeout")))
+install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-Or install from CRAN:
-
+To test installation:
 
 ``` r
-# install none-CRAN dependency
-if (!require("BiocManager", quietly = TRUE)){install.packages("BiocManager")}
-BiocManager::install(c("ComplexHeatmap", "MAST", "limma", "DESeq2"))
-if(!require(devtools)){install.packages("devtools")}
-devtools::install_github("immunogenomics/presto")
-
-install.packages("SeuratExplorer")
+library(SeuratExplorerServer)
+launchSeuratExplorerServer()
 ```
 
-## Run app on local
- 
+**2.1.3 Source data**
+
+Analysis results by `Seurat`, which can be saved as
+`rds, png, tiff, pdf, csv, html`etc.. Bellow is the files structure used
+in this demo:
 
 ``` r
-library(SeuratExplorer)
-launchSeuratExplorer()
+├── fly
+│   ├── CellCycle
+│   │   ├── G22M-transition.txt
+│   │   ├── TSNE-CellCycle.jpeg
+│   │   ├── cellcycle-counts-in-each-cluster.csv
+│   │   └──  counts.info.pdf
+│   ├── DIMPLOT.pdf
+│   ├── Fly-Gut-EEs+res-0.4+Default.csv
+│   ├── Rds-file
+│   │   └── G101_PC20res04.rds
+│   ├── cells.txt
+│   └── exclusive-TFs-in-Two-Major-celltypes.html
+└── mouse
+    ├── Subset
+    │   └── subset-goblet
+    │       └── goblet.rds
+    ├── anno.jpeg
+    ├── cluster.markers.res0.6.csv
+    └── haber.tsne.embeding.rds
 ```
 
-## Deploy on server
+This demo has two separated analysis named `fly` and `mouse`, for the
+`fly` analysis, only one `rds` file existed, and for the `mouse`
+analysis, two `rds` are generated, which means this analysis has two
+`data` to be shown. besides, you can also found some other related
+reports file, saved as `csv, html, jpeg` in each analysis. Separated
+analysis can be under different directory.
 
-You can deploy this app on a shiny server, which allows people to view their data on a webpage by uploading the data to server.
+Attention, the analysis results should not under the `site_dir`
+directory defined in `/etc/shiny-server/shiny-server.conf` file.
 
-A live demo: Upload an Rds or qs2 file, with file size no more than 20GB, to [Demo Site](http://www.nibs.ac.cn:666/SeuratExplorer/). You can download a mini demo data from [github](https://github.com/fentouxungui/SeuratExplorerServer/blob/main/inst/extdata/source-data/fly/Rds-file/G101_PC20res04.rds).
+### 2.2 Generate credentials
 
+Set the accounts and passwords for your data hub.
+
+You can refer to R package
+[shinymanager](https://github.com/datastorm-open/shinymanager) for
+details to generate a credentials file. Bellow codes is used for this
+demo.
+
+``` r
+# Init DB using credentials data
+credentials <- data.frame(
+  user = "shiny",
+  password = "12345",
+  stringsAsFactors = FALSE
+)
+saveRDS(credentials, file = "credentials.rds")
+```
+
+### 2.3 Build data apps for each analysis
+
+For each analysis, we need to build a app, and each app should be under
+the `site_dir` directory defined in
+`/etc/shiny-server/shiny-server.conf` file.
+
+**2.3.1 meta data**
+
+***method 1***: Generate sample meta data from `dataframe`
+
+``` r
+# demo
+# Use the mouse analysis as demo, and if mouse analysis directory is located in /home/somebody/scRNAseq
+# demo data meta file1:inst/extdata/shinyserver_demo/data-page/demo_1/data_meta.rds
+# demo data meta file2:inst/extdata/shinyserver_demo/data-page/demo_2/data_meta.rds
+data_meta <- data.frame(
+  # Required: main analysis directory, Rds file should be contained, and all files under the directory meet the specified file formats 
+  # will be included in the reports directory which is named by the Sample.name
+  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
+  # Required: Rds file path relative to the main analysis directory
+  Rds.path = c("haber.tsne.embeding.rds", "goblet.rds"),
+  # Optional: secondary analysis directory, all files under the directory meet the specified file formats will as be included in the reports directory 'others', such as results from cellranger command
+  Reports.second = c(NA, NA), 
+  # Required: Sample name will be shown in the data option
+  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'), 
+  # Optional: used for set Split options
+  SplitOptions.MaxLevel = c(1, 4), 
+  # Optional: default dimension reduction
+  Default.DimensionReduction = c("tsne", "umap"),
+  # Optional: default cluster
+  Default.ClusterResolution = c("res.0.4", NA),
+  # Optional: Human, Mouse, Fly or Others
+  Species = c("Fly", "Mouse"), 
+  # Optional: description of the sample or the analysis, or whatever.
+  Description = c("blabla","hahaha"), 
+  stringsAsFactors = FALSE)
+
+data_meta
+
+# check the meta data
+library(SeuratExplorerServer)
+invisible(check_metadata(parameters = data_meta))
+# if check passed, save the meta data
+saveRDS(data_meta, file = "data_meta.rds")
+```
+
+The optional parameters can also be set when running `App`.
+
+***method 2***: or use `initialize_metadata` function to generate sample
+meta data:
+
+``` r
+# demo
+library(SeuratExplorerServer)
+data_meta <- initialize_metadata(
+  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
+  Rds.path =c("haber.tsne.embeding.rds", "goblet.rds"),
+  Reports.second = c(NA, NA), 
+  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'))
+data_meta
+
+# saveRDS(data_meta, file = "data_meta.rds")
+```
+
+**2.3.2 data app**
 
 ``` r
 # app.R
-library(SeuratExplorer)
-launchSeuratExplorer()
+# demo codes1: inst/extdata/shinyserver_demo/data-page/demo_1/app.R
+# demo codes2: inst/extdata/shinyserver_demo/data-page/demo_2/app.R
+library(SeuratExplorerServer)
+credentials <- readRDS("path/to/credentials.rds"))
+launchSeuratExplorerServer(Encrypted = TRUE,
+                           credentials = credentials,
+                           paramterfile = 'data_meta.rds',
+                           TechnicianEmail = "your-email",
+                           TechnicianName = "your-name",
+                           verbose = FALSE)
 ```
 
-## Introduction
-
-### Load data
-
-- support ``Seurat`` object saved as ``.rds`` or ``.qs2`` file.
-
-- support data processed by ``Seurat`` V5 and older versions. it may takes a while to update ``Seurat`` object when loading data.
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/upload-data.png" alt="plot of chunk unnamed-chunk-7" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-7</p>
-</div>
-
-### Cell Metadata
-
-- support download cell metadata in ``csv`` format, which can be used for further analysis.
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/cell-metadata.jpg" alt="plot of chunk unnamed-chunk-8" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-8</p>
-</div>
-
-### Dimensional Reduction Plot
-
-- support options for **Dimension Reductions**
-
-- support options for **Cluster Resolution**
-
-- support **split** plots
-
-- support highlight selected clusters
-
-- support adjust the height/width ratio of the plot
-
-- support options for showing **cluster label**
-
-- support adjust label size
-
-- support adjust point size
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Dimplot-splited.png" alt="plot of chunk unnamed-chunk-9" width="80%" />
-<p class="caption">plot of chunk unnamed-chunk-9</p>
-</div>
-
-### Feature Plot
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Dimension Reductions**
-
-- support **split** plots
-
-- support change colors for the lowest expression and highest expression
-
-- support adjust the height/width ratio of the plot
-
-- support adjust point size
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Featureplot-splited.png" alt="plot of chunk unnamed-chunk-10" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-10</p>
-</div>
-
-### Violin Plot
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Cluster Resolution**
-
-- support **split** plots
-
-- support **stack** and **flip** plot, and color mapping selection.
-
-- support adjust point size and transparency
-
-- support adjust font size on x and y axis
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/ViolinPlot-splited-Stack.png" alt="plot of chunk unnamed-chunk-11" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-11</p>
-</div>
-
-### Dot Plot
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Cluster Resolution** and subset clusters
-
-- support **split** plots
-
-- support cluster clusters
-
-- support rotate axis and flip coordinate
-
-- support adjust point size and transparency
-
-- support adjust font size on x and y axis
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/DotPlot-Splited.png" alt="plot of chunk unnamed-chunk-12" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-12</p>
-</div>
-
-### Heatmap for cell level expression
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Cluster Resolution** and reorder clusters
-
-- support adjust font size and rotation angle of cluster label, and flip coordinate
-
-- support adjust the height of group bar
-
-- support adjust the gap size between groups
-
-- support adjust the font size of gene names
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Heatmap-CellLevel.png" alt="plot of chunk unnamed-chunk-13" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-13</p>
-</div>
-
-### Heatmap for group averaged expression
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Cluster Resolution** and reorder clusters
-
-- support adjust font size and rotation angle of cluster label
-
-- support adjust the font size of gene names
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Heatmap-GroupLevel-2.png" alt="plot of chunk unnamed-chunk-14" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-14</p>
-</div>
-
-### Ridge Plot
-
-- support display multiple genes simultaneous, genes names are case-insensitive. Tips: paste multiple genes from excel
-
-- support options for **Cluster Resolution** and reorder clusters
-
-- support adjust column numbers
-
-- support stack plot and color mapping
-
-- support adjust font size on x and y axis
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/RidgePlot.png" alt="plot of chunk unnamed-chunk-15" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-15</p>
-</div>
-
-### Plot Cell Percentage
-
-- support facet
-
-- support adjust the height/width ratio of the plot
-
-- support download plot in pdf format, what you see is what you get
-
-**Example plots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/CellRatio-Splited.png" alt="plot of chunk unnamed-chunk-16" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-16</p>
-</div>
-
-### Find Cluster Markers and DEGs Analysis
-
-This usually takes longer, please wait patiently.Please save the results before start a new analysis, the old results will be overwritten by the new results, the results can be downloaded as ``csv`` format.
-
-#### Support two ways
-
-- support find markers for all clusters
-
-- support calculate DEGs for self-defined two groups, you can subset cells before calculate DEGs between two groups, default use all cells of two groups.
-
-You can modify part calculation parameters before a analysis.
-
-**Screen shots:**
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/DEGs-2.png" alt="plot of chunk unnamed-chunk-17" width="50%" />
-<p class="caption">plot of chunk unnamed-chunk-17</p>
-</div>
-
-#### Output description
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/DEGs-4.jpg" alt="plot of chunk unnamed-chunk-18" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-18</p>
-</div>
-
-> [FindMarkers(object, ...)](https://satijalab.org/seurat/reference/findmarkers)
->
-> A data.frame with a ranked list of putative markers as rows, and associated statistics as columns (p-values, ROC score, etc., depending on the test used (test.use)). The following columns are always present:
-> 
-> avg_logFC: log fold-chage of the average expression between the two groups. Positive values indicate that the gene is more highly expressed in the first group
-> 
-> pct.1: The percentage of cells where the gene is detected in the first group
-> 
-> pct.2: The percentage of cells where the gene is detected in the second group
-> 
-> p_val_adj: Adjusted p-value, based on bonferroni correction using all genes in the dataset
-
-### Top Expressed Features
-
-Highly expressed genes can reflect the main functions of cells, there two ways to do this. the first - ``Find Top Genes by Cell`` could find gene only high express in a few cells, while the second - ``Find Top Genes by Accumulated UMI counts`` is biased to find the highly expressed genes in most cells by accumulated UMI counts.
-
-#### 1. Find Top Genes by Cell
-
-#### How?
-
-Step1: for each cell, find genes that has high UMI percentage, for example, if a cell has 10000 UMIs, and the ``UMI percentage cutoff`` is set to 0.01, then all genes that has more than 10000 * 0.01 = 100 UMIs is thought to be the highly expressed genes for this cell.
-
-Step2: summary those genes for each cluster, firstly get all highly expressed genes in a cluster, some genes may has less cells, then for each gene, count cells in which this genes is highly expressed, and also calculate the mean and median UMI percentage in those highly expressed cells.
-
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Find-Top-Genes-by-Cell.jpg" alt="plot of chunk unnamed-chunk-19" width="80%" />
-<p class="caption">plot of chunk unnamed-chunk-19</p>
-</div>
-
-#### Output description
-
-- ``celltype``: the cluster name which is define by ``Choose A Cluster Resolution``
-
-- ``total.cells``: total cell in this cluster
-
-- ``Gene``: this Gene is highly expressed in at least 1 cell in this cluster
-
-- ``total.pos.cells``: how many cells express this gene
-
-- ``total.UMI.pct``: (all UMIs of this gene)/(total UMIs of this cluster)
-
-- ``cut.Cells``:  how many cells highly express this gene
-
-- ``cut.pct.mean``: in those highly expressed cells, the mean expression percentage
-
-- ``cut.pct.median``: in those highly expressed cells, the median expression percentage
-
-
-#### 2. Find Top Genes by Mean UMI counts
-
-for each cluster, calculate the ``top n`` highly expressed genes by Mean UMI counts. if a cluster has less than 3 cells, this cluster will be escaped.
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/Find-Top-Genes-by-Mean-UMI-counts.jpg" alt="plot of chunk unnamed-chunk-20" width="80%" />
-<p class="caption">plot of chunk unnamed-chunk-20</p>
-</div>
-
-#### Output description
-
-- ``CellType``: the cluster name which is define by ``Choose A Cluster Resolution``
-
-- ``total.cells``: total cell in this cluster
-
-- ``Gene``: the ``top n`` highly expressed genes 
-
-- ``total.pos.cells``: how many cells express this gene
-
-- ``MeanUMICounts``: (total accumulated UMI counts) / (total cells of this cluster)
-
-- ``PCT``:  (total accumulated UMI counts of the gene) / (total UMIs of cluster cells)
-
-### Feature Summary
-
-Summary interested features by cluster, such as the positive cell percentage and mean/median expression level.
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/gene-short-summary.jpg" alt="plot of chunk unnamed-chunk-21" width="80%" />
-<p class="caption">plot of chunk unnamed-chunk-21</p>
-</div>
-
-#### Output description
-
-- ``celltype``: the cluster name which is define by ``Choose A Cluster Resolution``
-
-- ``TotalCells``: total cell in this cluster
-
-- ``Gene``: the input genes 
-
-- ``PCT``: the percentage of how many cells express this gene in this cluster
-
-- ``Expr.mean``: the mean normalized expression in this cluster
-
-- ``Expr.median``:  the median normalized expression in this cluster
-
-### Feature Correlation Analysis
-
-Can calculate the correlation value of gene pairs within cells from a cluster, support pearson & spearman methods.
-
-#### 3 ways to do
-
-- ``Find Top Correlated Gene Pairs``: to find top 1000 correlated gene pairs
-
-- ``Find Correlated Genes for A Gene``: to find the most correlated genes for input genes
-
-- ``Calculate Correlation for A Gene List``: to calculate the correlation value for each pair of the input genes
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/featurecorrelation.jpg" alt="plot of chunk unnamed-chunk-22" width="100%" />
-<p class="caption">plot of chunk unnamed-chunk-22</p>
-</div>
-
-#### Output description
-
-<div class="figure">
-<img src="C:/Users/Xi_Lab/AppData/Local/R/win-library/4.4/SeuratExplorer/extdata/www/feature-correlation-output.jpg" alt="plot of chunk unnamed-chunk-23" width="40%" />
-<p class="caption">plot of chunk unnamed-chunk-23</p>
-</div>
-
-- ``GeneA``: the first gene in a Gene pair
-
-- ``GeneB``:  the second gene in a Gene pair
-
-- ``correlation``: the correlation value
-
-if nothing return, this is because the input genes has very low expression level, very low expressed genes will be removed before analysis.
-
-
-## Key related packages
-
-- [satijalab/seurat](https://github.com/satijalab/seurat): Seurat is an R toolkit for single cell genomics, developed and maintained by the Satija Lab at NYGC.
-
-- [Hla-Lab/SeuratExplorer](https://github.com/rwcrocker/SeuratExplorer/): An interactive R shiny application for exploring scRNAseq data processed in Seurat.
-
-- [junjunlab/scRNAtoolVis](https://github.com/junjunlab/scRNAtoolVis): Some useful function to make your scRNA-seq plot more beautiful.
-
-- [rstudio/shiny-server](https://github.com/rstudio/shiny-server): Shiny Server is a server program that makes Shiny applications available over the web.
-
-## Session Info
-
-
-```
-#> R version 4.4.3 (2025-02-28 ucrt)
-#> Platform: x86_64-w64-mingw32/x64
-#> Running under: Windows 11 x64 (build 26100)
-#> 
-#> Matrix products: default
-#> 
-#> 
-#> locale:
-#> [1] LC_COLLATE=Chinese (Simplified)_China.utf8  LC_CTYPE=Chinese (Simplified)_China.utf8    LC_MONETARY=Chinese (Simplified)_China.utf8
-#> [4] LC_NUMERIC=C                                LC_TIME=Chinese (Simplified)_China.utf8    
-#> 
-#> time zone: Asia/Shanghai
-#> tzcode source: internal
-#> 
-#> attached base packages:
-#> [1] stats     graphics  grDevices utils     datasets  methods   base     
-#> 
-#> other attached packages:
-#> [1] shiny_1.10.0                badger_0.2.4                SeuratExplorerServer_0.1.12
-#> 
-#> loaded via a namespace (and not attached):
-#>   [1] RColorBrewer_1.1-3       rstudioapi_0.17.1        dlstats_0.1.7            jsonlite_1.8.8           billboarder_0.5.0        magrittr_2.0.3          
-#>   [7] spatstat.utils_3.1-3     farver_2.1.2             fs_1.6.4                 vctrs_0.6.5              ROCR_1.0-11              memoise_2.0.1           
-#>  [13] spatstat.explore_3.4-2   shinydashboardPlus_2.0.5 askpass_1.2.1            htmltools_0.5.8.1        sass_0.4.10              sctransform_0.4.2       
-#>  [19] parallelly_1.43.0        KernSmooth_2.23-26       bslib_0.9.0              desc_1.4.3               fontawesome_0.5.3        htmlwidgets_1.6.4       
-#>  [25] ica_1.0-3                plyr_1.8.9               plotly_4.10.4            zoo_1.8-14               cachem_1.1.0             igraph_2.1.4            
-#>  [31] mime_0.13                lifecycle_1.0.4          pkgconfig_2.0.3          colourpicker_1.3.0       Matrix_1.7-3             R6_2.6.1                
-#>  [37] fastmap_1.2.0            fitdistrplus_1.2-2       future_1.33.2            digest_0.6.36            colorspace_2.1-0         patchwork_1.3.0         
-#>  [43] shinycssloaders_1.1.0    Seurat_5.3.99.9000       tensor_1.5               RSpectra_0.16-2          irlba_2.3.5.1            crosstalk_1.2.1         
-#>  [49] RSQLite_2.3.11           progressr_0.15.1         spatstat.sparse_3.1-0    httr_1.4.7               polyclip_1.10-6          abind_1.4-8             
-#>  [55] compiler_4.4.3           bit64_4.6.0-1            DBI_1.2.3                fastDummies_1.7.5        R.utils_2.13.0           MASS_7.3-65             
-#>  [61] openssl_2.3.2            tools_4.4.3              lmtest_0.9-40            httpuv_1.6.16            future.apply_1.11.3      goftest_1.2-3           
-#>  [67] R.oo_1.27.1              glue_1.7.0               nlme_3.1-168             promises_1.3.2           grid_4.4.3               Rtsne_0.17              
-#>  [73] cluster_2.1.8.1          reshape2_1.4.4           generics_0.1.4           gtable_0.3.6             spatstat.data_3.1-6      R.methodsS3_1.8.2       
-#>  [79] shinyBS_0.61.1           tidyr_1.3.1              data.table_1.17.0        sp_2.2-0                 spatstat.geom_3.3-6      RcppAnnoy_0.0.22        
-#>  [85] ggrepel_0.9.5            shinymanager_1.0.410     RANN_2.6.2               pillar_1.10.2            markdown_2.0             stringr_1.5.1           
-#>  [91] yulab.utils_0.2.0        spam_2.11-1              RcppHNSW_0.6.0           later_1.4.2              splines_4.4.3            dplyr_1.1.4             
-#>  [97] lattice_0.22-7           bit_4.6.0                survival_3.8-3           deldir_2.0-4             tidyselect_1.2.1         rvcheck_0.2.1           
-#> [103] miniUI_0.1.2             pbapply_1.7-2            knitr_1.50               gridExtra_2.3            litedown_0.7             scattermore_1.2         
-#> [109] xfun_0.52                shinydashboard_0.7.3     matrixStats_1.5.0        DT_0.33                  stringi_1.8.4            yaml_2.3.10             
-#> [115] scrypt_0.1.6             lazyeval_0.2.2           shinyWidgets_0.9.0       evaluate_1.0.3           codetools_0.2-20         data.tree_1.1.0         
-#> [121] tibble_3.2.1             BiocManager_1.30.25      cli_3.6.3                uwot_0.2.3               xtable_1.8-4             reticulate_1.42.0       
-#> [127] jquerylib_0.1.4          Rcpp_1.0.12              SeuratExplorer_0.1.2     globals_0.18.0           spatstat.random_3.3-3    png_0.1-8               
-#> [133] spatstat.univar_3.1-2    parallel_4.4.3           blob_1.2.4               ggplot2_3.5.1            dotCall64_1.2            listenv_0.9.1           
-#> [139] viridisLite_0.4.2        scales_1.4.0             ggridges_0.5.6           SeuratObject_5.1.0       purrr_1.0.2              rlang_1.1.4             
-#> [145] cowplot_1.1.3
+For now, you can use the link (IP\[Port\] + the relative path to
+`site_dir` directory) to visit this app.
+
+### 2.4 Build index app
+
+Next, what we do is to put all app links into a file and build a UI for
+users to browse all apps.
+
+**2.4.1 meta data**
+
+``` r
+# analysis metadata
+# a demo located in: inst/extdata/shinyserver_demo/index-page/Entry.csv
+entry_info <- data.frame(DataType = c("scRNAseq", "scRNAseq"),
+                         Species = c("Fly", "Mouse"),
+                         Organ = c("Gut", "Gut"),
+                         CellType = c("EEs", "Whole"),
+                         scRNAseq.Method = c("10X genomics", "10X genomics"),
+                         # Required, please change it to your data link
+                         Data.Link = c("http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/", "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_2/"),
+                         Official.Link = c("https://xilab.shinyapps.io/database/", "https://www.flyrnai.org/tools/rna_seq/web/showProject/23/plot_coord=1/sample_id=all"),
+                         note = c("CG32547-GAL4 > GFP; GFP+ EE cells; Female Flies; 4661 cells;", "10,605 midgut epithelial cells from 7-d-old females expressing GFP in progenitors"),
+                         Source = c("Guo, 2019, Cell Reports", "Hung, 2020, PNAS"),
+                         Paper = c("The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells", "A cell atlas of the adult Drosophila midgut"),
+                         Paper.Link = c("https://doi.org/10.1016/j.celrep.2019.11.048", "https://doi.org/10.1073/pnas.1916820117"))
+entry_info
+write.csv(entry_info, file = "Entry.csv", row.names = FALSE)
 ```
 
-## 中文介绍
+**2.4.2 UI**
 
-[微信公众号： 分析力工厂](https://mp.weixin.qq.com/s/lpvI9OnyN95amOeVGmeyMQ)
+This app should located under the `site_dir` directory defined in
+`/etc/shiny-server/shiny-server.conf` file.
+
+``` r
+# app.R
+# A minimal example to build a data index page
+# located in: inst/extdata/shinyserver_demo/index-page/app.R
+library(shiny)
+library(shinydashboard)
+library(DT)
+
+# trans characters to links
+tans_link <- function(Avector,label = "View Data"){
+  res <- c()
+  for (i in Avector) {
+    if (!i %in% c("","-",NA)) {
+      res <- append(res,paste(paste0("<a href='",unlist(strsplit(i,split = ";")),"' target='_blank'>",label,"</a>"),collapse = "<br>"))
+    }else{
+      res <- append(res,"-")
+    }
+  }
+  return(res)
+}
+
+ui <- dashboardPage( title = "Demo Data Hub",
+                     dashboardHeader( title = strong("Demo Data Hub"), titleWidth = 240),
+                     dashboardSidebar(width = 240,
+                                      sidebarMenu(menuItem(strong("Data"), tabName = "Data", icon = icon("tachometer-alt")))),
+                     dashboardBody(tags$style("@import url(https://use.fontawesome.com/releases/v5.7.2/css/all.css);"),
+                                   tabItems(tabItem(tabName = "Data",
+                                                    h2(strong("Data")),
+                                                    # Attention, you need to change the link bellow, suggest put all data apps under a common directory, here is SeuratExplorerServer-Data.
+                                                    h3("Main Entrance: ", tags$a(href = "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/","Link Here!")),
+                                                    br(),
+                                                    fluidRow(box(title = "Included Data", width = 12, status = "primary",
+                                                                 DT::dataTableOutput("DataIndex")))
+                                   ))))
+
+server <- function(input, output, session) {
+  # Data
+  Data <- read.csv("path/to/Entry.csv", stringsAsFactors = FALSE)
+  Data$Data.Link <- tans_link(Data$Data.Link)
+  Data$Official.Link <- tans_link(Data$Official.Link)
+  Data$Paper.Link <- tans_link(Data$Paper.Link, "View Paper")
+  output$DataIndex <- DT::renderDataTable(DT::datatable(Data,escape = FALSE))
+}
+
+shinyApp(ui, server)
+```
+
+Finally, you can use the link (IP\[Port\] + the relative path to
+`site_dir` directory of this app) to browse and search all analysis,
+then visit the interested data by click the link of data app.
+
+## 3. Workflow when loading a data app
+
+- Login: input account and password
+
+- Data selection, loading and switch
+
+- Show data meta info
+
+- Browse analysis reports, click `Generate/Update Reports` button, `App`
+  will create a directory named by directory name plus `_reports`, such
+  as for app located in `Fly-Gut-EEs-scRNAseq` directory, will create a
+  directory named with `Fly-Gut-EEs-scRNAseq_reports`, and all files of
+  specified format located in directories of `Reports.main` and
+  `Reports.second` columns from meta data will be linked to the reports
+  directory
+
+- full functions from `SeuratExplorer`
+
+- modify the settings which will takes effect when restart
+
+- the reports directory(`Fly-Gut-EEs-scRNAseq_reports`) will be deleted
+  when close the app
+
+## 4. Screenshots
+
+<img src="inst/extdata/www/index.png" width="80%" />
+
+<img src="inst/extdata/www/login.png" width="50%" />
+
+<img src="inst/extdata/www/select-data.png" width="80%" /><img src="inst/extdata/www/reports.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
+
+## 5. Rsession info
+
+    #> R version 4.4.3 (2025-02-28 ucrt)
+    #> Platform: x86_64-w64-mingw32/x64
+    #> Running under: Windows 11 x64 (build 26100)
+    #> 
+    #> Matrix products: default
+    #> 
+    #> 
+    #> locale:
+    #> [1] LC_COLLATE=Chinese (Simplified)_China.utf8 
+    #> [2] LC_CTYPE=Chinese (Simplified)_China.utf8   
+    #> [3] LC_MONETARY=Chinese (Simplified)_China.utf8
+    #> [4] LC_NUMERIC=C                               
+    #> [5] LC_TIME=Chinese (Simplified)_China.utf8    
+    #> 
+    #> time zone: Asia/Shanghai
+    #> tzcode source: internal
+    #> 
+    #> attached base packages:
+    #> [1] stats     graphics  grDevices utils     datasets  methods   base     
+    #> 
+    #> other attached packages:
+    #> [1] badger_0.2.4
+    #> 
+    #> loaded via a namespace (and not attached):
+    #>  [1] vctrs_0.6.5         cli_3.6.3           knitr_1.50         
+    #>  [4] rlang_1.1.4         xfun_0.52           generics_0.1.4     
+    #>  [7] jsonlite_1.8.8      glue_1.7.0          htmltools_0.5.8.1  
+    #> [10] scales_1.4.0        rmarkdown_2.29      dlstats_0.1.7      
+    #> [13] grid_4.4.3          evaluate_1.0.3      tibble_3.2.1       
+    #> [16] fastmap_1.2.0       yaml_2.3.10         lifecycle_1.0.4    
+    #> [19] BiocManager_1.30.25 rvcheck_0.2.1       compiler_4.4.3     
+    #> [22] dplyr_1.1.4         fs_1.6.4            RColorBrewer_1.1-3 
+    #> [25] pkgconfig_2.0.3     rstudioapi_0.17.1   farver_2.1.2       
+    #> [28] digest_0.6.36       R6_2.6.1            tidyselect_1.2.1   
+    #> [31] pillar_1.10.2       magrittr_2.0.3      tools_4.4.3        
+    #> [34] gtable_0.3.6        desc_1.4.3          yulab.utils_0.2.0  
+    #> [37] ggplot2_3.5.1
+
+## 6. 中文介绍
+
+[微信公众号：分析力工厂](https://mp.weixin.qq.com/s/g612UEp3DZF-oOHUY13BDA)
