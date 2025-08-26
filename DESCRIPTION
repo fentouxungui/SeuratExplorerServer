@@ -1,6 +1,6 @@
 Package: SeuratExplorerServer
 Title: Build your own scRNAseq database based on ``SeuratExplorer``
-Version: 0.1.1
+Version: 0.1.12
 Authors@R: 
     person("Zhang", "Yongchao", , "zhangyongchao@nibs.ac.cn", role = c("aut", "cre"),
            comment = c(Github = "https://github.com/fentouxungui"))

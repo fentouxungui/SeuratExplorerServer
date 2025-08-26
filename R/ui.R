@@ -53,14 +53,8 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     box(status = "primary", title = "Select Data", width = 12, collapsible = TRUE, solidHeader = TRUE,
                                         withSpinner(uiOutput("SelectData.UI")),
                                         actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")),
-                                    box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
-                                        DTOutput("DataList")),
-                                    conditionalPanel(
-                                      condition = "output.file_loaded",
-                                      box(title = "Metadata of Cells from loaded data", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
-                                          withSpinner(DTOutput('dataset_meta'))),
-                                      box(title = "Structure of Seurat Object", collapsible = TRUE, collapsed = FALSE, width = 12,solidHeader = TRUE, status = "primary",
-                                          withSpinner(verbatimTextOutput("object_structure"))))
+                                    box(title = "Sessoion Info", width = 12, collapsible = TRUE, collapsed = TRUE, solidHeader = TRUE,status = "primary",
+                                        withSpinner(verbatimTextOutput("sessioninfo")))
                                     ))
 
   tab_list[["reports"]] = tabItem(tabName = "reports",
@@ -87,6 +81,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                          withSpinner(uiOutput("SetDescription.UI")),
                                          withSpinner(uiOutput("SetDefaultReduction.UI")),
                                          withSpinner(uiOutput("SetDefaultCluster.UI")),
+                                         withSpinner(uiOutput("SetDefaultAssay.UI")),
                                          withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI")),
                                          actionButton(inputId = "submitsettings",label = "Save", icon = icon("save"), class = "btn-primary"))
                                      ))

@@ -7,7 +7,7 @@
 #' @import Seurat SeuratObject SeuratExplorer data.tree
 #' @importFrom plyr rbind.fill
 #' @importFrom DT renderDT datatable
-#' @importFrom utils getFromNamespace
+#' @importFrom utils getFromNamespace sessionInfo
 #' @importFrom stats na.omit
 #' @param input Input from the UI
 #' @param output Output to send back to UI
@@ -25,6 +25,8 @@ server <- function(input, output, session) {
   prepare_seurat_object <- getFromNamespace('prepare_seurat_object', 'SeuratExplorer')
   prepare_split_options <- getFromNamespace('prepare_split_options', 'SeuratExplorer')
   readSeurat <- getFromNamespace('readSeurat', 'SeuratExplorer')
+  prepare_assays_options <- getFromNamespace('prepare_assays_options', 'SeuratExplorer')
+  prepare_gene_annotations <- getFromNamespace('prepare_gene_annotations', 'SeuratExplorer')
 
   # encrypt
   if (getOption("SeuratExplorerServerEncrypted")){
@@ -61,8 +63,9 @@ server <- function(input, output, session) {
   data = reactiveValues(obj = NULL, loaded = FALSE, Name = NULL, Path = NULL,
                         Species = NULL, Description = NULL,
                         reduction_options = NULL, reduction_default = NULL,
+                        assays_options = NULL, assay_default = 'RNA',
                         cluster_options = NULL, cluster_default = NULL,
-                        split_maxlevel = 6, split_options = NULL,
+                        split_maxlevel = 6, split_options = NULL, gene_annotions_list = NULL,
                         extra_qc_options = NULL)
 
 
@@ -71,21 +74,28 @@ server <- function(input, output, session) {
   ## background will throw an error: Warning: Error in [.data.frame: Undefined columns are selected, but the UI will not show the error.
   observeEvent(input$submitdata,{
     shiny::req(input$Choosendata)
-    showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file takes longer.", footer= NULL, size = "l"))
+    showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file usually takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
     if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # first time load
-      data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata))
+      data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata), verbose = getOption('SeuratExplorerServerVerbose'))
       data$Name <- data_meta$Sample.name[which_data]
       data$Path <- input$Choosendata
       data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
       data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
       data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = getOption("SeuratExplorerServerReductionKeyWords"))
       data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
+      data$assays_options <- prepare_assays_options(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose')) # update assay options
+      if (!'Default.Assay' %in% colnames(data_meta)) { # for old version data_meta.rds, there is no Default.Assay column
+        data$assay_default <- ifelse(data$assay_default %in% data$assays_options,data$assay_default, data$assays_options[1]) # update the default assay
+      }else{
+        data$assay_default <- ifelse(data_meta$Default.Assay[which_data] %in% data$assays_options, data_meta$Default.Assay[which_data], data$assays_options[1]) # update the default assay
+      }
       data$cluster_options <- prepare_cluster_options(df = data$obj@meta.data)
       data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # if NA value, return NULL
       data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){getOption("SeuratExplorerServerDefaultSplitLevel")}else{data_meta$SplitOptions.MaxLevel[which_data]} # if NA value, use split options level cutoff
       data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
+      data$gene_annotions_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
       cache.rds.list[[data_meta$Sample.name[which_data]]] <- reactiveValuesToList(data)
     }else{ # for data loaded before
       data$obj <- cache.rds.list[[data_meta$Sample.name[which_data]]]$obj
@@ -95,11 +105,14 @@ server <- function(input, output, session) {
       data$Description <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Description
       data$reduction_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_options
       data$reduction_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_default
+      data$assays_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assays_options
+      data$assay_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assay_default
       data$cluster_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_options
       data$cluster_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_default
       data$split_maxlevel <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_maxlevel
       data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
       data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
+      data$gene_annotions_list <- cache.rds.list[[data_meta$Sample.name[which_data]]]$gene_annotions_list
     }
     if(getOption("SeuratExplorerServerVerbose")){message("data loaded successfully!")}
     removeModal()
@@ -111,34 +124,15 @@ server <- function(input, output, session) {
     data$loaded = !is.null(data$obj)
   })
 
-  ## Render metadata table
-  output$dataset_meta <- renderDT(server=TRUE,{
-    shiny::req(data$obj)
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing dataset_meta...")}
-    # Show data
-    datatable(data$obj@meta.data, extensions = 'Buttons',
-                  caption = htmltools::tags$caption(
-                    style = 'caption-side: bottom; text-align: center;',
-                    'Table 2: ', htmltools::em('cell metadata')),
-                  options = list(scrollX=TRUE,
-                                 # lengthMenu = c(5,10,15),
-                             paging = TRUE, searching = TRUE,
-                             fixedColumns = TRUE, autoWidth = TRUE,
-                             ordering = TRUE, dom = 'Bfrtip',
-                             buttons = c('copy', 'csv', 'excel')))
-  })
-
   ## Conditional panel control based on loaded obj
   output$file_loaded = reactive({
     return(data$loaded)
   })
 
-  ############################### Render Object structure
-  output$object_structure <- renderPrint({
-    req(data$obj)
-    str(data$obj, max.level = 3) # Display the structure of the data frame
+  ############################### Render Session Info
+  output$sessioninfo <- renderPrint({
+    sessionInfo()
   })
-
 
   ## Disable suspend for output$file_loaded
   ## When TRUE (the default), the output object will be suspended (not execute) when it is hidden on the web page.
@@ -264,6 +258,11 @@ server <- function(input, output, session) {
     selectInput("NewDefaultCluster","Cluster Resolution:", choices = data$cluster_options, selected = data$cluster_default)
   })
 
+  output$SetDefaultAssay.UI <- renderUI({
+    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultAssay.UI...")}
+    selectInput("NewDefaultAssay","Default Assay:", choices = data$assays_options, selected = data$assay_default)
+  })
+
   output$SetDefaultSplitMaxLevels.UI <- renderUI({
     if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultSplitMaxLevels.UI...")}
     sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 50, value = data$split_maxlevel)
@@ -275,12 +274,16 @@ server <- function(input, output, session) {
       showModal(modalDialog(title = "Error:","Sample name can not be empty.",easyClose = TRUE,footer = NULL))
     }else{
       which_data <- match(data$Path, data_meta$Rds.full.path)
+      if( !'Default.Assay' %in% colnames(data_meta)){ # for old version data.meta file, there is no Default.Assay column
+        data_meta$Defaul.Assay <- 'RNA'
+      }
       data_meta_new <- data_meta
       data_meta_new$Sample.name[which_data] <- input$NewName
       data_meta_new$Species[which_data] <- input$NewSpecies
       data_meta_new$Description[which_data] <- ifelse(trimws(input$NewDescription) == "", NA, input$NewDescription)
       data_meta_new$Default.DimensionReduction[which_data] <- input$NewDefaultReduction
       data_meta_new$Default.ClusterResolution[which_data] <- input$NewDefaultCluster
+      data_meta_new$Default.Assay[which_data] <- input$NewDefaultAssay
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
       data_meta_new$Rds.File.size <- NULL
@@ -297,6 +300,7 @@ server <- function(input, output, session) {
       removeUI(selector = "div:has(> #NewDescription)")
       removeUI(selector = "div:has(> #NewDefaultReduction)")
       removeUI(selector = "div:has(> #NewDefaultCluster)")
+      removeUI(selector = "div:has(> #NewDefaultAssay)")
       removeUI(selector = "div:has(> #NewSplitMaxLevel)")
       removeUI(selector = "div:has(> #submitsettings)")
     }
