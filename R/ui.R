@@ -53,7 +53,9 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     box(status = "primary", title = "Select Data", width = 12, collapsible = TRUE, solidHeader = TRUE,
                                         withSpinner(uiOutput("SelectData.UI")),
                                         actionButton(inputId = "submitdata",label = "Load data", icon = icon("upload"), class = "btn-primary")),
-                                    box(title = "Sessoion Info", width = 12, collapsible = TRUE, collapsed = TRUE, solidHeader = TRUE,status = "primary",
+                                    box(title = "Metadata of Dataset", width = 12, collapsible = TRUE, solidHeader = TRUE,status = "primary", align = "center",
+                                        DTOutput("DataList")),
+                                    box(title = "Sessoion Info", width = 12, collapsible = TRUE, collapsed = FALSE, solidHeader = TRUE,status = "primary",
                                         withSpinner(verbatimTextOutput("sessioninfo")))
                                     ))
 
