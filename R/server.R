@@ -44,7 +44,7 @@ server <- function(input, output, session) {
                                         class = 'cell-border stripe',
                                         caption = htmltools::tags$caption(
                                           style = 'caption-side: bottom; text-align: center;',
-                                          'Table 1: ', htmltools::em('Sample metadata for this App')),
+                                          'Table 1: ', htmltools::em('Sample metadata of Data')),
                                         options = list(searching = FALSE, scrollX = T)))
 
 
@@ -76,7 +76,7 @@ server <- function(input, output, session) {
     shiny::req(input$Choosendata)
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file usually takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
-    if (is.null(names(cache.rds.list)) | !data_meta$Sample.name[which_data] %in% names(cache.rds.list)) { # first time load
+    if (is.null(names(cache.rds.list)) | !(data_meta$Sample.name[which_data] %in% names(cache.rds.list))) { # first time load
       data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata), verbose = getOption('SeuratExplorerServerVerbose'))
       data$Name <- data_meta$Sample.name[which_data]
       data$Path <- input$Choosendata
@@ -96,8 +96,11 @@ server <- function(input, output, session) {
       data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
       data$gene_annotions_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
-      cache.rds.list[[data_meta$Sample.name[which_data]]] <- reactiveValuesToList(data)
+      cache.rds.list[[data_meta$Sample.name[which_data]]] <<- reactiveValuesToList(data)
+      # message('Newly loaded data has been cached!')
+      # print(names(cache.rds.list))
     }else{ # for data loaded before
+      # message('Loadded from Cached data!')
       data$obj <- cache.rds.list[[data_meta$Sample.name[which_data]]]$obj
       data$Name <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Name
       data$Path <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Path

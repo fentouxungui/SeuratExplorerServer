@@ -45,7 +45,7 @@ check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
   }
 }
 
-prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg")){
+prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf", "tiff", "tif", "jpeg", 'gif',"jpg", "png", "bmp", "svg","html",'mp4','avi')){
   file.types.pttern = paste0("(\\.", paste0(file_types_included, collapse = "$)|(\\."), "$)")
   # generate from + to data.frame for main directory
   links.db.list <- list()
