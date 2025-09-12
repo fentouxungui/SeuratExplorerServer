@@ -291,7 +291,7 @@ server <- function(input, output, session) {
     }else{
       which_data <- match(data$Path, data_meta$Rds.full.path)
       if( !'Default.Assay' %in% colnames(data_meta)){ # for old version data.meta file, there is no Default.Assay column
-        data_meta$Defaul.Assay <- 'RNA'
+        data_meta$Default.Assay <- 'RNA'
       }
       data_meta_new <- data_meta
       data_meta_new$Sample.name[which_data] <- input$NewName
@@ -299,19 +299,10 @@ server <- function(input, output, session) {
       data_meta_new$Description[which_data] <- ifelse(trimws(input$NewDescription) == "", NA, input$NewDescription)
       data_meta_new$Default.DimensionReduction[which_data] <- input$NewDefaultReduction
       data_meta_new$Default.ClusterResolution[which_data] <- input$NewDefaultCluster
-      print('7')
-      print(data_meta)
-      print(data_meta_new)
-      print(data_meta_new$Default.Assay[which_data])
-      print(input$NewDefaultAssay)
       data_meta_new$Default.Assay[which_data] <- input$NewDefaultAssay
-      print('8')
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
-      print('9')
       data_meta_new$Rds.full.path <- NULL
-      print('10')
       data_meta_new$Rds.File.size <- NULL
-      print('11')
       saveRDS(data_meta_new, file = getOption("SeuratExplorerServerParamterfile"))
       # R Shiny app shows old data
       # https://stackoverflow.com/questions/37408072/r-shiny-app-shows-old-data
