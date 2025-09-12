@@ -290,23 +290,20 @@ server <- function(input, output, session) {
       showModal(modalDialog(title = "Error:","Sample name can not be empty.",easyClose = TRUE,footer = NULL))
     }else{
       which_data <- match(data$Path, data_meta$Rds.full.path)
-      print('0')
       if( !'Default.Assay' %in% colnames(data_meta)){ # for old version data.meta file, there is no Default.Assay column
         data_meta$Defaul.Assay <- 'RNA'
       }
-      print('1')
       data_meta_new <- data_meta
-      print("2")
       data_meta_new$Sample.name[which_data] <- input$NewName
-      print('3')
       data_meta_new$Species[which_data] <- input$NewSpecies
-      print('4')
       data_meta_new$Description[which_data] <- ifelse(trimws(input$NewDescription) == "", NA, input$NewDescription)
-      print('5')
       data_meta_new$Default.DimensionReduction[which_data] <- input$NewDefaultReduction
-      print('6')
       data_meta_new$Default.ClusterResolution[which_data] <- input$NewDefaultCluster
       print('7')
+      print(data_meta)
+      print(data_meta_new)
+      print(data_meta_new$Default.Assay[which_data])
+      print(input$NewDefaultAssay)
       data_meta_new$Default.Assay[which_data] <- input$NewDefaultAssay
       print('8')
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
