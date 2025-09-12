@@ -11,7 +11,8 @@ launchSeuratExplorerServer(
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
   ReductionKeyWords = c("umap", "tsne"),
-  ReportsFileTypes = c("pdf", "tiff", "tif", "jped", "jpg", "png", "bmp", "svg"),
+  ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", "gif", "jpg", "png", "bmp", "svg",
+    "html", "mp4", "avi"),
   DefaultSplitMaxLevel = 6,
   SupportedFileTypes = c("rds", "qs2"),
   verbose = FALSE
