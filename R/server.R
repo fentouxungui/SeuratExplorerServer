@@ -25,6 +25,7 @@ server <- function(input, output, session) {
   prepare_seurat_object <- getFromNamespace('prepare_seurat_object', 'SeuratExplorer')
   prepare_split_options <- getFromNamespace('prepare_split_options', 'SeuratExplorer')
   readSeurat <- getFromNamespace('readSeurat', 'SeuratExplorer')
+  prepare_assays_slots <- getFromNamespace('prepare_assays_slots', 'SeuratExplorer')
   prepare_assays_options <- getFromNamespace('prepare_assays_options', 'SeuratExplorer')
   prepare_gene_annotations <- getFromNamespace('prepare_gene_annotations', 'SeuratExplorer')
 
@@ -60,12 +61,22 @@ server <- function(input, output, session) {
 
   ## create data
   ## reactiveValues: Create an object for storing reactive values,similar to a list,
-  data = reactiveValues(obj = NULL, loaded = FALSE, Name = NULL, Path = NULL,
-                        Species = NULL, Description = NULL,
-                        reduction_options = NULL, reduction_default = NULL,
-                        assays_options = NULL, assay_default = 'RNA',
-                        cluster_options = NULL, cluster_default = NULL,
-                        split_maxlevel = 6, split_options = NULL, gene_annotions_list = NULL,
+  data = reactiveValues(obj = NULL,
+                        loaded = FALSE,
+                        Name = NULL,
+                        Path = NULL,
+                        Species = NULL,
+                        Description = NULL,
+                        reduction_options = NULL,
+                        reduction_default = NULL,
+                        assays_options = NULL,
+                        assay_default = 'RNA',
+                        cluster_options = NULL,
+                        assay_slots = c('counts', 'data', 'scale.data'),
+                        cluster_default = NULL,
+                        split_maxlevel = 6,
+                        split_options = NULL,
+                        gene_annotions_list = NULL,
                         extra_qc_options = NULL)
 
 
@@ -84,7 +95,8 @@ server <- function(input, output, session) {
       data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
       data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = getOption("SeuratExplorerServerReductionKeyWords"))
       data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
-      data$assays_options <- prepare_assays_options(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose')) # update assay options
+      data$assays_slots_options <- prepare_assays_slots(ob = data$obj, data_slot = data$assay_slots, verbose = getOption('SeuratExplorerServerVerbose'))
+      data$assays_options <- prepare_assays_options(Alist = data$assays_slots_options, verbose = getOption('SeuratExplorerServerVerbose'))
       if (!'Default.Assay' %in% colnames(data_meta)) { # for old version data_meta.rds, there is no Default.Assay column
         data$assay_default <- ifelse(data$assay_default %in% data$assays_options,data$assay_default, data$assays_options[1]) # update the default assay
       }else{
@@ -108,6 +120,7 @@ server <- function(input, output, session) {
       data$Description <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Description
       data$reduction_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_options
       data$reduction_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_default
+      data$assays_slots_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assays_slots_options
       data$assays_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assays_options
       data$assay_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assay_default
       data$cluster_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_options
