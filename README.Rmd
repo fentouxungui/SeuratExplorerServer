@@ -26,50 +26,49 @@ library(badger)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
-搭建您的单细胞数据库网站。
+To build your own scRNA-seq database.
 
-> 允许用户访问位于服务器上的分析结果。支持 ``App`` 加密、多数据切换、分析报告浏览及下载、分析结果检索及再分析（基于``SeuratExplorer``）和自定义初始化参数等功能。
+> Allow users to browse the scRNAseq analysis results located at server by a web browser, supports encrypted access, multiple data switch, review and download analysis reports, customized initialization parameters, and further analsysis  powered by [SeuratExplorer](https://github.com/fentouxungui/SeuratExplorer).
 
-> 生信工程师可通过``SeuratExplorerServer`` 搭建多个 ``App``，从而组建成一个单细胞数据库，每个 ``App`` 分别通过各自目录进行访问，将所有 ``App`` 的访问地址及数据信息汇总到一个 ``index`` 网页中，这样用户可通过该网页查找和访问相关数据。
+> Bioinformatics engineers can deploy multiple ``Apps`` via ``SeuratExplorerServer`` for different scRNA-seq project, then to construct a scRNA-seq database. Each ``App`` is accessible through its dedicated directory, with all ``App`` access points and data information consolidated into a single ``index`` webpage, Users can locate and access relevant data through the index page.
 
+## Major functions
 
-## 1. 功能介绍
+***Encrypted access*** (optional)
 
-***数据加密***
+For unpublished data, you can set a password for a restrict access to the ``App``.
 
-对于未公开数据，可对 ``App`` 设置密码，限制访问。
+***Multi-Data Switching***
 
-***多数据切换***
+After completing an analysis, specific cell type may be extracted for further analysis, which will yield new ``Seurat`` objects, multiple ``Seurat`` objects can be incorporated into the one App.
 
-做完某个分析后，可能会提取某种细胞类型，进行再分析，将得到新的 ``Seurat`` 对象，这样多个 ``Seurat`` 对象可以放到同一个 ``App`` 中；或者某篇文章里做了多个单细胞数据分析，所有的分析结果也都可以放到同一个 ``App`` 中。
+***Browsing Analysis Report***
 
-***分析报告浏览***
+Support browsing, viewing, and downloading analysis report files generated during the analysis process. You can specify the files types of files can be included in the reports, such as pdf, html, tiff, csv, jpg, jpeg, png, bmp, svg etc. 
 
-支持浏览、查看和下载分析过程中产生的分析报告文件，包括``pdf, html, tiff, csv, jpg, jpeg, png, bmp, svg`` 等格式，也可通过修改参数指定其它类型文件。
+***Customize Initialization Parameters***
 
-***支持自定义数据的初始化参数***
+Set default parameters for UI, such as Cluster Resolution, Species, Dimension Reduction etc.
 
-可以设置数据加载后的默认参数，比如``Cluster Resolution、Species、Dimension Reduction`` 等。
+***Powered by ``SeuratExplorer``***
 
-***与``SeuratExplorer``的区别与联系***
+``SeuratExplorer`` functions like a desktop application, enabling users to visualize and analyze a single ``Seurat`` analysis results locally on their computers at each run, if you want to view  another scRNAseq data, you may have to start another run at the same time. While ``SeuratExplorerServer`` enabling users to access multiple scRNA-seq data located on a server via web interface at each run, and all functionalities from the ``SeuratExplorer`` package are included.
 
-``SeuratExplorer``相当于一个桌面版软件，允许在本地电脑上查看和分析单个``Seurat``分析结果，即使把``SeuratExplorer``安装到服务器上，那也只能通过上传数据方式来浏览客户端电脑上的单细胞数据。而``SeuratExplorerServer``可作为``Shiny app``部署到服务器上，用户可通过网页来访问位于服务器上的单细胞数据，该R包不仅具有``SeuratExplorer``  包的所有功能外，还可以查看中间分析结果，并且支持多数据切换、密码保护和自定义部分初始化参数等功能。``SeuratExplorerServer``依赖于``SeuratExplorer``，并且具备所有``SeuratExplorer``里的数据分析功能。
-
-## 2. Build Data Hub
+## Build Database Step by Step
 
 You can check this [minimal demo](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/) (**full functions**) deployed by ``shinyserver``.
 
-Apps related files structure:
+Structure of the related files for this app:
 
 ```{r eval=FALSE}
 ShinyServer/
 ├── SeuratExplorerServer-Data
-│   ├── demo_1
-│   │   ├── app.R
-│   │   └── data_meta.rds
-│   └── demo_2
-│       ├── app.R
-│       └── data_meta.rds
+│   ├── demo_1
+│   │   ├── app.R
+│   │   └── data_meta.rds
+│   └── demo_2
+│       ├── app.R
+│       └── data_meta.rds
 └── SeuratExplorerServer-Index
     └── app.R
 ```
@@ -80,9 +79,9 @@ ShinyServer/
 
 ``SeuratExplorerServer-Index`` is the app index directory, which contains all the links to each data app.
 
-### 2.1 Prerequisties
+### 1. Prerequisties
 
-**2.1.1 install ``shinyserver``**
+**1.1 install ``shinyserver``**
 
 - install: https://posit.co/download/shiny-server/
 
@@ -90,7 +89,7 @@ ShinyServer/
 
 after installation, you need to set the ``site_dir`` in ``/etc/shiny-server/shiny-server.conf``, for this demo case ``site_dir /home/zhangyc/ShinyServer;`` is used.
 
-**2.1.2 install ``SeuratExplorerServer``**
+**1.2 install ``SeuratExplorerServer``**
 
 You can install the development version of ``SeuratExplorer`` and ``SeuratExplorerServer``like so:
 
@@ -111,23 +110,23 @@ library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-**2.1.3 Source data**
+**1.3 Source data**
 
 Analysis results by ``Seurat``, which can be saved as ``rds, png, tiff, pdf, csv, html``etc.. Bellow is the files structure used in this demo:
 
 ```{r eval=FALSE}
 ├── fly
-│   ├── CellCycle
-│   │   ├── G22M-transition.txt
-│   │   ├── TSNE-CellCycle.jpeg
-│   │   ├── cellcycle-counts-in-each-cluster.csv
-│   │   └──  counts.info.pdf
-│   ├── DIMPLOT.pdf
-│   ├── Fly-Gut-EEs+res-0.4+Default.csv
-│   ├── Rds-file
-│   │   └── G101_PC20res04.rds
-│   ├── cells.txt
-│   └── exclusive-TFs-in-Two-Major-celltypes.html
+│   ├── CellCycle
+│   │   ├── G22M-transition.txt
+│   │   ├── TSNE-CellCycle.jpeg
+│   │   ├── cellcycle-counts-in-each-cluster.csv
+│   │   └──  counts.info.pdf
+│   ├── DIMPLOT.pdf
+│   ├── Fly-Gut-EEs+res-0.4+Default.csv
+│   ├── Rds-file
+│   │   └── G101_PC20res04.rds
+│   ├── cells.txt
+│   └── exclusive-TFs-in-Two-Major-celltypes.html
 └── mouse
     ├── Subset
     │   └── subset-goblet
@@ -141,7 +140,7 @@ This demo has two separated analysis named ``fly`` and ``mouse``, for the ``fly`
 
 Attention, the analysis results should not under the ``site_dir`` directory defined in ``/etc/shiny-server/shiny-server.conf`` file.
 
-### 2.2 Generate credentials
+### 2. Generate credentials
 
 Set the accounts and passwords for your data hub.
 
@@ -157,11 +156,11 @@ credentials <- data.frame(
 saveRDS(credentials, file = "credentials.rds")
 ```
 
-### 2.3 Build data apps for each analysis
+### 3. Build data apps for each analysis
 
 For each analysis, we need to build a app, and each app should be under the ``site_dir`` directory defined in ``/etc/shiny-server/shiny-server.conf`` file. 
 
-**2.3.1 meta data**
+**3.1 meta data**
 
 ***method 1***: Generate sample meta data from ``dataframe``
 
@@ -218,7 +217,7 @@ data_meta
 # saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-**2.3.2 data app**
+**3.2 data app**
 
 ```{r eval=FALSE}
 # app.R
@@ -236,11 +235,11 @@ launchSeuratExplorerServer(Encrypted = TRUE,
 
 For now, you can use the link (IP[Port] + the relative path to ``site_dir`` directory) to visit this app.
 
-### 2.4 Build index app
+### 4. Build index app
 
 Next, what we do is to put all app links into a file and build a UI for users to browse all apps.
 
-**2.4.1 meta data**
+**4.1 meta data**
 
 ```{r eval=FALSE}
 # analysis metadata
@@ -261,7 +260,7 @@ entry_info
 write.csv(entry_info, file = "Entry.csv", row.names = FALSE)
 ```
 
-**2.4.2 UI**
+**4.2 UI**
 
 This app should located under the ``site_dir`` directory defined in ``/etc/shiny-server/shiny-server.conf`` file. 
 
@@ -312,9 +311,9 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-Finally, you can use the link (IP[Port] + the relative path to ``site_dir`` directory of this app) to browse and search all analysis, then visit the interested data by click the link of data app.
+Congratulations, now you can use the link (IP[Port] + the relative path to ``site_dir`` directory of this app) to browse and search all analysis, then visit the interested data by click the link of data app.
 
-## 3. Workflow when loading a data app
+## Workflow of loading a data app
 
 - Login: input account and password
 
@@ -331,7 +330,7 @@ Finally, you can use the link (IP[Port] + the relative path to ``site_dir`` dire
 - the reports directory(``Fly-Gut-EEs-scRNAseq_reports``) will be deleted when close the app
 
 
-## 4. Screenshots
+## Screenshots
 
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics("inst/extdata/www/index.png")
@@ -348,12 +347,12 @@ knitr::include_graphics("inst/extdata/www/reports-2.png")
 knitr::include_graphics("inst/extdata/www/settings.png")
 ```
 
-## 5. Rsession info
+## Rsession info
 
 ```{r echo=FALSE}
 sessionInfo()
 ```
 
-## 6. 中文介绍
+## 中文介绍
 
 [微信公众号：分析力工厂](https://mp.weixin.qq.com/s/g612UEp3DZF-oOHUY13BDA)
