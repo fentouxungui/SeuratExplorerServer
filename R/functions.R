@@ -120,6 +120,7 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
     data_meta$Default.DimensionReduction <- NA
     data_meta$Default.ClusterResolution <- NA
     data_meta$SplitOptions.MaxLevel <- NA
+    data_meta$Default.Assay <- 'RNA'
     invisible(check_metadata(parameters = data_meta))
     return(data_meta)
   }else{
