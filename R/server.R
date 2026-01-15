@@ -40,6 +40,7 @@ server <- function(input, output, session) {
 
   ## to cache data
   cache.rds.list <- list()
+
   ## data information UI
   output$DataList <- renderDT(datatable(data_meta,
                                         class = 'cell-border stripe',
@@ -79,7 +80,6 @@ server <- function(input, output, session) {
                         gene_annotions_list = NULL,
                         extra_qc_options = NULL)
 
-
   ## read in data after data selection
   ## possible problem: when switch data, data$obj will change firstly, while the default reduction and other options is still the previous configuration,
   ## background will throw an error: Warning: Error in [.data.frame: Undefined columns are selected, but the UI will not show the error.
@@ -87,6 +87,7 @@ server <- function(input, output, session) {
     shiny::req(input$Choosendata)
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file usually takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
+    current_data_name <<- data_meta$Sample.name[which_data]
     if (is.null(names(cache.rds.list)) | !(data_meta$Sample.name[which_data] %in% names(cache.rds.list))) { # first time load
       data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata), verbose = getOption('SeuratExplorerServerVerbose'))
       data$Name <- data_meta$Sample.name[which_data]
@@ -108,6 +109,7 @@ server <- function(input, output, session) {
       data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
       data$gene_annotions_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
+      data$version <- 0
       cache.rds.list[[data_meta$Sample.name[which_data]]] <<- reactiveValuesToList(data)
       # message('Newly loaded data has been cached!')
       # print(names(cache.rds.list))
@@ -129,6 +131,7 @@ server <- function(input, output, session) {
       data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
       data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
       data$gene_annotions_list <- cache.rds.list[[data_meta$Sample.name[which_data]]]$gene_annotions_list
+      data$version <- cache.rds.list[[data_meta$Sample.name[which_data]]]$version
     }
     if(getOption("SeuratExplorerServerVerbose")){message("data loaded successfully!")}
     removeModal()
@@ -224,10 +227,17 @@ server <- function(input, output, session) {
     })
   })
 
-
-
   # Seurat explorer functions
   SeuratExplorer::explorer_server(input = input, output = output, session = session, data = data, verbose = getOption("SeuratExplorerServerVerbose"))
+
+  # update the cache.rds.list when Rename Clusters - submit button clicked
+  observeEvent(data$version, {
+    req(data$obj)
+    if (current_data_name == data$Name & data$version != 0) {
+      cache.rds.list[[data$Name]] <<- reactiveValuesToList(data)
+      if (getOption("SeuratExplorerServerVerbose")) {message('Cache data updated!')}
+    }
+  })
 
   # settings
   ## Warning
@@ -321,6 +331,7 @@ server <- function(input, output, session) {
       removeUI(selector = "div:has(> #submitsettings)")
     }
   })
+
 
   # do something when session ended
   session$onSessionEnded(function() {
