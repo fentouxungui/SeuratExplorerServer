@@ -34,6 +34,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         SupportedFileTypes = c("rds", "qs2"),
                                         verbose = FALSE
                                        ){
+  options("SeuratExplorerVerbose" = verbose)
   options("SeuratExplorerServerVerbose" = verbose)
   options("SeuratExplorerServerEncrypted" = Encrypted)
   options("SeuratExplorerServerCredentials" = credentials)
