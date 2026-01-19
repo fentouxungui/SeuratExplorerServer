@@ -38,8 +38,17 @@ server <- function(input, output, session) {
   # Data set Page
   data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParamterfile")), getOption("SeuratExplorerServerSupportedFiles"))
 
-  ## to cache data
-  cache.rds.list <- list()
+  # Create an env to store package-specific variables
+  .pkg.env <- new.env(parent = emptyenv())
+  .pkg.env$cache.rds.list <- list() ## to cache data
+  .pkg.env$current_data_name <- NULL ## to record current data name
+
+  # to be deleted
+  # ## to cache data
+  # cache.rds.list <- list()
+  #
+  # ## to record current data name
+  # current_data_name <- NULL
 
   ## data information UI
   output$DataList <- renderDT(datatable(data_meta,
@@ -87,10 +96,10 @@ server <- function(input, output, session) {
     shiny::req(input$Choosendata)
     showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file usually takes longer.", footer= NULL, size = "l"))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
-    current_data_name <<- data_meta$Sample.name[which_data]
-    if (is.null(names(cache.rds.list)) | !(data_meta$Sample.name[which_data] %in% names(cache.rds.list))) { # first time load
+    .pkg.env$current_data_name <- data_meta$Sample.name[which_data]
+    if (is.null(names(.pkg.env$cache.rds.list)) | !(.pkg.env$current_data_name %in% names(.pkg.env$cache.rds.list))) { # first time load
       data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata), verbose = getOption('SeuratExplorerServerVerbose'))
-      data$Name <- data_meta$Sample.name[which_data]
+      data$Name <- .pkg.env$current_data_name
       data$Path <- input$Choosendata
       data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
       data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
@@ -110,28 +119,28 @@ server <- function(input, output, session) {
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
       data$gene_annotions_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
       data$version <- 0
-      cache.rds.list[[data_meta$Sample.name[which_data]]] <<- reactiveValuesToList(data)
+      .pkg.env$cache.rds.list[[.pkg.env$current_data_name]] <- reactiveValuesToList(data)
       # message('Newly loaded data has been cached!')
-      # print(names(cache.rds.list))
+      # print(names(.pkg.env$cache.rds.list))
     }else{ # for data loaded before
       # message('Loadded from Cached data!')
-      data$obj <- cache.rds.list[[data_meta$Sample.name[which_data]]]$obj
-      data$Name <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Name
-      data$Path <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Path
-      data$Species <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Species
-      data$Description <- cache.rds.list[[data_meta$Sample.name[which_data]]]$Description
-      data$reduction_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_options
-      data$reduction_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$reduction_default
-      data$assays_slots_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assays_slots_options
-      data$assays_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assays_options
-      data$assay_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$assay_default
-      data$cluster_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_options
-      data$cluster_default <- cache.rds.list[[data_meta$Sample.name[which_data]]]$cluster_default
-      data$split_maxlevel <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_maxlevel
-      data$split_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$split_options
-      data$extra_qc_options <- cache.rds.list[[data_meta$Sample.name[which_data]]]$extra_qc_options
-      data$gene_annotions_list <- cache.rds.list[[data_meta$Sample.name[which_data]]]$gene_annotions_list
-      data$version <- cache.rds.list[[data_meta$Sample.name[which_data]]]$version
+      data$obj <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$obj
+      data$Name <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Name
+      data$Path <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Path
+      data$Species <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Species
+      data$Description <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Description
+      data$reduction_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_options
+      data$reduction_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_default
+      data$assays_slots_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_slots_options
+      data$assays_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_options
+      data$assay_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assay_default
+      data$cluster_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_options
+      data$cluster_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_default
+      data$split_maxlevel <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_maxlevel
+      data$split_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_options
+      data$extra_qc_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$extra_qc_options
+      data$gene_annotions_list <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$gene_annotions_list
+      data$version <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$version
     }
     if(getOption("SeuratExplorerServerVerbose")){message("data loaded successfully!")}
     removeModal()
@@ -233,8 +242,8 @@ server <- function(input, output, session) {
   # update the cache.rds.list when Rename Clusters - submit button clicked
   observeEvent(data$version, {
     req(data$obj)
-    if (current_data_name == data$Name & data$version != 0) {
-      cache.rds.list[[data$Name]] <<- reactiveValuesToList(data)
+    if (.pkg.env$current_data_name == data$Name & data$version != 0) {
+      .pkg.env$cache.rds.list[[data$Name]] <- reactiveValuesToList(data)
       if (getOption("SeuratExplorerServerVerbose")) {message('Cache data updated!')}
     }
   })
@@ -249,7 +258,7 @@ server <- function(input, output, session) {
     if(getOption("SeuratExplorerServerVerbose")){message("Preparing InfoForDataOpened...")}
     which_data <- match(data$Path, data_meta$Rds.full.path)
     paste(sep = "",
-          "Data Opened: ",               data_meta$Sample.name[which_data],     "\n",
+          "Data Opened: ",               .pkg.env$current_data_name,     "\n",
           "\n",
           "Parameters bellow can not be modified, Contact technician if you want to make a change:\n",
           "\n",

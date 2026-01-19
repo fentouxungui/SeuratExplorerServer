@@ -1,4 +1,80 @@
 
+- [SeuratExplorerServer](#seuratexplorerserver)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [SeuratExplorer vs
+      SeuratExplorerServer](#seuratexplorer-vs-seuratexplorerserver)
+  - [Key Features](#key-features)
+    - [🔐 Encrypted Access
+      (Optional)](#closed_lock_with_key-encrypted-access-optional)
+    - [🔄 Multi-Data
+      Switching](#arrows_counterclockwise-multi-data-switching)
+    - [📊 Browsing Analysis
+      Reports](#bar_chart-browsing-analysis-reports)
+    - [⚙️ Customize Initialization
+      Parameters](#gear-customize-initialization-parameters)
+    - [🚀 Powered by SeuratExplorer](#rocket-powered-by-seuratexplorer)
+  - [Live Demo](#live-demo)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Install SeuratExplorerServer](#install-seuratexplorerserver)
+    - [Test Installation](#test-installation)
+  - [Quick Start](#quick-start)
+    - [Step 1: Prepare Your Data](#step-1-prepare-your-data)
+    - [Step 2: Create Metadata File](#step-2-create-metadata-file)
+    - [Step 3: Create Application](#step-3-create-application)
+    - [Step 4: Access Your App](#step-4-access-your-app)
+  - [Architecture](#architecture)
+    - [Directory Structure](#directory-structure)
+    - [Key Components](#key-components)
+  - [Database Deployment Guide](#database-deployment-guide)
+    - [Phase 1: Configure Shiny Server](#phase-1-configure-shiny-server)
+    - [Phase 2: Create Credentials](#phase-2-create-credentials)
+    - [Phase 3: Build Data Apps](#phase-3-build-data-apps)
+    - [Phase 4: Create Index Page](#phase-4-create-index-page)
+  - [Configuration](#configuration)
+    - [Launch Parameters](#launch-parameters)
+    - [Default Credentials](#default-credentials)
+    - [Custom Report File Types](#custom-report-file-types)
+  - [Screenshots](#screenshots)
+    - [Index Page - Dataset Browser](#index-page---dataset-browser)
+    - [Login Interface](#login-interface)
+    - [Data Selection](#data-selection)
+    - [Report Browser](#report-browser)
+    - [Settings Configuration](#settings-configuration)
+  - [System Requirements](#system-requirements)
+    - [Hardware](#hardware)
+    - [Software](#software)
+    - [Operating System](#operating-system)
+    - [Network](#network)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
+    - [Debug Mode](#debug-mode)
+  - [FAQ](#faq)
+    - [Q: Can I use SeuratExplorerServer without Shiny
+      Server?](#q-can-i-use-seuratexplorerserver-without-shiny-server)
+    - [Q: How do I add a new dataset to an existing
+      app?](#q-how-do-i-add-a-new-dataset-to-an-existing-app)
+    - [Q: Can different users have different
+      credentials?](#q-can-different-users-have-different-credentials)
+    - [Q: What’s the maximum file size for Seurat
+      objects?](#q-whats-the-maximum-file-size-for-seurat-objects)
+    - [Q: How do I backup the
+      database?](#q-how-do-i-backup-the-database)
+    - [Q: Can I customize the UI
+      appearance?](#q-can-i-customize-the-ui-appearance)
+  - [Contributing](#contributing)
+    - [Reporting Issues](#reporting-issues)
+    - [Contributing Code](#contributing-code)
+    - [Documentation](#documentation)
+  - [Citation](#citation)
+  - [License](#license)
+  - [Acknowledgments](#acknowledgments)
+  - [Session Info](#session-info)
+  - [中文介绍](#中文介绍)
+    - [主要特点](#主要特点)
+    - [相关链接](#相关链接)
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # SeuratExplorerServer
@@ -6,384 +82,874 @@
 <!-- badges: start -->
 
 [![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![](https://img.shields.io/badge/devel%20version-0.1.2-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/badge/devel%20version-0.1.2-blue.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![GitHub
+stars](https://img.shields.io/github/stars/fentouxungui/SeuratExplorerServer?style=social)](https://github.com/fentouxungui/SeuratExplorerServer/stargazers)
+[![License:
+GPL_3](https://img.shields.io/badge/license-GPL_3-blue.svg)](https://cran.r-project.org/web/licenses/GPL_3)
 [![Ask
 DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
 <!-- badges: end -->
 
-To build your own scRNA-seq database.
+> **Build your own scRNA-seq database with ease**
 
-> Allow users to browse the scRNAseq analysis results located at server
-> by a web browser, supports encrypted access, multiple data switch,
-> review and download analysis reports, customized initialization
-> parameters, and further analsysis powered by
-> [SeuratExplorer](https://github.com/fentouxungui/SeuratExplorer).
+SeuratExplorerServer enables bioinformatics engineers to deploy multiple
+interactive web applications for visualizing single-cell RNA-seq data.
+Each app supports encrypted access, multi-data switching, report
+browsing, and customized initialization - all powered by the
+comprehensive analysis capabilities of
+[SeuratExplorer](https://github.com/fentouxungui/SeuratExplorer).
 
-> Bioinformatics engineers can deploy multiple `Apps` via
-> `SeuratExplorerServer` for different scRNA-seq project, then to
-> construct a scRNA-seq database. Each `App` is accessible through its
-> dedicated directory, with all `App` access points and data information
-> consolidated into a single `index` webpage, Users can locate and
-> access relevant data through the index page.
+## Table of Contents
 
-## Major functions
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Live Demo](#live-demo)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Database Deployment Guide](#database-deployment-guide)
+- [Configuration](#configuration)
+- [Screenshots](#screenshots)
+- [System Requirements](#system-requirements)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [Citation](#citation)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-***Encrypted access*** (optional)
+## Overview
 
-For unpublished data, you can set a password for a restrict access to
-the `App`.
+SeuratExplorerServer is designed for bioinformatics core facilities and
+research groups who need to:
 
-***Multi-Data Switching***
+- **Share analysis results** with wet-lab researchers through an
+  intuitive web interface
+- **Manage multiple datasets** in a centralized database with unified
+  access
+- **Provide secure access** to unpublished data through
+  password-protected applications
+- **Maintain analysis reports** alongside interactive visualizations
+- **Scale deployment** across multiple projects with a single
+  infrastructure
 
-After completing an analysis, specific cell type may be extracted for
-further analysis, which will yield new `Seurat` objects, multiple
-`Seurat` objects can be incorporated into the one App.
+### SeuratExplorer vs SeuratExplorerServer
 
-***Browsing Analysis Report***
+| Feature | SeuratExplorer | SeuratExplorerServer |
+|----|----|----|
+| **Use Case** | Local analysis on a single dataset | Server-side database for multiple datasets |
+| **Data Access** | Upload files to app | Pre-configured data on server |
+| **Multi-Data Support** | One dataset per session | Multiple datasets per app |
+| **Deployment** | Local machine or single Shiny Server | Multiple apps managed by index page |
+| **Authentication** | Not included | Optional password protection |
+| **Report Management** | Not included | Built-in report browsing system |
+| **Target Users** | Individual researchers | Bioinformatics core facilities |
 
-Support browsing, viewing, and downloading analysis report files
-generated during the analysis process. You can specify the files types
-of files can be included in the reports, such as pdf, html, tiff, csv,
-jpg, jpeg, png, bmp, svg etc.
+## Key Features
 
-***Customize Initialization Parameters***
+### 🔐 Encrypted Access (Optional)
 
-Set default parameters for UI, such as Cluster Resolution, Species,
-Dimension Reduction etc.
-
-***Powered by `SeuratExplorer`***
-
-`SeuratExplorer` functions like a desktop application, enabling users to
-visualize and analyze a single `Seurat` analysis results locally on
-their computers at each run, if you want to view another scRNAseq data,
-you may have to start another run at the same time. While
-`SeuratExplorerServer` enabling users to access multiple scRNA-seq data
-located on a server via web interface at each run, and all
-functionalities from the `SeuratExplorer` package are included.
-
-## Build Database Step by Step
-
-You can check this [minimal
-demo](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/) (**full
-functions**) deployed by `shinyserver`.
-
-Structure of the related files for this app:
+Protect unpublished data with password-protected authentication using
+[shinymanager](https://github.com/datastorm-open/shinymanager).
 
 ``` r
-ShinyServer/
-├── SeuratExplorerServer-Data
-│   ├── demo_1
-│   │   ├── app.R
-│   │   └── data_meta.rds
-│   └── demo_2
-│       ├── app.R
-│       └── data_meta.rds
-└── SeuratExplorerServer-Index
-    └── app.R
+# Simple credential setup
+credentials <- data.frame(
+  user = "shiny",
+  password = "12345",
+  stringsAsFactors = FALSE
+)
 ```
 
-`ShinyServer` is the `site_dir` set in
-`/etc/shiny-server/shiny-server.conf`
+### 🔄 Multi-Data Switching
 
-`SeuratExplorerServer-Data` is the directory contain all the data apps.
-two apps are included in this demo
+Incorporate multiple Seurat objects from the same analysis pipeline into
+a single app. For example, after extracting specific cell types for
+further analysis, both the main dataset and subsets can be accessed
+through one interface.
 
-`SeuratExplorerServer-Index` is the app index directory, which contains
-all the links to each data app.
+### 📊 Browsing Analysis Reports
 
-### 1. Prerequisties
+Automatically organize and display analysis reports generated during the
+pipeline. Supported formats include:
 
-**1.1 install `shinyserver`**
+**Documents**: `pdf`, `html`, `md`, `Rmd`, `txt`, `csv`, `xlsx`, `xls`,
+`xml`
 
-- install: <https://posit.co/download/shiny-server/>
+**Images**: `tiff`, `tif`, `jpeg`, `jpg`, `png`, `bmp`, `svg`, `gif`
 
-- docs: <https://docs.posit.co/shiny-server/>
+**Scripts**: `R`, `py`, `sh`, `ipynb`
 
-after installation, you need to set the `site_dir` in
-`/etc/shiny-server/shiny-server.conf`, for this demo case
-`site_dir /home/zhangyc/ShinyServer;` is used.
+**Videos**: `mp4`, `avi`
 
-**1.2 install `SeuratExplorerServer`**
+### ⚙️ Customize Initialization Parameters
 
-You can install the development version of `SeuratExplorer` and
-`SeuratExplorerServer`like so:
+Set default parameters for each dataset:
+
+- **Cluster Resolution**: Default clustering resolution
+- **Species**: Human, Mouse, Fly, or custom
+- **Dimension Reduction**: Default visualization method (UMAP, t-SNE,
+  etc.)
+- **Split Options**: Maximum levels for metadata splitting
+- **Assay Selection**: Default assay to display
+
+### 🚀 Powered by SeuratExplorer
+
+All interactive visualization features from SeuratExplorer are included:
+
+- 10+ plot types (Dimensional reduction, Feature plot, Violin, Dot plot,
+  Heatmap, etc.)
+- DEGs analysis and marker discovery
+- Feature correlation and summary statistics
+- Multi-assay support (scRNA-seq, scATAC-seq, spatial, CITE-seq)
+- Publication-ready PDF downloads
+
+## Live Demo
+
+Experience the full functionality of SeuratExplorerServer:
+
+**[Demo
+Database](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/)**
+
+- **Demo 1**: Fly Gut EEs scRNA-seq (Guo, 2019, Cell Reports)
+- **Demo 2**: Mouse Intestine scRNA-seq (Hung, 2020, PNAS)
+
+## Installation
+
+### Prerequisites
+
+1.  **R Environment**: R (\>= 3.5.0)
+2.  **Shiny Server**: [Install Shiny
+    Server](https://posit.co/download/shiny-server/)
+3.  **Dependencies**: Seurat, SeuratExplorer, and other dependencies
+
+### Install SeuratExplorerServer
 
 ``` r
-# install dependency
-if(!require(devtools)){install.packages("devtools")}
-install_github("fentouxungui/SeuratExplorer")
+# Install devtools if not already installed
+if (!require("devtools")) {
+  install.packages("devtools")
+}
 
-# install SeuratExplorerServer
+# Install SeuratExplorer (dependency)
+devtools::install_github("fentouxungui/SeuratExplorer")
+
+# Install SeuratExplorerServer
 options(timeout = max(300, getOption("timeout")))
-install_github("fentouxungui/SeuratExplorerServer")
+devtools::install_github("fentouxungui/SeuratExplorerServer")
 ```
 
-To test installation:
+### Test Installation
 
 ``` r
 library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-**1.3 Source data**
+This should launch a local instance with demo data.
 
-Analysis results by `Seurat`, which can be saved as
-`rds, png, tiff, pdf, csv, html`etc.. Bellow is the files structure used
-in this demo:
+## Quick Start
 
-``` r
-├── fly
-│   ├── CellCycle
-│   │   ├── G22M-transition.txt
-│   │   ├── TSNE-CellCycle.jpeg
-│   │   ├── cellcycle-counts-in-each-cluster.csv
-│   │   └──  counts.info.pdf
-│   ├── DIMPLOT.pdf
-│   ├── Fly-Gut-EEs+res-0.4+Default.csv
-│   ├── Rds-file
-│   │   └── G101_PC20res04.rds
-│   ├── cells.txt
-│   └── exclusive-TFs-in-Two-Major-celltypes.html
-└── mouse
-    ├── Subset
-    │   └── subset-goblet
-    │       └── goblet.rds
-    ├── anno.jpeg
-    ├── cluster.markers.res0.6.csv
-    └── haber.tsne.embeding.rds
-```
+### Step 1: Prepare Your Data
 
-This demo has two separated analysis named `fly` and `mouse`, for the
-`fly` analysis, only one `rds` file existed, and for the `mouse`
-analysis, two `rds` are generated, which means this analysis has two
-`data` to be shown. besides, you can also found some other related
-reports file, saved as `csv, html, jpeg` in each analysis. Separated
-analysis can be under different directory.
+Organize your Seurat analysis results with the following structure:
 
-Attention, the analysis results should not under the `site_dir`
-directory defined in `/etc/shiny-server/shiny-server.conf` file.
+    project_directory/
+    ├── analysis_results/
+    │   ├── dataset1.rds              # Seurat object
+    │   ├── clustering_report.pdf     # Analysis report
+    │   ├── markers.csv               # Marker genes
+    │   └── figures/                  # Additional plots
+    │       ├── umap_plot.png
+    │       └── heatmap.pdf
+    └── secondary_analysis/           # Optional: cellranger outputs
+        └── raw_counts/
 
-### 2. Generate credentials
-
-Set the accounts and passwords for your data hub.
-
-You can refer to R package
-[shinymanager](https://github.com/datastorm-open/shinymanager) for
-details to generate a credentials file. Bellow codes is used for this
-demo.
+### Step 2: Create Metadata File
 
 ``` r
-# Init DB using credentials data
-credentials <- data.frame(
-  user = "shiny",
-  password = "12345",
-  stringsAsFactors = FALSE
-)
-saveRDS(credentials, file = "credentials.rds")
-```
-
-### 3. Build data apps for each analysis
-
-For each analysis, we need to build a app, and each app should be under
-the `site_dir` directory defined in
-`/etc/shiny-server/shiny-server.conf` file.
-
-**3.1 meta data**
-
-***method 1***: Generate sample meta data from `dataframe`
-
-``` r
-# demo
-# Use the mouse analysis as demo, and if mouse analysis directory is located in /home/somebody/scRNAseq
-# demo data meta file1:inst/extdata/shinyserver_demo/data-page/demo_1/data_meta.rds
-# demo data meta file2:inst/extdata/shinyserver_demo/data-page/demo_2/data_meta.rds
-data_meta <- data.frame(
-  # Required: main analysis directory, Rds file should be contained, and all files under the directory meet the specified file formats 
-  # will be included in the reports directory which is named by the Sample.name
-  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
-  # Required: Rds file path relative to the main analysis directory
-  Rds.path = c("haber.tsne.embeding.rds", "goblet.rds"),
-  # Optional: secondary analysis directory, all files under the directory meet the specified file formats will as be included in the reports directory 'others', such as results from cellranger command
-  Reports.second = c(NA, NA), 
-  # Required: Sample name will be shown in the data option
-  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'), 
-  # Optional: used for set Split options
-  SplitOptions.MaxLevel = c(1, 4), 
-  # Optional: default dimension reduction
-  Default.DimensionReduction = c("tsne", "umap"),
-  # Optional: default cluster
-  Default.ClusterResolution = c("res.0.4", NA),
-  # Optional: Human, Mouse, Fly or Others
-  Species = c("Fly", "Mouse"), 
-  # Optional: description of the sample or the analysis, or whatever.
-  Description = c("blabla","hahaha"), 
-  stringsAsFactors = FALSE)
-
-data_meta
-
-# check the meta data
 library(SeuratExplorerServer)
-invisible(check_metadata(parameters = data_meta))
-# if check passed, save the meta data
+
+# Define sample metadata
+data_meta <- SeuratExplorerServer::initialize_metadata(
+  Reports.main = c("/path/to/analysis1", "/path/to/analysis2"),
+  Rds.path = c("dataset1.rds", "dataset2.rds"),
+  Reports.second = c(NA, "/path/to/cellranger"),
+  Sample.name = c("Dataset 1", "Dataset 2")
+)
+
+# Optional: Add custom parameters
+data_meta$Species <- c("Mouse", "Human")
+data_meta$Default.ClusterResolution <- c("res.0.4", "res.0.8")
+data_meta$Default.DimensionReduction <- c("umap", "tsne")
+data_meta$Description <- c("First dataset", "Second dataset")
+
+# Verify metadata
+check_metadata(parameters = data_meta)
+
+# Save metadata
 saveRDS(data_meta, file = "data_meta.rds")
 ```
 
-The optional parameters can also be set when running `App`.
+### Step 3: Create Application
 
-***method 2***: or use `initialize_metadata` function to generate sample
-meta data:
+Create `app.R` in your Shiny Server directory:
 
 ``` r
-# demo
+#!/usr/bin/env Rscript
 library(SeuratExplorerServer)
-data_meta <- initialize_metadata(
-  Reports.main = c("/home/somebody/scRNAseq/mouse", "/home/somebody/scRNAseq/mouse/Subset/subset-goblet"), 
-  Rds.path =c("haber.tsne.embeding.rds", "goblet.rds"),
-  Reports.second = c(NA, NA), 
-  Sample.name = c("Mouse-Intestine-scRNAseq-Haber", 'subset-goblet'))
-data_meta
 
-# saveRDS(data_meta, file = "data_meta.rds")
+# Optional: Set up credentials
+credentials <- data.frame(
+  user = "your_username",
+  password = "your_password",
+  stringsAsFactors = FALSE
+)
+
+# Launch the app
+launchSeuratExplorerServer(
+  Encrypted = TRUE,
+  credentials = credentials,
+  paramterfile = "data_meta.rds",
+  TechnicianEmail = "your-email@example.com",
+  TechnicianName = "Your Name",
+  verbose = FALSE
+)
 ```
 
-**3.2 data app**
+### Step 4: Access Your App
 
-``` r
-# app.R
-# demo codes1: inst/extdata/shinyserver_demo/data-page/demo_1/app.R
-# demo codes2: inst/extdata/shinyserver_demo/data-page/demo_2/app.R
-library(SeuratExplorerServer)
-credentials <- readRDS("path/to/credentials.rds"))
-launchSeuratExplorerServer(Encrypted = TRUE,
-                           credentials = credentials,
-                           paramterfile = 'data_meta.rds',
-                           TechnicianEmail = "your-email",
-                           TechnicianName = "your-name",
-                           verbose = FALSE)
+Visit your app at: `http://your-server:port/app-directory/`
+
+## Architecture
+
+### Directory Structure
+
+    ShinyServer/                          # site_dir defined in shiny-server.conf
+    ├── SeuratExplorerServer-Data/        # Directory for all data apps
+    │   ├── project_1/
+    │   │   ├── app.R                     # App launch script
+    │   │   └── data_meta.rds             # Metadata file
+    │   └── project_2/
+    │       ├── app.R
+    │       └── data_meta.rds
+    └── SeuratExplorerServer-Index/       # Index page for all apps
+        └── app.R                         # Index app with links to all projects
+
+### Key Components
+
+**Data Apps (`SeuratExplorerServer-Data/`)**
+
+- Individual Shiny apps for each project or analysis
+- Contains `app.R` and `data_meta.rds` files
+- Supports multiple datasets per app
+
+**Index App (`SeuratExplorerServer-Index/`)**
+
+- Central navigation page for all data apps
+- Table view with search and filtering
+- Links to external resources and publications
+
+## Database Deployment Guide
+
+### Phase 1: Configure Shiny Server
+
+1.  **Install Shiny Server**
+
+``` bash
+# Ubuntu/Debian
+sudo apt-get install r-base
+sudo su - -c "R -e \"install.packages('shiny')\""
+wget https://posit.co/download/shiny-server/amd64/ubuntu/22.04/present/latest.sh
+sudo bash latest.sh
 ```
 
-For now, you can use the link (IP\[Port\] + the relative path to
-`site_dir` directory) to visit this app.
+2.  **Configure Site Directory**
 
-### 4. Build index app
+Edit `/etc/shiny-server/shiny-server.conf`:
 
-Next, what we do is to put all app links into a file and build a UI for
-users to browse all apps.
+``` nginx
+# Define the site directory
+site_dir /home/your-user/ShinyServer;
 
-**4.1 meta data**
+# Define the log directory
+log_dir /var/log/shiny-server;
+
+# Port
+port 3838;
+```
+
+### Phase 2: Create Credentials
 
 ``` r
-# analysis metadata
-# a demo located in: inst/extdata/shinyserver_demo/index-page/Entry.csv
-entry_info <- data.frame(DataType = c("scRNAseq", "scRNAseq"),
-                         Species = c("Fly", "Mouse"),
-                         Organ = c("Gut", "Gut"),
-                         CellType = c("EEs", "Whole"),
-                         scRNAseq.Method = c("10X genomics", "10X genomics"),
-                         # Required, please change it to your data link
-                         Data.Link = c("http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_1/", "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/demo_2/"),
-                         Official.Link = c("https://xilab.shinyapps.io/database/", "https://www.flyrnai.org/tools/rna_seq/web/showProject/23/plot_coord=1/sample_id=all"),
-                         note = c("CG32547-GAL4 > GFP; GFP+ EE cells; Female Flies; 4661 cells;", "10,605 midgut epithelial cells from 7-d-old females expressing GFP in progenitors"),
-                         Source = c("Guo, 2019, Cell Reports", "Hung, 2020, PNAS"),
-                         Paper = c("The Cellular Diversity and Transcription Factor Code of Drosophila Enteroendocrine Cells", "A cell atlas of the adult Drosophila midgut"),
-                         Paper.Link = c("https://doi.org/10.1016/j.celrep.2019.11.048", "https://doi.org/10.1073/pnas.1916820117"))
-entry_info
+# Create credentials file
+credentials <- data.frame(
+  user = c("researcher1", "researcher2", "admin"),
+  password = c("password1", "password2", "admin_pass"),
+  stringsAsFactors = FALSE
+)
+
+# For better security, use hashed passwords
+library(shinymanager)
+credentials <- data.frame(
+  user = c("researcher1", "researcher2"),
+  password = sapply(c("password1", "password2"), password_hash),
+  stringsAsFactors = FALSE
+)
+
+saveRDS(credentials, file = "credentials.rds")
+```
+
+### Phase 3: Build Data Apps
+
+For each analysis project, create a data app with metadata:
+
+``` r
+library(SeuratExplorerServer)
+
+# Example: Multiple datasets from a time-course experiment
+data_meta <- data.frame(
+  Reports.main = c(
+    "/data/timecourse/day0",
+    "/data/timecourse/day3",
+    "/data/timecourse/day7"
+  ),
+  Rds.path = c("day0_seurat.rds", "day3_seurat.rds", "day7_seurat.rds"),
+  Reports.second = c(
+    "/data/cellranger/day0",
+    "/data/cellranger/day3",
+    "/data/cellranger/day7"
+  ),
+  Sample.name = c("Day 0", "Day 3", "Day 7"),
+  Species = c("Mouse", "Mouse", "Mouse"),
+  Default.DimensionReduction = c("umap", "umap", "umap"),
+  Default.ClusterResolution = c("res.0.5", "res.0.5", "res.0.5"),
+  SplitOptions.MaxLevel = c(5, 5, 5),
+  Description = c(
+    "Baseline timepoint",
+    "Early response",
+    "Late response"
+  ),
+  stringsAsFactors = FALSE
+)
+
+# Verify and save
+check_metadata(parameters = data_meta)
+saveRDS(data_meta, file = "data_meta.rds")
+```
+
+### Phase 4: Create Index Page
+
+**Create Metadata CSV**
+
+``` r
+# Create index metadata
+entry_info <- data.frame(
+  DataType = c("scRNAseq", "scRNAseq", "scRNAseq"),
+  Species = c("Mouse", "Human", "Fly"),
+  Organ = c("Intestine", "Brain", "Gut"),
+  CellType = c("Epithelial", "Neurons", "EEs"),
+  scRNAseq.Method = c("10X Genomics", "Smart-seq2", "10X Genomics"),
+  Data.Link = c(
+    "http://your-server:3838/project_1/",
+    "http://your-server:3838/project_2/",
+    "http://your-server:3838/project_3/"
+  ),
+  Official.Link = c(
+    "https://example.com/project1",
+    "https://example.com/project2",
+    NA
+  ),
+  note = c(
+    "10,000 cells from 3 replicates",
+    "500 cells from patient samples",
+    "4,661 cells from female flies"
+  ),
+  Source = c("Smith et al., 2023", "Johnson et al., 2024", "Guo et al., 2019"),
+  Paper = c(
+    "Title of Paper 1",
+    "Title of Paper 2",
+    "Cellular Diversity of Drosophila Gut"
+  ),
+  Paper.Link = c(
+    "https://doi.org/10.xxxx/paper1",
+    "https://doi.org/10.xxxx/paper2",
+    "https://doi.org/10.1016/j.celrep.2019.11.048"
+  ),
+  stringsAsFactors = FALSE
+)
+
 write.csv(entry_info, file = "Entry.csv", row.names = FALSE)
 ```
 
-**4.2 UI**
-
-This app should located under the `site_dir` directory defined in
-`/etc/shiny-server/shiny-server.conf` file.
+**Create Index App**
 
 ``` r
-# app.R
-# A minimal example to build a data index page
-# located in: inst/extdata/shinyserver_demo/index-page/app.R
+#!/usr/bin/env Rscript
 library(shiny)
 library(shinydashboard)
 library(DT)
 
-# trans characters to links
-tans_link <- function(Avector,label = "View Data"){
-  res <- c()
-  for (i in Avector) {
-    if (!i %in% c("","-",NA)) {
-      res <- append(res,paste(paste0("<a href='",unlist(strsplit(i,split = ";")),"' target='_blank'>",label,"</a>"),collapse = "<br>"))
-    }else{
-      res <- append(res,"-")
+# Helper function to create links
+create_links <- function(urls, label = "View") {
+  sapply(urls, function(url) {
+    if (url %in% c("", "-", NA)) {
+      return("-")
     }
-  }
-  return(res)
+    links <- unlist(strsplit(url, ";"))
+    link_tags <- paste0(
+      '<a href="', links, '" target="_blank">', label, '</a>'
+    )
+    paste(link_tags, collapse = "<br>")
+  }, USE.NAMES = FALSE)
 }
 
-ui <- dashboardPage( title = "Demo Data Hub",
-                     dashboardHeader( title = strong("Demo Data Hub"), titleWidth = 240),
-                     dashboardSidebar(width = 240,
-                                      sidebarMenu(menuItem(strong("Data"), tabName = "Data", icon = icon("tachometer-alt")))),
-                     dashboardBody(tags$style("@import url(https://use.fontawesome.com/releases/v5.7.2/css/all.css);"),
-                                   tabItems(tabItem(tabName = "Data",
-                                                    h2(strong("Data")),
-                                                    # Attention, you need to change the link bellow, suggest put all data apps under a common directory, here is SeuratExplorerServer-Data.
-                                                    h3("Main Entrance: ", tags$a(href = "http://www.nibs.ac.cn:666/SeuratExplorerServer-Data/","Link Here!")),
-                                                    br(),
-                                                    fluidRow(box(title = "Included Data", width = 12, status = "primary",
-                                                                 DT::dataTableOutput("DataIndex")))
-                                   ))))
+# UI
+ui <- dashboardPage(
+  title = "scRNA-seq Database",
+  dashboardHeader(
+    title = strong("scRNA-seq Data Hub"),
+    titleWidth = 280
+  ),
+  dashboardSidebar(
+    width = 280,
+    sidebarMenu(
+      menuItem(strong("Browse Data"), tabName = "data", icon = icon("database"))
+    )
+  ),
+  dashboardBody(
+    tags$style(HTML("@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');")),
+    tabItems(
+      tabItem(
+        tabName = "data",
+        fluidRow(
+          box(
+            title = "Available Datasets",
+            width = 12,
+            status = "primary",
+            solidHeader = TRUE,
+            DT::dataTableOutput("dataTable")
+          )
+        )
+      )
+    )
+  )
+)
 
+# Server
 server <- function(input, output, session) {
-  # Data
-  Data <- read.csv("path/to/Entry.csv", stringsAsFactors = FALSE)
-  Data$Data.Link <- tans_link(Data$Data.Link)
-  Data$Official.Link <- tans_link(Data$Official.Link)
-  Data$Paper.Link <- tans_link(Data$Paper.Link, "View Paper")
-  output$DataIndex <- DT::renderDataTable(DT::datatable(Data,escape = FALSE))
+  # Load index data
+  indexData <- read.csv("Entry.csv", stringsAsFactors = FALSE)
+
+  # Create links
+  indexData$Data.Link <- create_links(indexData$Data.Link, "View Data")
+  indexData$Official.Link <- create_links(indexData$Official.Link, "External")
+  indexData$Paper.Link <- create_links(indexData$Paper.Link, "Paper")
+
+  # Render table
+  output$dataTable <- DT::renderDataTable({
+    DT::datatable(
+      indexData,
+      escape = FALSE,
+      options = list(
+        pageLength = 15,
+        scrollX = TRUE,
+        order = list(list(1, 'asc'))
+      )
+    )
+  })
 }
 
 shinyApp(ui, server)
 ```
 
-Congratulations, now you can use the link (IP\[Port\] + the relative
-path to `site_dir` directory of this app) to browse and search all
-analysis, then visit the interested data by click the link of data app.
+## Configuration
 
-## Workflow of loading a data app
+### Launch Parameters
 
-- Login: input account and password
+`launchSeuratExplorerServer()` accepts the following parameters:
 
-- Data selection, loading and switch
+| Parameter | Type | Default | Description |
+|----|----|----|----|
+| `Encrypted` | logical | `TRUE` | Enable password protection |
+| `credentials` | data.frame | See below | User credentials for authentication |
+| `paramterfile` | character | Auto | Path to metadata RDS file |
+| `TechnicianEmail` | character | Required | Contact email for support |
+| `TechnicianName` | character | Required | Contact name for support |
+| `ReductionKeyWords` | character | `c("umap", "tsne")` | Keywords for dimension reduction |
+| `ReportsFileTypes` | character | 27 types | File types to include in reports |
+| `DefaultSplitMaxLevel` | integer | `6` | Max levels for split options |
+| `SupportedFileTypes` | character | `c("rds", "qs2")` | Seurat file formats to support |
+| `verbose` | logical | `FALSE` | Print debug messages |
 
-- Show data meta info
+### Default Credentials
 
-- Browse analysis reports, click `Generate/Update Reports` button, `App`
-  will create a directory named by directory name plus `_reports`, such
-  as for app located in `Fly-Gut-EEs-scRNAseq` directory, will create a
-  directory named with `Fly-Gut-EEs-scRNAseq_reports`, and all files of
-  specified format located in directories of `Reports.main` and
-  `Reports.second` columns from meta data will be linked to the reports
-  directory
+If `Encrypted = TRUE` but no credentials are provided:
 
-- full functions from `SeuratExplorer`
+``` r
+data.frame(
+  user = "shiny",
+  password = "12345",
+  stringsAsFactors = FALSE
+)
+```
 
-- modify the settings which will takes effect when restart
+**⚠️ Warning**: Always change default credentials in production!
 
-- the reports directory(`Fly-Gut-EEs-scRNAseq_reports`) will be deleted
-  when close the app
+### Custom Report File Types
+
+Specify which file types to include in the report browser:
+
+``` r
+launchSeuratExplorerServer(
+  ReportsFileTypes = c(
+    # Documents
+    "pdf", "html", "md",
+    # Images
+    "png", "svg", "tiff",
+    # Data
+    "csv", "xlsx"
+  )
+)
+```
 
 ## Screenshots
 
-<img src="inst/extdata/www/index.png" width="80%" />
+### Index Page - Dataset Browser
 
-<img src="inst/extdata/www/login.png" width="50%" />
+<div class="figure">
 
-<img src="inst/extdata/www/select-data.png" width="80%" /><img src="inst/extdata/www/reports.png" width="80%" /><img src="inst/extdata/www/reports-2.png" width="80%" /><img src="inst/extdata/www/settings.png" width="80%" />
+<img src="inst/extdata/www/index.png" alt="Database index page with all available datasets" width="100%" />
+<p class="caption">
 
-## Rsession info
+Database index page with all available datasets
+</p>
+
+</div>
+
+### Login Interface
+
+<div class="figure">
+
+<img src="inst/extdata/www/login.png" alt="Secure login for encrypted apps" width="50%" />
+<p class="caption">
+
+Secure login for encrypted apps
+</p>
+
+</div>
+
+### Data Selection
+
+<div class="figure">
+
+<img src="inst/extdata/www/select-data.png" alt="Select and switch between multiple datasets" width="100%" />
+<p class="caption">
+
+Select and switch between multiple datasets
+</p>
+
+</div>
+
+### Report Browser
+
+<div class="figure">
+
+<img src="inst/extdata/www/reports.png" alt="Browse and download analysis reports" width="100%" />
+<p class="caption">
+
+Browse and download analysis reports
+</p>
+
+</div>
+
+<div class="figure">
+
+<img src="inst/extdata/www/reports-2.png" alt="Report file tree structure" width="100%" />
+<p class="caption">
+
+Report file tree structure
+</p>
+
+</div>
+
+### Settings Configuration
+
+<div class="figure">
+
+<img src="inst/extdata/www/settings.png" alt="Customize default parameters for each dataset" width="100%" />
+<p class="caption">
+
+Customize default parameters for each dataset
+</p>
+
+</div>
+
+## System Requirements
+
+### Hardware
+
+**Minimum**
+
+- CPU: 4 cores
+- RAM: 16 GB
+- Storage: 100 GB
+
+**Recommended**
+
+- CPU: 8+ cores
+- RAM: 32+ GB
+- Storage: 500+ GB SSD
+
+### Software
+
+| Component      | Version   | Notes           |
+|----------------|-----------|-----------------|
+| R              | \>= 3.5.0 | Required        |
+| Shiny Server   | Latest    | For deployment  |
+| Seurat         | \>= 4.0.0 | Core dependency |
+| SeuratExplorer | \>= 0.1.0 | Core dependency |
+
+### Operating System
+
+- **Linux** (Ubuntu 20.04+, CentOS 7+, RHEL 7+): Fully supported
+- **macOS**: Development only
+- **Windows**: Development only
+
+### Network
+
+- **Port**: Default 3838 (configurable)
+- **Bandwidth**: 100+ Mbps recommended for multiple users
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. App Won’t Start
+
+**Symptoms**: Browser shows “Application not found” or error page
+
+**Solutions**:
+
+``` bash
+# Check Shiny Server status
+sudo systemctl status shiny-server
+
+# Restart Shiny Server
+sudo systemctl restart shiny-server
+
+# Check logs
+sudo tail -f /var/log/shiny-server/*
+```
+
+#### 2. Data Not Loading
+
+**Symptoms**: Data selection dropdown empty or loading fails
+
+**Solutions**:
+
+``` r
+# Verify metadata file
+data_meta <- readRDS("data_meta.rds")
+check_metadata(parameters = data_meta)
+
+# Check file paths
+file.exists(data_meta$Reports.main)
+file.exists(data_meta$Rds.full.path)
+```
+
+#### 3. Reports Not Showing
+
+**Symptoms**: Report browser shows “No reports available”
+
+**Solutions**:
+
+``` r
+# Check if report files exist
+list.files(data_meta$Reports.main, pattern = "\\.pdf$")
+
+# Verify file types are supported
+launchSeuratExplorerServer(
+  ReportsFileTypes = c("pdf", "png", "csv")  # Add your types
+)
+```
+
+#### 4. Permission Errors
+
+**Symptoms**: “Access denied” or “Permission denied” errors
+
+**Solutions**:
+
+``` bash
+# Fix file permissions
+sudo chown -R shiny:shiny /path/to/ShinyServer
+sudo chmod -R 755 /path/to/ShinyServer
+
+# Check data directory permissions
+ls -la /path/to/analysis/
+```
+
+#### 5. Out of Memory Errors
+
+**Symptoms**: App crashes when loading large datasets
+
+**Solutions**:
+
+- Increase R memory limit in `Rprofile`:
+
+  ``` r
+  # In /etc/R/Rprofile.site
+  options(memory.limit = 32000)
+  ```
+
+- Use `.qs2` format instead of `.rds` for better compression
+
+- Subset large datasets before loading
+
+### Debug Mode
+
+Enable verbose logging for troubleshooting:
+
+``` r
+launchSeuratExplorerServer(
+  verbose = TRUE  # Prints detailed debug messages
+)
+```
+
+Check R console output for detailed error information.
+
+## FAQ
+
+### Q: Can I use SeuratExplorerServer without Shiny Server?
+
+A: Yes, you can run it locally with `launchSeuratExplorerServer()`.
+However, Shiny Server is recommended for production deployments as it
+provides better performance, stability, and multi-user support.
+
+### Q: How do I add a new dataset to an existing app?
+
+A: Simply update the `data_meta.rds` file with the new dataset
+information:
+
+``` r
+# Load existing metadata
+data_meta <- readRDS("data_meta.rds")
+
+# Add new row
+new_row <- data.frame(
+  Reports.main = "/path/to/new/dataset",
+  Rds.path = "new_data.rds",
+  Reports.second = NA,
+  Sample.name = "New Dataset"
+)
+
+# Update and save
+data_meta <- rbind(data_meta, new_row)
+saveRDS(data_meta, "data_meta.rds")
+```
+
+### Q: Can different users have different credentials?
+
+A: Yes, specify multiple users in the credentials data frame:
+
+``` r
+credentials <- data.frame(
+  user = c("user1", "user2", "user3"),
+  password = c("pass1", "pass2", "pass3"),
+  stringsAsFactors = FALSE
+)
+```
+
+### Q: What’s the maximum file size for Seurat objects?
+
+A: There’s no hard limit, but practical considerations apply:
+
+- **\< 5 GB**: Fast loading, good performance
+- **5-20 GB**: Moderate loading time, acceptable performance
+- **\> 20 GB**: Long loading times, consider subsetting
+
+### Q: How do I backup the database?
+
+A: Backup two components:
+
+1.  **Metadata files** (`data_meta.rds`, `Entry.csv`, `credentials.rds`)
+2.  **Seurat objects** (original `.rds`/`.qs2` files)
+
+``` bash
+# Example backup script
+tar -czf seurat_db_backup_$(date +%Y%m%d).tar.gz \
+  /path/to/ShinyServer/ \
+  /path/to/analysis_data/
+```
+
+### Q: Can I customize the UI appearance?
+
+A: Yes, you can modify the UI by creating a custom `ui.R` function. See
+the [Advanced Customization](#advanced-customization) section.
+
+## Contributing
+
+We welcome contributions! Please see our guidelines:
+
+### Reporting Issues
+
+- Use [GitHub
+  Issues](https://github.com/fentouxungui/SeuratExplorerServer/issues)
+- Include: R version, package version, error messages, and minimal
+  reproducible example
+
+### Contributing Code
+
+1.  Fork the repository
+2.  Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4.  Push to the branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+### Documentation
+
+- Improve function documentation with Roxygen2 comments
+- Add examples to help files
+- Update vignettes and tutorials
+
+## Citation
+
+If you use SeuratExplorerServer in your research, please cite:
+
+``` bibtex
+@software{seuratexplorerserver2025,
+  title = {SeuratExplorerServer: Build Your Own scRNA-seq Database},
+  author = {Zhang, Yongchao},
+  year = {2025},
+  url = {https://github.com/fentouxungui/SeuratExplorerServer},
+  note = {R package version 0.1.3}
+}
+```
+
+## License
+
+This package is licensed under **GPL (\>= 3)**. See
+[LICENSE.md](LICENSE.md) for details.
+
+## Acknowledgments
+
+SeuratExplorerServer is built upon excellent work by:
+
+- **Seurat team** (Satija Lab) for the foundational single-cell analysis
+  framework
+- **RStudio/Shiny team** for the web application framework
+- **SeuratExplorer** for providing comprehensive visualization tools
+- **shinymanager** for authentication functionality
+- **Bioconductor community** for genomic data tools
+- All users and contributors who provide feedback and suggestions
+
+## Session Info
 
     #> R version 4.4.3 (2025-02-28 ucrt)
     #> Platform: x86_64-w64-mingw32/x64
-    #> Running under: Windows 11 x64 (build 26100)
+    #> Running under: Windows 11 x64 (build 26200)
     #> 
     #> Matrix products: default
     #> 
@@ -402,23 +968,45 @@ analysis, then visit the interested data by click the link of data app.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] badger_0.2.4
+    #> [1] badger_0.2.5
     #> 
     #> loaded via a namespace (and not attached):
-    #>  [1] vctrs_0.6.5         cli_3.6.3           knitr_1.50         
-    #>  [4] rlang_1.1.4         xfun_0.52           generics_0.1.4     
-    #>  [7] jsonlite_1.8.8      glue_1.7.0          htmltools_0.5.8.1  
-    #> [10] scales_1.4.0        rmarkdown_2.29      dlstats_0.1.7      
-    #> [13] grid_4.4.3          evaluate_1.0.3      tibble_3.2.1       
-    #> [16] fastmap_1.2.0       yaml_2.3.10         lifecycle_1.0.4    
-    #> [19] BiocManager_1.30.25 rvcheck_0.2.1       compiler_4.4.3     
-    #> [22] dplyr_1.1.4         fs_1.6.4            RColorBrewer_1.1-3 
-    #> [25] pkgconfig_2.0.3     rstudioapi_0.17.1   farver_2.1.2       
-    #> [28] digest_0.6.36       R6_2.6.1            tidyselect_1.2.1   
-    #> [31] pillar_1.10.2       magrittr_2.0.3      tools_4.4.3        
-    #> [34] gtable_0.3.6        desc_1.4.3          yulab.utils_0.2.0  
-    #> [37] ggplot2_3.5.1
+    #>  [1] vctrs_0.6.5         cli_3.6.5           knitr_1.51         
+    #>  [4] rlang_1.1.6         xfun_0.55           otel_0.2.0         
+    #>  [7] generics_0.1.4      S7_0.2.1            jsonlite_2.0.0     
+    #> [10] glue_1.8.0          htmltools_0.5.9     rappdirs_0.3.3     
+    #> [13] scales_1.4.0        rmarkdown_2.30      dlstats_0.1.7      
+    #> [16] grid_4.4.3          tibble_3.3.0        evaluate_1.0.5     
+    #> [19] fastmap_1.2.0       yaml_2.3.12         lifecycle_1.0.4    
+    #> [22] BiocManager_1.30.27 rvcheck_0.2.1       compiler_4.4.3     
+    #> [25] dplyr_1.1.4         fs_1.6.6            RColorBrewer_1.1-3 
+    #> [28] pkgconfig_2.0.3     rstudioapi_0.17.1   farver_2.1.2       
+    #> [31] digest_0.6.39       R6_2.6.1            tidyselect_1.2.1   
+    #> [34] pillar_1.11.1       magrittr_2.0.4      tools_4.4.3        
+    #> [37] gtable_0.3.6        yulab.utils_0.2.3   ggplot2_4.0.1
 
 ## 中文介绍
 
 [微信公众号：分析力工厂](https://mp.weixin.qq.com/s/g612UEp3DZF-oOHUY13BDA)
+
+SeuratExplorerServer 是一个用于构建单细胞转录组数据库的 R
+包，允许生物信息学工程师部署多个交互式网页应用，实现数据共享、加密访问、报告管理等功能。
+
+### 主要特点
+
+- 🔐 加密访问：保护未发表数据
+- 🔄 多数据切换：同一应用管理多个数据集
+- 📊 报告浏览：自动整理分析报告
+- ⚙️ 自定义配置：设置默认参数
+- 🚀 集成 SeuratExplorer：完整的可视化分析功能
+
+### 相关链接
+
+- **GitHub**: <https://github.com/fentouxungui/SeuratExplorerServer>
+- **在线演示**: <http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/>
+- **问题反馈**: [GitHub
+  Issues](https://github.com/fentouxungui/SeuratExplorerServer/issues)
+
+------------------------------------------------------------------------
+
+**Made with ❤️ for the single-cell community**

@@ -12,7 +12,8 @@ launchSeuratExplorerServer(
   TechnicianName = "ZhangYongchao",
   ReductionKeyWords = c("umap", "tsne"),
   ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", "gif", "jpg", "png", "bmp", "svg",
-    "html", "mp4", "avi"),
+    "html", "mp4", "avi", "Rmd", "R", "ipynb", "sh", "Sh", "txt", "csv", "xlsx", "xls",
+    "xml", "md", "py"),
   DefaultSplitMaxLevel = 6,
   SupportedFileTypes = c("rds", "qs2"),
   verbose = FALSE
