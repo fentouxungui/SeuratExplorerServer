@@ -1,7 +1,7 @@
 ---
 output:
   github_document:
-    toc: true
+    toc: false
     toc_depth: 3
     fig_width: 10
     fig_height: 6
