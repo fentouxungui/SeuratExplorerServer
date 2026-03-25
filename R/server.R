@@ -25,6 +25,7 @@ server <- function(input, output, session) {
   prepare_seurat_object <- getFromNamespace('prepare_seurat_object', 'SeuratExplorer')
   prepare_split_options <- getFromNamespace('prepare_split_options', 'SeuratExplorer')
   readSeurat <- getFromNamespace('readSeurat', 'SeuratExplorer')
+  updateSeurat <- getFromNamespace('updateSeurat', 'SeuratExplorer')
   prepare_assays_slots <- getFromNamespace('prepare_assays_slots', 'SeuratExplorer')
   prepare_assays_options <- getFromNamespace('prepare_assays_options', 'SeuratExplorer')
   prepare_gene_annotations <- getFromNamespace('prepare_gene_annotations', 'SeuratExplorer')
@@ -98,7 +99,9 @@ server <- function(input, output, session) {
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
     .pkg.env$current_data_name <- data_meta$Sample.name[which_data]
     if (is.null(names(.pkg.env$cache.rds.list)) | !(.pkg.env$current_data_name %in% names(.pkg.env$cache.rds.list))) { # first time load
-      data$obj <- prepare_seurat_object(obj = readSeurat(path = input$Choosendata), verbose = getOption('SeuratExplorerServerVerbose'))
+      data$obj <- prepare_seurat_object(obj = updateSeurat(obj = readSeurat(path = input$Choosendata, verbose = getOption('SeuratExplorerServerVerbose')),
+                                                           verbose = getOption('SeuratExplorerServerVerbose')),
+                                        verbose = getOption('SeuratExplorerServerVerbose'))
       data$Name <- .pkg.env$current_data_name
       data$Path <- input$Choosendata
       data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
