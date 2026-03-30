@@ -269,8 +269,9 @@ server <- function(input, output, session) {
         actionButton(inputId='openreportswebpage',
                      label="View/Download Reports",
                      onclick = paste0("window.open('", reports_URL, "','_blank')"),
-                     icon = icon("file"),
-                     class = "btn-primary")
+                     icon = icon("file-alt"),
+                     class = "btn-primary btn-lg",
+                     style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);")
       }
     })
   })
