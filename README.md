@@ -5,8 +5,7 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![](https://img.shields.io/badge/devel%20version-0.1.3-blue.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/badge/devel%20version-0.1.5-blue.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![License:
 GPL_3](https://img.shields.io/badge/license-GPL_3-blue.svg)](https://cran.r-project.org/web/licenses/GPL_3)
