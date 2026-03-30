@@ -95,7 +95,19 @@ server <- function(input, output, session) {
   ## background will throw an error: Warning: Error in [.data.frame: Undefined columns are selected, but the UI will not show the error.
   observeEvent(input$submitdata,{
     shiny::req(input$Choosendata)
-    showModal(modalDialog(title = "Loading data...", "Please wait until data loaded! large file usually takes longer.", footer= NULL, size = "l"))
+    showModal(modalDialog(
+      title = tagList(
+        icon("spinner", class = "fa-spin"),
+        " Loading Data..."
+      ),
+      div(
+        style = "text-align: center; padding: 20px;",
+        icon("circle-notch", class = "fa-spin fa-3x", style = "color: #3b82f6; margin-bottom: 15px;"),
+        p("Please wait until data is loaded. Large files usually take longer.", style = "color: #6c757d; font-size: 14px;")
+      ),
+      footer = NULL,
+      size = "l"
+    ))
     which_data <- match(input$Choosendata, data_meta$Rds.full.path)
     .pkg.env$current_data_name <- data_meta$Sample.name[which_data]
     if (is.null(names(.pkg.env$cache.rds.list)) | !(.pkg.env$current_data_name %in% names(.pkg.env$cache.rds.list))) { # first time load
@@ -212,9 +224,33 @@ server <- function(input, output, session) {
   # click generate reports button to update or generate reports web page, and add a view reports button to link the analysis results
   observeEvent(input$generatereports,{
     if (!dir.exists(reports_dir)) { # generate reports directory
-      showModal(modalDialog(title = "Generating reports...", "Please wait...", footer= NULL, size = "l"))
+      showModal(modalDialog(
+        title = tagList(
+          icon("spinner", class = "fa-spin"),
+          " Generating Reports..."
+        ),
+        div(
+          style = "text-align: center; padding: 20px;",
+          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #f59e0b; margin-bottom: 15px;"),
+          p("Please wait while reports are being generated...", style = "color: #6c757d; font-size: 14px;")
+        ),
+        footer = NULL,
+        size = "l"
+      ))
     }else{ # update reports directory
-      showModal(modalDialog(title = "Updating reports...", "Please wait...", footer= NULL, size = "l"))
+      showModal(modalDialog(
+        title = tagList(
+          icon("spinner", class = "fa-spin"),
+          " Updating Reports..."
+        ),
+        div(
+          style = "text-align: center; padding: 20px;",
+          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #10b981; margin-bottom: 15px;"),
+          p("Please wait while reports are being updated...", style = "color: #6c757d; font-size: 14px;")
+        ),
+        footer = NULL,
+        size = "l"
+      ))
       unlink(reports_dir, recursive = TRUE)
     }
     dir.create(reports_dir)
@@ -309,7 +345,19 @@ server <- function(input, output, session) {
   observeEvent(input$submitsettings,{
     # 1. check Name
     if(trimws(input$NewName) == ""){
-      showModal(modalDialog(title = "Error:","Sample name can not be empty.",easyClose = TRUE,footer = NULL))
+      showModal(modalDialog(
+        title = tagList(
+          icon("exclamation-triangle", style = "color: #ef4444;"),
+          " Error"
+        ),
+        div(
+          style = "text-align: center; padding: 20px;",
+          icon("times-circle", class = "fa-3x", style = "color: #ef4444; margin-bottom: 15px;"),
+          p("Sample name cannot be empty. Please enter a valid name.", style = "color: #6c757d; font-size: 14px;")
+        ),
+        easyClose = TRUE,
+        footer = NULL
+      ))
     }else{
       which_data <- match(data$Path, data_meta$Rds.full.path)
       if( !'Default.Assay' %in% colnames(data_meta)){ # for old version data.meta file, there is no Default.Assay column
@@ -332,7 +380,20 @@ server <- function(input, output, session) {
       if(file.exists(p)){
         print("update app.R file, in case of Shiny not refresh when restart.")
         R.utils::touchFile(p)}
-      showModal(modalDialog(title = "Success:","New settings has beed saved successfully. restart App to use the latest settings.",easyClose = TRUE,footer = NULL))
+      showModal(modalDialog(
+        title = tagList(
+          icon("check-circle", style = "color: #10b981;"),
+          " Success"
+        ),
+        div(
+          style = "text-align: center; padding: 20px;",
+          icon("check-circle", class = "fa-3x", style = "color: #10b981; margin-bottom: 15px;"),
+          p("New settings have been saved successfully.", style = "color: #6c757d; font-size: 14px; margin-bottom: 10px;"),
+          p(strong("Please restart the App to use the latest settings."), style = "color: #f59e0b; font-size: 13px;")
+        ),
+        easyClose = TRUE,
+        footer = NULL
+      ))
       removeUI(selector = "div:has(> #NewName)")
       removeUI(selector = "div:has(> #NewSpecies)")
       removeUI(selector = "div:has(> #NewDescription)")
@@ -355,5 +416,46 @@ server <- function(input, output, session) {
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('Hello, the session finally ended!')
     }
+  })
+
+  # Current Data Overview
+  output$CurrentDataOverview <- renderUI({
+    req(data$obj)
+
+    obj <- data$obj
+
+    # Calculate stats
+    total_cells <- ncol(obj)
+    total_genes <- nrow(obj)
+    n_clusters <- length(unique(Seurat::Idents(obj)))
+    n_assays <- length(Seurat::Assays(obj))
+
+    # Simple display with HTML
+    HTML(paste0(
+      '<div style="padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">',
+      '<h4 style="color: #495057; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">📊 Current Data Overview</h4>',
+      '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">',
+      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
+      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">📁 Current Data</div>',
+      '<div style="color: #f59e0b; font-size: 18px; font-weight: 600;">', format(data$Name, big.mark = ","), '</div>',
+      '</div>',
+      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
+      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🔬 Total Cells</div>',
+      '<div style="color: #3b82f6; font-size: 18px; font-weight: 600;">', format(total_cells, big.mark = ","), '</div>',
+      '</div>',
+      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #10b981; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
+      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🧬 Total Genes</div>',
+      '<div style="color: #10b981; font-size: 18px; font-weight: 600;">', format(total_genes, big.mark = ","), '</div>',
+      '</div>',
+      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #8b5cf6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
+      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🎯 Clusters</div>',
+      '<div style="color: #8b5cf6; font-size: 18px; font-weight: 600;">', n_clusters, '</div>',
+      '</div>',
+      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #06b6d4; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
+      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🧪 Assays</div>',
+      '<div style="color: #06b6d4; font-size: 18px; font-weight: 600;">', n_assays, '</div>',
+      '</div>',
+      '</div></div>'
+    ))
   })
 }

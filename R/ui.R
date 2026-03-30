@@ -76,7 +76,9 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                                      class = "btn-primary btn-lg",
                                                      style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);")
                                        )
-                                     )
+                                     ),
+                                     # current data info
+                                     uiOutput("CurrentDataOverview")
                                    )
                                  ),
 
