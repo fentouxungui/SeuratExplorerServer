@@ -45,41 +45,317 @@ check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
   }
 }
 
-prepare_reports <- function(reports_dir, data_meta, file_types_included = c("pdf", "tiff", "tif", "jpeg", 'gif',"jpg", "png", "bmp", "svg","html",'mp4','avi')){
-  file.types.pttern = paste0("(\\.", paste0(file_types_included, collapse = "$)|(\\."), "$)")
-  # generate from + to data.frame for main directory
+prepare_reports <- function(reports_dir,
+                           data_meta,
+                           file_types_included = c("pdf", "tiff", "tif", "jpeg", "gif",
+                                                   "jpg", "png", "bmp", "svg", "html", "mp4", "avi"),
+                           overwrite = FALSE,
+                           create_dirs = TRUE,
+                           use_relative_links = FALSE,
+                           conflict_resolution = c("rename", "error", "skip", "prefix_sample")) {
+
+  # Match argument
+  conflict_resolution <- match.arg(conflict_resolution)
+
+  # Input validation
+  if (!dir.exists(reports_dir)) {
+    stop("'reports_dir' does not exist: ", reports_dir)
+  }
+
+  if (!is.data.frame(data_meta) ||
+      !all(c("Reports.main", "Sample.name") %in% names(data_meta))) {
+    stop("'data_meta' must be a data.frame with 'Reports.main' and 'Sample.name' columns")
+  }
+
+  # Check if Reports.second column exists
+  has_second <- "Reports.second" %in% names(data_meta)
+
+  # Validate file types
+  file_types_included <- tolower(file_types_included)
+  file.types.pattern <- paste0("(\\.", paste0(file_types_included, collapse = "$)|(\\."), "$)")
+
+  # Helper function to sanitize filenames
+  sanitize_filename <- function(name) {
+    # Replace invalid characters with underscore
+    # Note: Using rawToChar and chartr to avoid null character in source code
+    invalid_chars <- '[<>:"/\\\\|?*]'
+    gsub(invalid_chars, '_', name, perl = TRUE)
+  }
+
+  # Helper function to create directory if needed
+  ensure_dir_exists <- function(path) {
+    if (!dir.exists(path)) {
+      if (create_dirs) {
+        dir.create(path, recursive = TRUE, showWarnings = FALSE)
+        if (!dir.exists(path)) {
+          warning("Failed to create directory: ", path)
+          return(FALSE)
+        }
+      } else {
+        warning("Directory does not exist and create_dirs=FALSE: ", path)
+        return(FALSE)
+      }
+    }
+    return(TRUE)
+  }
+
+  # Helper function to check if file is already a symlink
+  is_symlink <- function(path) {
+    tryCatch({
+      file.exists(path) && file.info(path)$islnk
+    }, error = function(e) FALSE)
+  }
+
+  # Helper function to resolve filename conflicts
+  resolve_conflict <- function(target_path, conflict_resolution, sample_name = "") {
+    if (!file.exists(target_path)) {
+      return(target_path)
+    }
+
+    switch(conflict_resolution,
+      "error" = {
+        stop("File already exists: ", target_path, ". Use overwrite=TRUE or change conflict_resolution")
+      },
+      "skip" = {
+        warning("Skipping existing file: ", target_path)
+        return(NA)
+      },
+      "rename" = {
+        # Add numeric suffix
+        counter <- 1
+        dir_path <- dirname(target_path)
+        base_name <- basename(target_path)
+        while (file.exists(target_path)) {
+          new_name <- sub("(\\.[^.]+)$", paste0("_", counter, "\\1"), base_name)
+          target_path <- file.path(dir_path, new_name)
+          counter <- counter + 1
+        }
+        return(target_path)
+      },
+      "prefix_sample" = {
+        # Add sample name prefix
+        dir_path <- dirname(target_path)
+        base_name <- basename(target_path)
+        new_name <- paste0(sample_name, "_", base_name)
+        return(file.path(dir_path, new_name))
+      }
+    )
+  }
+
+  # Track statistics
+  stats <- list(
+    total_files = 0,
+    successful_links = 0,
+    skipped_files = 0,
+    failed_links = 0,
+    conflicts = 0
+  )
+
   links.db.list <- list()
+
+  # Process main directories (sample-specific)
+  message("Processing sample-specific reports...")
   for (i in 1:nrow(data_meta)) {
-    links.from <- list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types.pttern, full.names = TRUE)
-    links.to <- paste0(reports_dir, "/", data_meta$Sample.name[i], "/", list.files(data_meta$Reports.main[i], recursive = TRUE, pattern = file.types.pttern, full.names = FALSE))
-    if (length(links.from) != 0) {
-      links.db.list[[data_meta$Sample.name[i]]] <- data.frame(from = links.from, to = links.to)
+    sample_name <- sanitize_filename(data_meta$Sample.name[i])
+    main_dir <- data_meta$Reports.main[i]
+
+    # Check if source directory exists
+    if (!dir.exists(main_dir)) {
+      warning("Source directory does not exist: ", main_dir, ". Skipping sample: ", sample_name)
+      next
+    }
+
+    # Create target directory
+    sample_dir <- file.path(reports_dir, sample_name)
+    if (!ensure_dir_exists(sample_dir)) {
+      warning("Failed to create sample directory: ", sample_dir)
+      next
+    }
+
+    # Find matching files
+    links.from <- list.files(main_dir, recursive = TRUE, pattern = file.types.pattern,
+                           full.names = TRUE, ignore.case = TRUE)
+
+    if (length(links.from) == 0) {
+      message("  No files found for sample: ", sample_name)
+      next
+    }
+
+    # Generate target paths
+    file.rel.paths <- list.files(main_dir, recursive = TRUE, pattern = file.types.pattern,
+                                full.names = FALSE, ignore.case = TRUE)
+    links.to <- file.path(sample_dir, file.rel.paths)
+
+    # Create subdirectories if needed
+    for (to_dir in unique(dirname(links.to))) {
+      ensure_dir_exists(to_dir)
+    }
+
+    # Create links
+    for (j in seq_along(links.from)) {
+      from <- links.from[j]
+      to <- links.to[j]
+      stats$total_files <- stats$total_files + 1
+
+      # Skip if source is a symlink
+      if (is_symlink(from)) {
+        warning("Source is already a symlink, skipping: ", from)
+        stats$skipped_files <- stats$skipped_files + 1
+        next
+      }
+
+      # Handle conflicts
+      if (file.exists(to)) {
+        stats$conflicts <- stats$conflicts + 1
+
+        if (overwrite) {
+          tryCatch({
+            file.remove(to)
+          }, error = function(e) {
+            warning("Failed to remove existing file: ", to)
+          })
+        } else {
+          to <- resolve_conflict(to, conflict_resolution, sample_name)
+          if (is.na(to)) {
+            stats$skipped_files <- stats$skipped_files + 1
+            next
+          }
+        }
+      }
+
+      # Ensure parent directory exists
+      to_dir <- dirname(to)
+      ensure_dir_exists(to_dir)
+
+      # Create symbolic link
+      tryCatch({
+        file.symlink(from, to)
+        stats$successful_links <- stats$successful_links + 1
+
+      }, error = function(e) {
+        # Fallback to R.utils::createLink if file.symlink fails
+        tryCatch({
+          suppressWarnings(R.utils::createLink(link = to, target = from, skip = !overwrite))
+          stats$successful_links <- stats$successful_links + 1
+        }, error = function(e2) {
+          warning("Failed to create link for ", from, " -> ", to, ": ", conditionMessage(e2))
+          stats$failed_links <- stats$failed_links + 1
+        })
+      })
+    }
+
+    # Store link info
+    if (length(links.from) > 0) {
+      links.db.list[[sample_name]] <- data.frame(
+        from = links.from,
+        to = links.to,
+        sample = sample_name,
+        type = "main",
+        stringsAsFactors = FALSE
+      )
     }
   }
-  # secondary analysis directory, under others directory, possible problem: link will be rewrite by files with same name.
-  second_dirs <- unique(as.vector(na.omit(data_meta$Reports.second)))
-  if (length(second_dirs) > 0) {
-    links.from <- c()
-    links.to <- c()
-    for (i in second_dirs) {
-      links.from <- append(links.from, list.files(i, recursive = TRUE, pattern = file.types.pttern, full.names = TRUE))
-      links.to <- append(links.to, paste0(reports_dir, "/others/", list.files(i, recursive = TRUE, pattern = file.types.pttern, full.names = FALSE)))
-    }
-    if (length(links.from) != 0) {
-      links.db.list[["others"]] <- data.frame(from = links.from, to = links.to)
-    }
-  }
-  if (length(links.db.list) != 0) { # if does has reports files
-    links.db <- Reduce(rbind, links.db.list)
-    links.db <- links.db[!duplicated(links.db),] # remove duplicated links
-    # create links
-    if (nrow(links.db) > 0) {
-      for (i in 1:nrow(links.db)) {
-        suppressWarnings(R.utils::createLink(link = links.db$to[i], target = links.db$from[i], skip = TRUE))
+
+  # Process secondary directories (shared in "others")
+  if (has_second) {
+    second_dirs <- unique(as.vector(na.omit(data_meta$Reports.second)))
+
+    if (length(second_dirs) > 0) {
+      message("Processing shared reports (others)...")
+
+      others_dir <- file.path(reports_dir, "others")
+      if (!ensure_dir_exists(others_dir)) {
+        warning("Failed to create others directory: ", others_dir)
+      } else {
+        for (second_dir in second_dirs) {
+          if (!dir.exists(second_dir)) {
+            warning("Secondary directory does not exist: ", second_dir)
+            next
+          }
+
+          links.from <- list.files(second_dir, recursive = TRUE, pattern = file.types.pattern,
+                                 full.names = TRUE, ignore.case = TRUE)
+
+          if (length(links.from) == 0) {
+            message("  No files found in: ", second_dir)
+            next
+          }
+
+          file.rel.paths <- list.files(second_dir, recursive = TRUE, pattern = file.types.pattern,
+                                      full.names = FALSE, ignore.case = TRUE)
+
+          # Add source directory prefix to avoid conflicts
+          source_prefix <- sanitize_filename(basename(second_dir))
+          links.to <- file.path(others_dir, source_prefix, file.rel.paths)
+
+          # Create subdirectories
+          for (to_dir in unique(dirname(links.to))) {
+            ensure_dir_exists(to_dir)
+          }
+
+          # Create links
+          for (j in seq_along(links.from)) {
+            from <- links.from[j]
+            to <- links.to[j]
+            stats$total_files <- stats$total_files + 1
+
+            if (is_symlink(from)) {
+              stats$skipped_files <- stats$skipped_files + 1
+              next
+            }
+
+            if (file.exists(to) && !overwrite) {
+              stats$conflicts <- stats$conflicts + 1
+              to <- resolve_conflict(to, conflict_resolution, source_prefix)
+              if (is.na(to)) {
+                stats$skipped_files <- stats$skipped_files + 1
+                next
+              }
+            }
+
+            tryCatch({
+              file.symlink(from, to)
+              stats$successful_links <- stats$successful_links + 1
+            }, error = function(e) {
+              tryCatch({
+                suppressWarnings(R.utils::createLink(link = to, target = from, skip = !overwrite))
+                stats$successful_links <- stats$successful_links + 1
+              }, error = function(e2) {
+                warning("Failed to create link: ", conditionMessage(e2))
+                stats$failed_links <- stats$failed_links + 1
+              })
+            })
+          }
+
+          # Store link info
+          if (length(links.from) > 0) {
+            links.db.list[[paste0("others_", source_prefix)]] <- data.frame(
+              from = links.from,
+              to = links.to,
+              sample = "others",
+              type = "second",
+              stringsAsFactors = FALSE
+            )
+          }
+        }
       }
     }
   }
-  if(getOption("SeuratExplorerServerVerbose")){message("reports prepared successfully!")}
+
+  # Print summary
+  message("\n=== Report Preparation Summary ===")
+  message("Total files processed: ", stats$total_files)
+  message("Successful links: ", stats$successful_links)
+  message("Skipped files: ", stats$skipped_files)
+  message("Failed links: ", stats$failed_links)
+  message("Conflicts resolved: ", stats$conflicts)
+  message("===================================\n")
+
+  if(getOption("SeuratExplorerServerVerbose")) {
+    message("Reports prepared successfully!")
+  }
+
+  invisible(stats)
 }
 
 #' initialize sample metadata
