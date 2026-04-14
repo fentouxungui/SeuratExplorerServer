@@ -19,16 +19,22 @@ server <- function(input, output, session) {
   # define some basic functions, ::: is not allowed in R package
   # Using an un-exported function from another R package:
   # https://stackoverflow.com/questions/32535773/using-un-exported-function-from-another-r-package
-  prepare_cluster_options <- getFromNamespace('prepare_cluster_options', 'SeuratExplorer')
-  prepare_qc_options <- getFromNamespace('prepare_qc_options', 'SeuratExplorer')
-  prepare_reduction_options <- getFromNamespace('prepare_reduction_options', 'SeuratExplorer')
-  prepare_seurat_object <- getFromNamespace('prepare_seurat_object', 'SeuratExplorer')
-  prepare_split_options <- getFromNamespace('prepare_split_options', 'SeuratExplorer')
-  readSeurat <- getFromNamespace('readSeurat', 'SeuratExplorer')
-  updateSeurat <- getFromNamespace('updateSeurat', 'SeuratExplorer')
-  prepare_assays_slots <- getFromNamespace('prepare_assays_slots', 'SeuratExplorer')
-  prepare_assays_options <- getFromNamespace('prepare_assays_options', 'SeuratExplorer')
-  prepare_gene_annotations <- getFromNamespace('prepare_gene_annotations', 'SeuratExplorer')
+
+  explorer_fns <- .import_from_explorer(c(
+    "prepare_cluster_options",
+    "prepare_qc_options",
+    "prepare_reduction_options",
+    "prepare_seurat_object",
+    "prepare_split_options",
+    "readSeurat",
+    "updateSeurat",
+    "prepare_assays_slots",
+    "prepare_assays_options",
+    "prepare_gene_annotations"
+  ))
+
+  # Assign imported functions to current environment
+  list2env(explorer_fns, envir = environment())
 
   # encrypt
   if (getOption("SeuratExplorerServerEncrypted")){
@@ -37,7 +43,7 @@ server <- function(input, output, session) {
 
 
   # Data set Page
-  data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParamterfile")), getOption("SeuratExplorerServerSupportedFiles"))
+  data_meta <- check_metadata(parameters = readRDS(getOption("SeuratExplorerServerParameterfile")), getOption("SeuratExplorerServerSupportedFiles"))
 
   # Create an env to store package-specific variables
   .pkg.env <- new.env(parent = emptyenv())
@@ -87,7 +93,7 @@ server <- function(input, output, session) {
                         cluster_default = NULL,
                         split_maxlevel = 6,
                         split_options = NULL,
-                        gene_annotions_list = NULL,
+                        gene_annotations_list = NULL,
                         extra_qc_options = NULL)
 
   ## read in data after data selection
@@ -116,10 +122,10 @@ server <- function(input, output, session) {
                                         verbose = getOption('SeuratExplorerServerVerbose'))
       data$Name <- .pkg.env$current_data_name
       data$Path <- input$Choosendata
-      data$Species <- if(is.na(data_meta$Species[which_data])){NULL}else{data_meta$Species[which_data]} # if NA value, return NULL
-      data$Description <- if(is.na(data_meta$Description[which_data])){NULL}else{data_meta$Description[which_data]} # if NA value, return NULL
+      data$Species <- na_to_null(data_meta$Species[which_data]) # if NA value, return NULL
+      data$Description <- na_to_null(data_meta$Description[which_data]) # if NA value, return NULL
       data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = getOption("SeuratExplorerServerReductionKeyWords"))
-      data$reduction_default <- if(is.na(data_meta$Default.DimensionReduction[which_data])){NULL}else{data_meta$Default.DimensionReduction[which_data]} # if NA value, return NULL
+      data$reduction_default <- na_to_null(data_meta$Default.DimensionReduction[which_data]) # if NA value, return NULL
       data$assays_slots_options <- prepare_assays_slots(ob = data$obj, data_slot = data$assay_slots, verbose = getOption('SeuratExplorerServerVerbose'))
       data$assays_options <- prepare_assays_options(Alist = data$assays_slots_options, verbose = getOption('SeuratExplorerServerVerbose'))
       if (!'Default.Assay' %in% colnames(data_meta)) { # for old version data_meta.rds, there is no Default.Assay column
@@ -128,36 +134,41 @@ server <- function(input, output, session) {
         data$assay_default <- ifelse(data_meta$Default.Assay[which_data] %in% data$assays_options, data_meta$Default.Assay[which_data], data$assays_options[1]) # update the default assay
       }
       data$cluster_options <- prepare_cluster_options(df = data$obj@meta.data)
-      data$cluster_default <- if(is.na(data_meta$Default.ClusterResolution[which_data])){NULL}else{data_meta$Default.ClusterResolution[which_data]} # if NA value, return NULL
+      data$cluster_default <- na_to_null(data_meta$Default.ClusterResolution[which_data]) # if NA value, return NULL
       data$split_maxlevel <- if(is.na(data_meta$SplitOptions.MaxLevel[which_data])){getOption("SeuratExplorerServerDefaultSplitLevel")}else{data_meta$SplitOptions.MaxLevel[which_data]} # if NA value, use split options level cutoff
       data$split_options <- prepare_split_options(df = data$obj@meta.data, max.level = data$split_maxlevel)
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
-      data$gene_annotions_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
+      data$gene_annotations_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
       data$version <- 0
       .pkg.env$cache.rds.list[[.pkg.env$current_data_name]] <- reactiveValuesToList(data)
       # message('Newly loaded data has been cached!')
       # print(names(.pkg.env$cache.rds.list))
     }else{ # for data loaded before
-      # message('Loadded from Cached data!')
-      data$obj <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$obj
-      data$Name <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Name
-      data$Path <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Path
-      data$Species <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Species
-      data$Description <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Description
-      data$reduction_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_options
-      data$reduction_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_default
-      data$assays_slots_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_slots_options
-      data$assays_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_options
-      data$assay_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assay_default
-      data$cluster_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_options
-      data$cluster_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_default
-      data$split_maxlevel <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_maxlevel
-      data$split_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_options
-      data$extra_qc_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$extra_qc_options
-      data$gene_annotions_list <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$gene_annotions_list
-      data$version <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$version
+      # message('Loading from cached data!')
+      cached <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]
+      for (field in names(cached)) {
+        data[[field]] <- cached[[field]]
+      }
+      # to be deleted below
+      # data$obj <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$obj
+      # data$Name <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Name
+      # data$Path <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Path
+      # data$Species <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Species
+      # data$Description <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Description
+      # data$reduction_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_options
+      # data$reduction_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_default
+      # data$assays_slots_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_slots_options
+      # data$assays_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_options
+      # data$assay_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assay_default
+      # data$cluster_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_options
+      # data$cluster_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_default
+      # data$split_maxlevel <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_maxlevel
+      # data$split_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_options
+      # data$extra_qc_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$extra_qc_options
+      # data$gene_annotations_list <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$gene_annotations_list
+      # data$version <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$version
     }
-    if(getOption("SeuratExplorerServerVerbose")){message("data loaded successfully!")}
+    .log_verbose("data loaded successfully!")
     removeModal()
   })
 
@@ -197,15 +208,15 @@ server <- function(input, output, session) {
     x$pathString <- apply(x, 1, function(x) paste(trimws(na.omit(x)), collapse="/"))
     x$SampleName <- data_meta$Sample.name
     mytree <- data.tree::as.Node(x)
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing DirectoryTree...")}
-    print(mytree, "SampleName")
+    .log_verbose("Preparing DirectoryTree...")
+    # print(mytree, "SampleName")
   }, width = 300) # max 300 characters allowed for each line
 
   reports_dir <- paste0("../", basename(getwd()), "_reports")
 
   ## to show data web address
   output$reports_not_work <- renderText({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing reports_not_work...")}
+    .log_verbose("Preparing reports_not_work...")
     full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
     reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
     paste(sep = "",
@@ -254,18 +265,18 @@ server <- function(input, output, session) {
       unlink(reports_dir, recursive = TRUE)
     }
     dir.create(reports_dir)
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing the reports direcotry, Please wait a moment...")}
+    .log_verbose("Preparing the reports direcotry, Please wait a moment...")
     prepare_reports(reports_dir = reports_dir, data_meta = data_meta, file_types_included = getOption("SeuratExplorerServerReportsFileTypes"))
     removeModal()
     output$ViewReports.UI <- renderUI({ # generate view reports UI
-      if(getOption("SeuratExplorerServerVerbose")){message("Preparing ReportURL.UI...")}
+      .log_verbose("Preparing ReportURL.UI...")
       if (session$clientData$url_pathname == "/") {
         verbatimTextOutput(outputId = "reports_not_work")
       }else{
         full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
         reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
         # https://stackoverflow.com/questions/37795760/r-shiny-add-weblink-to-actionbutton
-        if(getOption("SeuratExplorerServerVerbose")){message(paste0("Reports url: ", reports_URL))}
+        .log_verbose(paste0("Reports url: ", reports_URL))
         div(style = "text-align: center;",
           actionButton(inputId='openreportswebpage',
                        label="View/Download Reports",
@@ -286,7 +297,7 @@ server <- function(input, output, session) {
     req(data$obj)
     if (.pkg.env$current_data_name == data$Name & data$version != 0) {
       .pkg.env$cache.rds.list[[data$Name]] <- reactiveValuesToList(data)
-      if (getOption("SeuratExplorerServerVerbose")) {message('Cache data updated!')}
+      .log_verbose("Cache data updated!")
     }
   })
 
@@ -297,7 +308,7 @@ server <- function(input, output, session) {
   })
 
   output$InfoForDataOpened <- renderText({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing InfoForDataOpened...")}
+    .log_verbose("Preparing InfoForDataOpened...")
     which_data <- match(data$Path, data_meta$Rds.full.path)
     paste(sep = "",
           "Data Opened: ",               .pkg.env$current_data_name,     "\n",
@@ -311,37 +322,37 @@ server <- function(input, output, session) {
   })
 
   output$SetSampleName.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetSampleName.UI...")}
+    .log_verbose("Preparing SetSampleName.UI...")
     textInput(inputId = "NewName", label = "Sample Name:", value = data$Name, placeholder = "Suggest only use letters, numbers, undersocres, and not too long.")
   })
 
   output$SetSpecies.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetSpecies.UI...")}
+    .log_verbose("Preparing SetSpecies.UI...")
     selectInput(inputId = "NewSpecies", label = "Choose the Species:", choices = c(Human = "Human", Mouse = "Mouse", Fly = "Fly", Others = "Others"), selected = data$Species)
   })
 
   output$SetDescription.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDescription.UI...")}
+    .log_verbose("Preparing SetDescription.UI...")
     textAreaInput(inputId = "NewDescription", label = "Sample Description:", value = data$Description, placeholder = "Do not use special characters")
   })
 
   output$SetDefaultReduction.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultReduction.UI...")}
+    .log_verbose("Preparing SetDefaultReduction.UI...")
     selectInput("NewDefaultReduction", "Dimension Reduction:", choices = data$reduction_options, selected = data$reduction_default)
   })
 
   output$SetDefaultCluster.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultCluster.UI...")}
+    .log_verbose("Preparing SetDefaultCluster.UI...")
     selectInput("NewDefaultCluster","Cluster Resolution:", choices = data$cluster_options, selected = data$cluster_default)
   })
 
   output$SetDefaultAssay.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultAssay.UI...")}
+    .log_verbose("Preparing SetDefaultAssay.UI...")
     selectInput("NewDefaultAssay","Default Assay:", choices = data$assays_options, selected = data$assay_default)
   })
 
   output$SetDefaultSplitMaxLevels.UI <- renderUI({
-    if(getOption("SeuratExplorerServerVerbose")){message("Preparing SetDefaultSplitMaxLevels.UI...")}
+    .log_verbose("Preparing SetDefaultSplitMaxLevels.UI...")
     sliderInput("NewSplitMaxLevel", label = "Max Split Level:", min = 1, max = 50, value = data$split_maxlevel)
   })
 
@@ -376,7 +387,7 @@ server <- function(input, output, session) {
       data_meta_new$SplitOptions.MaxLevel[which_data] <- input$NewSplitMaxLevel
       data_meta_new$Rds.full.path <- NULL
       data_meta_new$Rds.File.size <- NULL
-      saveRDS(data_meta_new, file = getOption("SeuratExplorerServerParamterfile"))
+      saveRDS(data_meta_new, file = getOption("SeuratExplorerServerParameterfile"))
       # R Shiny app shows old data
       # https://stackoverflow.com/questions/37408072/r-shiny-app-shows-old-data
       p <- paste0(getwd(), "/app.R")

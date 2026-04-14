@@ -4,9 +4,9 @@
 
 #' Launch shiny app
 #'
-#' @param Encrypted weather to encrypt app
+#' @param Encrypted whether to encrypt app
 #' @param credentials a data frame with the credentials
-#' @param paramterfile path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
+#' @param parameterfile path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
 #' SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Species, and Description
 #' @param TechnicianEmail Email of the technician
 #' @param TechnicianName Name of the technician
@@ -25,7 +25,7 @@
 #'
 launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-                                        paramterfile = revise_demo_path(),
+                                        parameterfile = revise_demo_path(),
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
                                         TechnicianName = "ZhangYongchao",
                                         ReductionKeyWords = c("umap","tsne"),
@@ -34,15 +34,17 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         SupportedFileTypes = c("rds", "qs2"),
                                         verbose = FALSE
                                        ){
-  options("SeuratExplorerVerbose" = verbose)
-  options("SeuratExplorerServerVerbose" = verbose)
-  options("SeuratExplorerServerEncrypted" = Encrypted)
-  options("SeuratExplorerServerCredentials" = credentials)
-  options("SeuratExplorerServerParamterfile" = paramterfile)
-  options("SeuratExplorerServerReportsFileTypes" = ReportsFileTypes)
-  options("SeuratExplorerServerDefaultSplitLevel" =  DefaultSplitMaxLevel)
-  options("SeuratExplorerServerSupportedFiles" =  SupportedFileTypes)
-  options("SeuratExplorerServerReductionKeyWords" =  ReductionKeyWords)
+  options(
+    SeuratExplorerVerbose = verbose,
+    SeuratExplorerServerVerbose = verbose,
+    SeuratExplorerServerEncrypted = Encrypted,
+    SeuratExplorerServerCredentials = credentials,
+    SeuratExplorerServerParameterfile = parameterfile,
+    SeuratExplorerServerReportsFileTypes = ReportsFileTypes,
+    SeuratExplorerServerDefaultSplitLevel =  DefaultSplitMaxLevel,
+    SeuratExplorerServerSupportedFiles =  SupportedFileTypes,
+    SeuratExplorerServerReductionKeyWords=  ReductionKeyWords
+  )
 
   shinyApp(
     ui = ui(Encrypted.app = Encrypted, TechnicianEmail = TechnicianEmail, TechnicianName = TechnicianName),

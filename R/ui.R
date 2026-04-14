@@ -3,7 +3,7 @@
 
 #' UI for shiny App interface
 #'
-#' @param Encrypted.app weather to encrypt app
+#' @param Encrypted.app whether to encrypt app
 #' @param TechnicianEmail Email of the technician
 #' @param TechnicianName Name of the technician
 #' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))

@@ -16,7 +16,6 @@
 #' "Mouse-Intestine-scRNAseq-Haber"))
 #' invisible(check_metadata(parameters = data_meta))
 check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
-  requireNamespace("utils")
   # check the path of rds or qs2 file
   parameters$Rds.full.path <- paste(parameters$Reports.main, parameters$Rds.path,sep = "/")
    if (!all(file.exists(parameters$Rds.full.path))) {
@@ -28,16 +27,16 @@ check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
     second_dirs <- as.vector(na.omit(parameters$Reports.second))
     if (length(second_dirs) > 0) {
       if (!all(dir.exists(second_dirs))) {
+        # plan: change stop() to showModal(), do not end the session!
         stop("Please contact data curator to report this error! this error is related to the second_dirs column in data meta!")
       }
     }
 
     # check sample name
     postfix_pattern_to_be_removed <- paste0("(.", paste0(supported_file_types, collapse = "$)|("), "$)")
-    if (is.null(parameters$Sample.name)) {
-      parameters$Sample.name <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path),fixed = TRUE, ignore.case = TRUE)
-    }else if(any(is.na(parameters$Sample.name))) {
-      parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path[is.na(parameters$Sample.name)]),fixed = TRUE, ignore.case = TRUE)
+    # if all Sample.name not exist, use filename without postfix
+    if (any(is.na(parameters$Sample.name))) {
+      parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path[is.na(parameters$Sample.name)]), ignore.case = TRUE)
     }
     # arrange by main directory
     parameters <- parameters[order(parameters$Reports.main),]
@@ -143,13 +142,20 @@ prepare_reports <- function(reports_dir,
   }
 
   # Track statistics
-  stats <- list(
-    total_files = 0,
-    successful_links = 0,
-    skipped_files = 0,
-    failed_links = 0,
-    conflicts = 0
-  )
+  # stats <- list(
+  #   total_files = 0,
+  #   successful_links = 0,
+  #   skipped_files = 0,
+  #   failed_links = 0,
+  #   conflicts = 0
+  # )
+
+  stats <- new.env(parent = emptyenv())
+  stats$total_files <- 0L
+  stats$successful_links <- 0L
+  stats$skipped_files <- 0L
+  stats$failed_links <- 0L
+  stats$conflicts <- 0L
 
   links.db.list <- list()
 
@@ -406,21 +412,47 @@ initialize_metadata <- function(Reports.main, Rds.path, Reports.second, Sample.n
 
 #' Revise demo data path
 #'
-#' @param paramterfile the path to metadata file
+#' Checks whether the \code{Reports.main} paths in the metadata file are valid.
+#' If not, attempts to prepend the package installation path to fix them.
 #'
-#' @return path to parameter file
+#' @section Side Effects:
+#' When path correction is triggered (i.e., all original \code{Reports.main}
+#' paths are invalid), this function **overwrites** the \code{parameterfile}
+#' on disk via \code{saveRDS()}. This typically only happens on the first
+#' run after package installation. Subsequent calls will find valid paths
+#' and skip the modification.
+#'
+#' @param parameterfile the path to metadata file (.rds).
+#'   Defaults to the built-in demo metadata file.
+#'
+#' @return The file path to the (possibly modified) parameter file (character).
 #' @export
 #'
 #' @examples
 #' revise_demo_path()
-revise_demo_path <- function(paramterfile = system.file("extdata", "data_meta.rds", package ="SeuratExplorerServer")){
-  data_meta <- readRDS(paramterfile)
+revise_demo_path <- function(parameterfile = system.file("extdata", "data_meta.rds", package ="SeuratExplorerServer")){
+  data_meta <- readRDS(parameterfile)
   if(all(!dir.exists(data_meta$Reports.main))){ # run demo mode, try change the path in installation, only work for the first time run.
     data_meta$Reports.main <- paste(system.file("extdata", "source-data", package ="SeuratExplorerServer"), data_meta$Reports.main,sep = "/")
     if(any(!dir.exists(data_meta$Reports.main))){ # if still can found the files after modification
       stop('Error, can not found the Reports.main directory in demo data.')
     }
-    saveRDS(data_meta, file = paramterfile)
+    saveRDS(data_meta, file = parameterfile)
   }
-  return(paramterfile)
+  return(parameterfile)
+}
+
+
+.log_verbose <- function(...) {
+  if (isTRUE(getOption("SeuratExplorerServerVerbose"))) {
+    message(...)
+  }
+}
+
+na_to_null <- function(x) if (is.na(x)) NULL else x
+
+.import_from_explorer <- function(func_names) {
+  fns <- lapply(func_names, getFromNamespace, ns = "SeuratExplorer")
+  names(fns) <- func_names
+  fns
 }
