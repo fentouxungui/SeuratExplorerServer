@@ -12,6 +12,7 @@
 #' @importFrom shinydashboard menuItem menuSubItem sidebarMenu tabItem box
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom DT DTOutput
+#' @importFrom shinyjs useShinyjs
 #' @export
 #' @return shiny UI
 #'
@@ -235,6 +236,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   )
 
   body = dashboardBody(
+    shinyjs::useShinyjs(),
     div(class= "tab-content", tab_list),
     # to hide how many notifications in shinydashboard::dropdownMenu(), refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
     tags$script(HTML("document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';")))

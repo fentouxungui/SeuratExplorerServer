@@ -102,10 +102,10 @@ server <- function(input, output, session) {
   observeEvent(input$submitdata,{
     shiny::req(input$Choosendata)
     showModal(modalDialog(
-      title = tagList(
-        icon("spinner", class = "fa-spin"),
-        " Loading Data..."
-      ),
+      # title = tagList(
+      #   icon("spinner", class = "fa-spin"),
+      #   " Loading Data..."
+      # ),
       div(
         style = "text-align: center; padding: 20px;",
         icon("circle-notch", class = "fa-spin fa-3x", style = "color: #3b82f6; margin-bottom: 15px;"),
