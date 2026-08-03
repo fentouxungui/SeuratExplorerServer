@@ -38,8 +38,8 @@ check_metadata <- function(parameters, supported_file_types =  c("rds", "qs2")){
     if (any(is.na(parameters$Sample.name))) {
       parameters$Sample.name[is.na(parameters$Sample.name)] <- gsub(postfix_pattern_to_be_removed, basename(parameters$Rds.path[is.na(parameters$Sample.name)]), ignore.case = TRUE)
     }
-    # arrange by main directory
-    parameters <- parameters[order(parameters$Reports.main),]
+    # arrange by Sample Name
+    parameters <- parameters[order(parameters$Sample.name),]
     return(parameters)
   }
 }
