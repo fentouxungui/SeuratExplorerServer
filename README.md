@@ -114,7 +114,7 @@ All interactive visualization features from SeuratExplorer are included:
 Experience the full functionality of SeuratExplorerServer:
 
 **[Demo
-Database](http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/)**
+Database](http://netinfo.nibs.ac.cn:666/SeuratExplorerServer-Index/)**
 
 - **Demo 1**: Fly Gut EEs scRNA-seq (Guo, 2019, Cell Reports)
 - **Demo 2**: Mouse Intestine scRNA-seq (Hung, 2020, PNAS)
@@ -906,7 +906,8 @@ SeuratExplorerServer 是一个用于构建单细胞转录组数据库的 R
 ### 相关链接
 
 - **GitHub**: <https://github.com/fentouxungui/SeuratExplorerServer>
-- **在线演示**: <http://www.nibs.ac.cn:666/SeuratExplorerServer-Index/>
+- **在线演示**:
+  <http://netinfo.nibs.ac.cn:666/SeuratExplorerServer-Index/>
 - **问题反馈**: [GitHub
   Issues](https://github.com/fentouxungui/SeuratExplorerServer/issues)
 
