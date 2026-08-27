@@ -43,7 +43,10 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
     SeuratExplorerServerReportsFileTypes = ReportsFileTypes,
     SeuratExplorerServerDefaultSplitLevel =  DefaultSplitMaxLevel,
     SeuratExplorerServerSupportedFiles =  SupportedFileTypes,
-    SeuratExplorerServerReductionKeyWords=  ReductionKeyWords
+    SeuratExplorerServerReductionKeyWords=  ReductionKeyWords,
+    # Suppress the `as.list.reactivevalues()` deprecation warning emitted by
+    # shinydashboard 0.7.3 (and other older deps) on newer Shiny versions.
+    shiny.deprecation.messages = FALSE
   )
 
   shinyApp(

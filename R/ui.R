@@ -25,9 +25,41 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
     tags$li(a(href = href, icon, text, ...))
   }
 
+  # Reusable styled section box (colored border + icon header + body), to avoid
+  # duplicating the same markup for every page section.
+  section_box <- function(title, icon_name = NULL, color = "#3b82f6", ...) {
+    if (is.null(icon_name)) {
+      title_tag <- h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", color), title)
+    } else {
+      title_tag <- div(
+        style = "display: flex; align-items: center; gap: 10px;",
+        icon(icon_name, style = sprintf("color: %s; font-size: 18px;", color)),
+        h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", color), title)
+      )
+    }
+    div(
+      class = "col-xs-12",
+      style = "margin-bottom: 20px;",
+      div(
+        class = "box",
+        style = sprintf("background: white; border: 2px solid %s; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);", color),
+        div(
+          class = "box-header",
+          style = sprintf("padding: 15px 20px; border-bottom: 2px solid %s;", color),
+          title_tag
+        ),
+        div(
+          class = "box-body",
+          style = "padding: 20px;",
+          ...
+        )
+      )
+    )
+  }
+
   # Header ----
   header = shinydashboard::dashboardHeader(
-    title = p(em("SeuratExplorer Server")),
+    title = p(strong(em("SeuratExplorer Server"))),
     # Dropdown menu for R package on github page
     shinydashboard::dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
@@ -37,11 +69,11 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   sidebar = shinydashboard::dashboardSidebar(
     sidebarMenu(
       menuItem("Dataset", tabName = "dataset", icon = icon("database")),
-      sidebarMenu(menuItem("Reports", tabName = "reports", icon = icon("file"))),
+      menuItem("Reports", tabName = "reports", icon = icon("file")),
       SeuratExplorer::explorer_sidebar_ui(),
       conditionalPanel(
         condition = "output.file_loaded",
-        sidebarMenu(menuItem("Settings", tabName = "settings", icon = icon("gear"))))
+        menuItem("Settings", tabName = "settings", icon = icon("gear")))
      )
   )
 
@@ -51,118 +83,44 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   tab_list[["dataset"]] = tabItem(tabName = "dataset",
                                fluidRow(id = "dataset-main-row",
                                  # Select Data (顶部，全宽)
-                                 div(
-                                   class = "col-xs-12",
-                                   style = "margin-bottom: 20px;",
-                                   div(
-                                     class = "box",
-                                     style = "background: white; border: 2px solid #10b981; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
-                                     div(
-                                       class = "box-header",
-                                       style = "padding: 15px 20px; border-bottom: 2px solid #10b981;",
-                                       div(
-                                         style = "display: flex; align-items: center; gap: 10px;",
-                                         icon("upload", style = "color: #10b981; font-size: 18px;"),
-                                         h4(style = "margin: 0; color: #10b981; font-weight: 600;", "Select Data")
-                                       )
-                                     ),
-                                     div(
-                                       class = "box-body",
-                                       style = "padding: 20px;",
-                                       withSpinner(uiOutput("SelectData.UI")),
-                                       div(style = "text-align: center; margin-top: 20px;",
-                                         actionButton(inputId = "submitdata",
-                                                     label = "Load Data",
-                                                     icon = icon("upload"),
-                                                     class = "btn-primary btn-lg",
-                                                     style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);")
-                                       )
-                                     ),
-                                     # current data info
-                                     uiOutput("CurrentDataOverview")
-                                   )
+                                 section_box(title = "Select Data", icon_name = "upload", color = "#10b981",
+                                   withSpinner(uiOutput("SelectData.UI")),
+                                   div(style = "text-align: center; margin-top: 20px;",
+                                     actionButton(inputId = "submitdata",
+                                                 label = "Load Data",
+                                                 icon = icon("upload"),
+                                                 class = "btn-primary btn-lg",
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);")
+                                   ),
+                                   # current data info
+                                   uiOutput("CurrentDataOverview")
                                  ),
 
                                  # Metadata of Dataset (中部，全宽)
-                                 div(
-                                   class = "col-xs-12",
-                                   style = "margin-bottom: 20px;",
-                                   div(
-                                     class = "box",
-                                     style = "background: white; border: 2px solid #3b82f6; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
-                                     div(
-                                       class = "box-header",
-                                       style = "padding: 15px 20px; border-bottom: 2px solid #3b82f6;",
-                                       div(
-                                         style = "display: flex; align-items: center; gap: 10px;",
-                                         icon("table", style = "color: #3b82f6; font-size: 18px;"),
-                                         h4(style = "margin: 0; color: #3b82f6; font-weight: 600;", "Metadata of Dataset")
-                                       )
-                                     ),
-                                     div(
-                                       class = "box-body",
-                                       style = "padding: 20px;",
-                                       DTOutput("DataList")
-                                     )
-                                   )
+                                 section_box(title = "Metadata of Dataset", icon_name = "table", color = "#3b82f6",
+                                   DTOutput("DataList")
                                  ),
 
                                  # Session Info (底部，全宽)
-                                 div(
-                                   class = "col-xs-12",
-                                   div(
-                                     class = "box",
-                                     style = "background: white; border: 2px solid #8b5cf6; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
-                                     div(
-                                       class = "box-header",
-                                       style = "padding: 15px 20px; border-bottom: 2px solid #8b5cf6;",
-                                       div(
-                                         style = "display: flex; align-items: center; gap: 10px;",
-                                         icon("info-circle", style = "color: #8b5cf6; font-size: 18px;"),
-                                         h4(style = "margin: 0; color: #8b5cf6; font-weight: 600;", "Session Info")
-                                       )
-                                     ),
-                                     div(
-                                       class = "box-body",
-                                       style = "padding: 20px;",
-                                       withSpinner(verbatimTextOutput("sessioninfo"))
-                                     )
-                                   )
+                                 section_box(title = "Session Info", icon_name = "info-circle", color = "#8b5cf6",
+                                   withSpinner(verbatimTextOutput("sessioninfo"))
                                  )
                                )
   )
 
   tab_list[["reports"]] = tabItem(tabName = "reports",
                                fluidRow(id = "reports-main-row",
-                                 div(
-                                   class = "col-xs-12",
-                                   div(
-                                     class = "box",
-                                     style = "background: white; border: 2px solid #f59e0b; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
-                                     div(
-                                       class = "box-header",
-                                       style = "padding: 15px 20px; border-bottom: 2px solid #f59e0b;",
-                                       div(
-                                         style = "display: flex; align-items: center; gap: 10px;",
-                                         icon("file", style = "color: #f59e0b; font-size: 18px;"),
-                                         h4(style = "margin: 0; color: #f59e0b; font-weight: 600;", "View and Download Analysis Reports")
-                                       )
-                                     ),
-                                     div(
-                                       class = "box-body",
-                                       style = "padding: 20px;",
-                                       verbatimTextOutput(outputId = "DirectoryTree"),
-                                       div(style = "text-align: center; margin-top: 20px;",
-                                         actionButton(inputId = "generatereports",
-                                                     label = "Generate/Update Reports",
-                                                     icon = icon("refresh"),
-                                                     class = "btn-primary btn-lg",
-                                                     style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);")
-                                       ),
-                                       div(style = "margin-top: 20px;",
-                                         uiOutput("ViewReports.UI")
-                                       )
-                                     )
+                                 section_box(title = "View and Download Analysis Reports", icon_name = "file", color = "#f59e0b",
+                                   verbatimTextOutput(outputId = "DirectoryTree"),
+                                   div(style = "text-align: center; margin-top: 20px;",
+                                     actionButton(inputId = "generatereports",
+                                                 label = "Generate/Update Reports",
+                                                 icon = icon("refresh"),
+                                                 class = "btn-primary btn-lg",
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);")
+                                   ),
+                                   div(style = "margin-top: 20px;",
+                                     uiOutput("ViewReports.UI")
                                    )
                                  )
                                )
@@ -189,47 +147,34 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                  ),
 
                                  # Set Default Initialization Parameter (底部，全宽)
-                                 div(
-                                   class = "col-xs-12",
+                                 section_box(title = "Set Default Initialization Parameters", icon_name = "gear", color = "#3b82f6",
                                    div(
-                                     class = "box",
-                                     style = "background: white; border: 2px solid #3b82f6; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
-                                     div(
-                                       class = "box-header",
-                                       style = "padding: 15px 20px; border-bottom: 2px solid #3b82f6;",
+                                     style = "background: #eff6ff; border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 6px; margin-bottom: 20px;",
+                                     h5(icon("info-circle"), "Current Data Information", style = "color: #3b82f6; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"),
+                                     verbatimTextOutput(outputId = "InfoForDataOpened")
+                                   ),
+                                   div(
+                                     style = "background: #f0fdf4; border: 1px solid #10b981; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 20px;",
+                                     h4(icon("sliders-h"), "Parameter Settings", style = "color: #10b981; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;"),
+                                     withSpinner(
                                        div(
-                                         style = "display: flex; align-items: center; gap: 10px;",
-                                         icon("gear", style = "color: #3b82f6; font-size: 18px;"),
-                                         h4(style = "margin: 0; color: #3b82f6; font-weight: 600;", "Set Default Initialization Parameters")
-                                       )
-                                     ),
-                                     div(
-                                       class = "box-body",
-                                       style = "padding: 20px;",
-                                       div(
-                                         style = "background: #eff6ff; border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 6px; margin-bottom: 20px;",
-                                         h5(icon("info-circle"), "Current Data Information", style = "color: #3b82f6; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"),
-                                         verbatimTextOutput(outputId = "InfoForDataOpened")
+                                         uiOutput("SetSampleName.UI"),
+                                         uiOutput("SetSpecies.UI"),
+                                         uiOutput("SetDescription.UI"),
+                                         uiOutput("SetDefaultReduction.UI"),
+                                         uiOutput("SetDefaultCluster.UI"),
+                                         uiOutput("SetDefaultAssay.UI"),
+                                         uiOutput("SetDefaultSplitMaxLevels.UI")
                                        ),
-                                       div(
-                                         style = "background: #f0fdf4; border: 1px solid #10b981; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 20px;",
-                                         h4(icon("sliders-h"), "Parameter Settings", style = "color: #10b981; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;"),
-                                         withSpinner(uiOutput("SetSampleName.UI")),
-                                         withSpinner(uiOutput("SetSpecies.UI")),
-                                         withSpinner(uiOutput("SetDescription.UI")),
-                                         withSpinner(uiOutput("SetDefaultReduction.UI")),
-                                         withSpinner(uiOutput("SetDefaultCluster.UI")),
-                                         withSpinner(uiOutput("SetDefaultAssay.UI")),
-                                         withSpinner(uiOutput("SetDefaultSplitMaxLevels.UI"))
-                                       ),
-                                       div(style = "text-align: center;",
-                                         actionButton(inputId = "submitsettings",
-                                                     label = "Save Settings",
-                                                     icon = icon("save"),
-                                                     class = "btn-primary btn-lg",
-                                                     style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);")
-                                       )
+                                       proxy.height = "10px"
                                      )
+                                   ),
+                                   div(style = "text-align: center;",
+                                     actionButton(inputId = "submitsettings",
+                                                 label = "Save Settings",
+                                                 icon = icon("save"),
+                                                 class = "btn-primary btn-lg",
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);")
                                    )
                                  )
                                )
@@ -237,6 +182,98 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
 
   body = dashboardBody(
     shinyjs::useShinyjs(),
+    tags$head(
+      tags$style(HTML("
+        /* Global font optimization */
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Sidebar menu: compact spacing */
+        .sidebar-menu .treeview-menu li a {
+          white-space: nowrap;
+          padding: 4px 5px 4px 12px !important;
+        }
+
+        /* Optimize box style - keep default background */
+        .box {
+          border-radius: 6px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          transition: box-shadow 0.2s ease;
+        }
+
+        .box:hover {
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .box.box-solid .box-title {
+          font-weight: 600;
+        }
+
+        /* Optimize button style */
+        .btn {
+          border-radius: 6px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        /* Modal Dialog Styles */
+        .modal-content {
+          border-radius: 8px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+          border-radius: 8px 8px 0 0;
+          padding: 16px 20px;
+        }
+
+        .modal-body {
+          padding: 20px;
+        }
+
+        .modal-footer {
+          border-top: 1px solid #dee2e6;
+          padding: 16px 20px;
+        }
+
+        .modal-footer .btn {
+          border-radius: 6px;
+          padding: 8px 16px;
+          font-weight: 500;
+        }
+
+        /* Collapsible parameter group styles (inherited from SeuratExplorer) */
+        summary::-webkit-details-marker,
+        summary::marker {
+          display: none;
+        }
+
+        .param-group-chevron {
+          transition: transform 0.3s ease;
+          display: inline-block;
+        }
+
+        details:not([open]) .param-group-chevron {
+          transform: rotate(-90deg);
+        }
+
+        /* Responsive optimization */
+        @media (max-width: 768px) {
+          .content-wrapper {
+            padding: 10px;
+          }
+
+          .box {
+            margin-bottom: 10px;
+          }
+        }
+      "))
+    ),
     div(class= "tab-content", tab_list),
     # to hide how many notifications in shinydashboard::dropdownMenu(), refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
     tags$script(HTML("document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';")))

@@ -444,32 +444,34 @@ server <- function(input, output, session) {
     n_clusters <- length(unique(Seurat::Idents(obj)))
     n_assays <- length(Seurat::Assays(obj))
 
-    # Simple display with HTML
-    HTML(paste0(
-      '<div style="padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">',
-      '<h4 style="color: #495057; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">📊 Current Data Overview</h4>',
-      '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">',
-      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
-      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">📁 Current Data</div>',
-      '<div style="color: #f59e0b; font-size: 18px; font-weight: 600;">', format(data$Name, big.mark = ","), '</div>',
-      '</div>',
-      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
-      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🔬 Total Cells</div>',
-      '<div style="color: #3b82f6; font-size: 18px; font-weight: 600;">', format(total_cells, big.mark = ","), '</div>',
-      '</div>',
-      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #10b981; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
-      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🧬 Total Genes</div>',
-      '<div style="color: #10b981; font-size: 18px; font-weight: 600;">', format(total_genes, big.mark = ","), '</div>',
-      '</div>',
-      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #8b5cf6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
-      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🎯 Clusters</div>',
-      '<div style="color: #8b5cf6; font-size: 18px; font-weight: 600;">', n_clusters, '</div>',
-      '</div>',
-      '<div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #06b6d4; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">',
-      '<div style="color: #6c757d; font-size: 12px; margin-bottom: 5px;">🧪 Assays</div>',
-      '<div style="color: #06b6d4; font-size: 18px; font-weight: 600;">', n_assays, '</div>',
-      '</div>',
-      '</div></div>'
-    ))
+    # Stat card helper: color-coded card with an icon and label/value
+    stat_card <- function(icon_name, label, value, color) {
+      div(
+        style = sprintf("background: white; padding: 15px; border-radius: 6px; border-left: 4px solid %s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);", color),
+        div(
+          style = "color: #6c757d; font-size: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;",
+          icon(icon_name, style = sprintf("color: %s;", color)),
+          label
+        ),
+        div(style = sprintf("color: %s; font-size: 18px; font-weight: 600;", color), value)
+      )
+    }
+
+    div(
+      style = "padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);",
+      h4(
+        style = "color: #495057; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;",
+        icon("chart-bar", style = "color: #495057;"),
+        "Current Data Overview"
+      ),
+      div(
+        style = "display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;",
+        stat_card("folder-open", "Current Data", format(data$Name, big.mark = ","), "#f59e0b"),
+        stat_card("microscope", "Total Cells", format(total_cells, big.mark = ","), "#3b82f6"),
+        stat_card("dna", "Total Genes", format(total_genes, big.mark = ","), "#10b981"),
+        stat_card("chart-pie", "Clusters", n_clusters, "#8b5cf6"),
+        stat_card("flask", "Assays", n_assays, "#06b6d4")
+      )
+    )
   })
 }
