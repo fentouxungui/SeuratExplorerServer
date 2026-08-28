@@ -50,11 +50,16 @@ prepare_reports <- function(reports_dir,
                                                    "jpg", "png", "bmp", "svg", "html", "mp4", "avi"),
                            overwrite = FALSE,
                            create_dirs = TRUE,
-                           use_relative_links = FALSE,
+                           max_file_size = Inf,
                            conflict_resolution = c("rename", "error", "skip", "prefix_sample")) {
 
   # Match argument
   conflict_resolution <- match.arg(conflict_resolution)
+
+  # Sanity-check max_file_size
+  if (length(max_file_size) != 1 || !is.numeric(max_file_size) || max_file_size < 0) {
+    stop("'max_file_size' must be a single non-negative number (bytes); use Inf for no limit")
+  }
 
   # Input validation
   if (!dir.exists(reports_dir)) {
@@ -157,8 +162,6 @@ prepare_reports <- function(reports_dir,
   stats$failed_links <- 0L
   stats$conflicts <- 0L
 
-  links.db.list <- list()
-
   # Process main directories (sample-specific)
   message("Processing sample-specific reports...")
   for (i in 1:nrow(data_meta)) {
@@ -233,32 +236,32 @@ prepare_reports <- function(reports_dir,
       to_dir <- dirname(to)
       ensure_dir_exists(to_dir)
 
-      # Create symbolic link
-      tryCatch({
-        file.symlink(from, to)
+      # Create a hard link (keeps the file inside site_dir so Shiny Server's
+      # realpath sanitization passes) and fall back to a real copy when the
+      # source and target are on different filesystems. Note: on Windows a
+      # cross-drive hard link fails with a *warning*, not an error, so we must
+      # verify the link was actually created instead of relying on tryCatch.
+      tryCatch(suppressWarnings(file.link(from, to)), error = function(e) NULL)
+      if (file.exists(to)) {
         stats$successful_links <- stats$successful_links + 1
-
-      }, error = function(e) {
-        # Fallback to R.utils::createLink if file.symlink fails
-        tryCatch({
-          suppressWarnings(R.utils::createLink(link = to, target = from, skip = !overwrite))
-          stats$successful_links <- stats$successful_links + 1
-        }, error = function(e2) {
-          warning("Failed to create link for ", from, " -> ", to, ": ", conditionMessage(e2))
-          stats$failed_links <- stats$failed_links + 1
-        })
-      })
-    }
-
-    # Store link info
-    if (length(links.from) > 0) {
-      links.db.list[[sample_name]] <- data.frame(
-        from = links.from,
-        to = links.to,
-        sample = sample_name,
-        type = "main",
-        stringsAsFactors = FALSE
-      )
+      } else {
+        # Hard link failed (cross-filesystem): would need a real copy. Skip
+        # files larger than the configured limit to avoid filling up disk.
+        fsize <- file.size(from)
+        if (is.finite(max_file_size) && fsize > max_file_size) {
+          message("Skipping file larger than the size limit (",
+                  round(fsize / 1024^2, 1), " MB): ", from)
+          stats$skipped_files <- stats$skipped_files + 1
+        } else {
+          tryCatch({
+            file.copy(from, to, overwrite = overwrite, copy.mode = TRUE, copy.date = TRUE)
+            stats$successful_links <- stats$successful_links + 1
+          }, error = function(e2) {
+            warning("Failed to link/copy ", from, " -> ", to, ": ", conditionMessage(e2))
+            stats$failed_links <- stats$failed_links + 1
+          })
+        }
+      }
     }
   }
 
@@ -319,30 +322,27 @@ prepare_reports <- function(reports_dir,
               }
             }
 
-            tryCatch({
-              file.symlink(from, to)
+            tryCatch(suppressWarnings(file.link(from, to)), error = function(e) NULL)
+            if (file.exists(to)) {
               stats$successful_links <- stats$successful_links + 1
-            }, error = function(e) {
-              tryCatch({
-                suppressWarnings(R.utils::createLink(link = to, target = from, skip = !overwrite))
-                stats$successful_links <- stats$successful_links + 1
-              }, error = function(e2) {
-                warning("Failed to create link: ", conditionMessage(e2))
-                stats$failed_links <- stats$failed_links + 1
-              })
-            })
+            } else {
+              fsize <- file.size(from)
+              if (is.finite(max_file_size) && fsize > max_file_size) {
+                message("Skipping file larger than the size limit (",
+                        round(fsize / 1024^2, 1), " MB): ", from)
+                stats$skipped_files <- stats$skipped_files + 1
+              } else {
+                tryCatch({
+                  file.copy(from, to, overwrite = overwrite, copy.mode = TRUE, copy.date = TRUE)
+                  stats$successful_links <- stats$successful_links + 1
+                }, error = function(e2) {
+                  warning("Failed to link/copy: ", conditionMessage(e2))
+                  stats$failed_links <- stats$failed_links + 1
+                })
+              }
+            }
           }
 
-          # Store link info
-          if (length(links.from) > 0) {
-            links.db.list[[paste0("others_", source_prefix)]] <- data.frame(
-              from = links.from,
-              to = links.to,
-              sample = "others",
-              type = "second",
-              stringsAsFactors = FALSE
-            )
-          }
         }
       }
     }
@@ -357,7 +357,7 @@ prepare_reports <- function(reports_dir,
   message("Conflicts resolved: ", stats$conflicts)
   message("===================================\n")
 
-  if(getOption("SeuratExplorerServerVerbose")) {
+  if (isTRUE(getOption("SeuratExplorerServerVerbose"))) {
     message("Reports prepared successfully!")
   }
 

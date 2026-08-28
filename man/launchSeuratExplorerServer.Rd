@@ -10,7 +10,7 @@ launchSeuratExplorerServer(
   parameterfile = revise_demo_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
-  ReductionKeyWords = c("umap", "tsne"),
+  ReductionKeyWords = c("umap", "tsne", "pca"),
   ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", "gif", "jpg", "png", "bmp", "svg",
     "html", "mp4", "avi", "Rmd", "R", "ipynb", "sh", "Sh", "txt", "csv", "xlsx", "xls",
     "xml", "md", "py"),
@@ -18,6 +18,7 @@ launchSeuratExplorerServer(
   SupportedFileTypes = c("rds", "qs2"),
   CommentsFile = NULL,
   TechnicianUser = "admin",
+  MaxReportFileSize = 100 * 1024^2,
   verbose = FALSE
 )
 }
@@ -47,6 +48,11 @@ Defaults to a \code{comments.csv} file next to \code{parameterfile}.}
 \item{TechnicianUser}{character vector of login usernames with technician
 privileges (allowed to delete comments / mark them resolved). Ignored when
 \code{Encrypted = FALSE} (everyone is treated as technician).}
+
+\item{MaxReportFileSize}{maximum size (in bytes) of a report file that will
+be copied into the reports directory when a hard link is not possible
+(i.e. the source is on a different filesystem). Larger files are skipped.
+Use \code{Inf} for no limit. Defaults to 100 MB.}
 
 \item{verbose}{default FALSE, messages for debug use}
 }

@@ -46,7 +46,7 @@ SeuratExplorerServer is designed for bioinformatics core facilities and research
 - **Share analysis results** with wet-lab researchers through an intuitive web interface
 - **Manage multiple datasets** in a centralized database with unified access
 - **Provide secure access** to unpublished data through password-protected applications
-- **Maintain analysis reports** alongside interactive visualizations (**shinyserver version < 15**)
+- **Maintain analysis reports** alongside interactive visualizations
 - **Scale deployment** across multiple projects with a single infrastructure
 
 ### SeuratExplorer vs SeuratExplorerServer
@@ -92,13 +92,24 @@ Automatically organize and display analysis reports generated during the pipelin
 
 **Videos**: `mp4`, `avi`
 
+Report files are published into the app's `www/reports/` directory. Files on the same filesystem are linked with hard links (no extra disk usage), while files on a different filesystem are copied; copies larger than `MaxReportFileSize` (default 100 MB) are skipped to avoid filling up disk. The links are served both by Shiny Server's static `www` handling and via `shiny::addResourcePath()`, so report downloads work under local `runApp()` and Shiny Server (including versions ≥ 1.5.7 that reject symlinks pointing outside `site_dir`).
+
+### 💬 Comments / 留言
+
+A built-in message board lets users leave comments on individual datasets:
+
+- Commenter identity is taken from the Shiny login name (read-only), with an optional free-text real name.
+- Comments can target a specific dataset and reply to a previous comment; the reply thread is shown as an indented tree.
+- Users can post and reply; the technician (login name in `TechnicianUser`) can additionally mark comments as resolved or delete them.
+- Comments are stored in a CSV file (see `CommentsFile`), with file-locked, atomic writes so concurrent users are safe.
+
 ### ⚙️ Customize Initialization Parameters
 
 Set default parameters for each dataset:
 
 - **Cluster Resolution**: Default clustering resolution
 - **Species**: Human, Mouse, Fly, or custom
-- **Dimension Reduction**: Default visualization method (UMAP, t-SNE, etc.)
+- **Dimension Reduction**: Default visualization method (UMAP, t-SNE, PCA, etc.)
 - **Split Options**: Maximum levels for metadata splitting
 - **Assay Selection**: Default assay to display
 
@@ -189,7 +200,7 @@ data_meta <- SeuratExplorerServer::initialize_metadata(
 # Optional: Add custom parameters
 data_meta$Species <- c("Mouse", "Human")
 data_meta$Default.ClusterResolution <- c("res.0.4", "res.0.8")
-data_meta$Default.DimensionReduction <- c("umap", "tsne")
+data_meta$Default.DimensionReduction <- c("umap", "tsne", "pca")
 data_meta$Description <- c("First dataset", "Second dataset")
 
 # Verify metadata
@@ -218,7 +229,7 @@ credentials <- data.frame(
 launchSeuratExplorerServer(
   Encrypted = TRUE,
   credentials = credentials,
-  paramterfile = "data_meta.rds",
+  parameterfile = "data_meta.rds",
   TechnicianEmail = "your-email@example.com",
   TechnicianName = "Your Name",
   verbose = FALSE
@@ -238,7 +249,10 @@ ShinyServer/                          # site_dir defined in shiny-server.conf
 ├── SeuratExplorerServer-Data/        # Directory for all data apps
 │   ├── project_1/
 │   │   ├── app.R                     # App launch script
-│   │   └── data_meta.rds             # Metadata file
+│   │   ├── data_meta.rds             # Metadata file
+│   │   ├── comments.csv              # Comment board (created on first comment)
+│   │   └── www/
+│   │       └── reports/              # Published reports (hard links / copies)
 │   └── project_2/
 │       ├── app.R
 │       └── data_meta.rds
@@ -483,13 +497,16 @@ shinyApp(ui, server)
 |-----------|------|---------|-------------|
 | `Encrypted` | logical | `TRUE` | Enable password protection |
 | `credentials` | data.frame | See below | User credentials for authentication |
-| `paramterfile` | character | Auto | Path to metadata RDS file |
-| `TechnicianEmail` | character | Required | Contact email for support |
-| `TechnicianName` | character | Required | Contact name for support |
-| `ReductionKeyWords` | character | `c("umap", "tsne")` | Keywords for dimension reduction |
+| `parameterfile` | character | Auto (demo) | Path to the metadata RDS file |
+| `TechnicianEmail` | character | `"zhangyongchao@nibs.ac.cn"` | Contact email for support |
+| `TechnicianName` | character | `"ZhangYongchao"` | Contact name for support |
+| `ReductionKeyWords` | character | `c("umap", "tsne", "pca")` | Keywords for dimension reduction |
 | `ReportsFileTypes` | character | 27 types | File types to include in reports |
 | `DefaultSplitMaxLevel` | integer | `6` | Max levels for split options |
 | `SupportedFileTypes` | character | `c("rds", "qs2")` | Seurat file formats to support |
+| `CommentsFile` | character | `NULL` | CSV file storing the comment board; defaults to `comments.csv` next to `parameterfile` |
+| `TechnicianUser` | character | `"admin"` | Login usernames allowed to delete/mark-resolve comments (ignored when `Encrypted = FALSE`) |
+| `MaxReportFileSize` | numeric | `100 * 1024^2` | Max size (bytes) of a report file that will be copied; larger files are skipped. `Inf` = no limit |
 | `verbose` | logical | `FALSE` | Print debug messages |
 
 ### Default Credentials
@@ -549,8 +566,10 @@ knitr::include_graphics("inst/extdata/www/select-data.png")
 knitr::include_graphics("inst/extdata/www/reports.png")
 ```
 
-```{r echo=FALSE, out.width="100%", fig.cap="Report file tree structure"}
-knitr::include_graphics("inst/extdata/www/reports-2.png")
+### Comments
+
+```{r echo=FALSE, out.width="100%", fig.cap="Browse and download analysis reports"}
+knitr::include_graphics("inst/extdata/www/comments.png")
 ```
 
 ### Settings Configuration
@@ -634,7 +653,7 @@ file.exists(data_meta$Rds.full.path)
 
 #### 3. Reports Not Showing
 
-**Symptoms**: Report browser shows "No reports available"
+**Symptoms**: Report browser shows "No reports available" or report links return "Not Found"
 
 **Solutions**:
 
@@ -647,6 +666,10 @@ launchSeuratExplorerServer(
   ReportsFileTypes = c("pdf", "png", "csv")  # Add your types
 )
 ```
+
+- **Large files are skipped**: files that need to be copied (cross-filesystem) and exceed `MaxReportFileSize` (default 100 MB) are silently skipped. Raise the limit with `launchSeuratExplorerServer(MaxReportFileSize = 200 * 1024^2)` or disable it with `Inf`.
+- **Write permission**: the Shiny process must be able to write `<app_dir>/www/reports/`. Check `sudo chown -R shiny:shiny <app_dir>/www` if report files are not created.
+- **Shiny Server ≥ 1.5.7**: report files are published as hard links / copies inside `www/reports/` (not symlinks), so they are served correctly on current Shiny Server versions.
 
 #### 4. Permission Errors
 
@@ -789,7 +812,7 @@ If you use SeuratExplorerServer in your research, please cite:
   author = {Zhang, Yongchao},
   year = {2025},
   url = {https://github.com/fentouxungui/SeuratExplorerServer},
-  note = {R package version 0.1.3}
+  note = {R package version 0.1.5}
 }
 ```
 
@@ -825,6 +848,7 @@ SeuratExplorerServer 是一个用于构建单细胞转录组数据库的 R 包�
 - 🔐 加密访问：保护未发表数据
 - 🔄 多数据切换：同一应用管理多个数据集
 - 📊 报告浏览：自动整理分析报告
+- 💬 留言板：用户可针对数据集留言、回复，技术员可删除/标记已解决
 - ⚙️ 自定义配置：设置默认参数
 - 🚀 集成 SeuratExplorer：完整的可视化分析功能
 

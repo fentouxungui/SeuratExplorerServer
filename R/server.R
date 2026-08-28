@@ -52,13 +52,6 @@ server <- function(input, output, session) {
   .pkg.env$cache.rds.list <- list() ## to cache data
   .pkg.env$current_data_name <- NULL ## to record current data name
 
-  # to be deleted
-  # ## to cache data
-  # cache.rds.list <- list()
-  #
-  # ## to record current data name
-  # current_data_name <- NULL
-
   ## data information UI
   output$DataList <- renderDT(datatable(data_meta,
                                         class = 'cell-border stripe',
@@ -143,32 +136,11 @@ server <- function(input, output, session) {
       data$gene_annotations_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
       data$version <- 0
       .pkg.env$cache.rds.list[[.pkg.env$current_data_name]] <- reactiveValuesToList(data)
-      # message('Newly loaded data has been cached!')
-      # print(names(.pkg.env$cache.rds.list))
     }else{ # for data loaded before
-      # message('Loading from cached data!')
       cached <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]
       for (field in names(cached)) {
         data[[field]] <- cached[[field]]
       }
-      # to be deleted below
-      # data$obj <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$obj
-      # data$Name <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Name
-      # data$Path <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Path
-      # data$Species <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Species
-      # data$Description <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$Description
-      # data$reduction_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_options
-      # data$reduction_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$reduction_default
-      # data$assays_slots_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_slots_options
-      # data$assays_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assays_options
-      # data$assay_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$assay_default
-      # data$cluster_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_options
-      # data$cluster_default <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$cluster_default
-      # data$split_maxlevel <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_maxlevel
-      # data$split_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$split_options
-      # data$extra_qc_options <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$extra_qc_options
-      # data$gene_annotations_list <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$gene_annotations_list
-      # data$version <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]$version
     }
     .log_verbose("data loaded successfully!")
     removeModal()
@@ -214,25 +186,48 @@ server <- function(input, output, session) {
     # print(mytree, "SampleName")
   }, width = 300) # max 300 characters allowed for each line
 
-  reports_dir <- paste0("../", basename(getwd()), "_reports")
+  # Reports directory. Placed under www/ so Shiny Server serves it directly,
+  # and also registered via addResourcePath() so it works in local runApp()
+  # (RStudio) too, where there is no Shiny Server and the www static serving
+  # of a directory-less shinyApp() is not reliable.
+  reports_dir <- normalizePath(file.path("www", "reports"), winslash = "/", mustWork = FALSE)
+  dir.create(reports_dir, recursive = TRUE, showWarnings = FALSE)
+  shiny::addResourcePath("reports", reports_dir)
 
-  ## to show data web address
-  output$reports_not_work <- renderText({
-    .log_verbose("Preparing reports_not_work...")
-    full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
-    reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-    paste(sep = "",
-          "protocol: ", session$clientData$url_protocol, "\n",
-          "hostname: ", session$clientData$url_hostname, "\n",
-          "pathname: ", session$clientData$url_pathname, "\n",
-          "port: ",     session$clientData$url_port,     "\n",
-          "search: ",   session$clientData$url_search,   "\n",
-          "full url: ",      full_URL,     "\n",
-          "reports url: ",      reports_URL,     "\n",
-          "\n",
-          "Attention: Reports function not work by using this kind of url [only IP + port], pathname should be included."
-    )
-  })
+  # Recursively render the reports directory as a collapsible folder tree of
+  # download links (folders first, then files).
+  render_reports_tree <- function(dir, base, rel = "") {
+    entries <- list.files(dir, full.names = FALSE)
+    is_dir <- dir.exists(file.path(dir, entries))
+    dirs <- sort(entries[is_dir])
+    fs <- sort(entries[!is_dir])
+    dir_nodes <- lapply(dirs, function(e) {
+      full <- file.path(dir, e)
+      relpath <- if (nzchar(rel)) file.path(rel, e) else e
+      tags$li(
+        tags$details(
+          open = "open",
+          tags$summary(
+            style = "cursor: pointer; color: #374151; font-weight: 600;",
+            icon("folder", style = "color: #f59e0b;"), " ", e
+          ),
+          tags$ul(
+            style = "list-style: none; padding-left: 20px; margin-top: 4px;",
+            render_reports_tree(full, base, relpath)
+          )
+        )
+      )
+    })
+    file_nodes <- lapply(fs, function(e) {
+      relpath <- if (nzchar(rel)) file.path(rel, e) else e
+      url <- paste0(base, "reports/", gsub("\\\\", "/", relpath))
+      tags$li(
+        tags$a(href = url, target = "_blank", rel = "noopener",
+               icon("file", style = "color: #6b7280;"), " ", e)
+      )
+    })
+    do.call(tagList, c(dir_nodes, file_nodes))
+  }
 
   # click generate reports button to update or generate reports web page, and add a view reports button to link the analysis results
   observeEvent(input$generatereports,{
@@ -266,28 +261,31 @@ server <- function(input, output, session) {
       ))
       unlink(reports_dir, recursive = TRUE)
     }
-    dir.create(reports_dir)
+    dir.create(reports_dir, recursive = TRUE, showWarnings = FALSE)
     .log_verbose("Preparing the reports direcotry, Please wait a moment...")
-    prepare_reports(reports_dir = reports_dir, data_meta = data_meta, file_types_included = getOption("SeuratExplorerServerReportsFileTypes"))
+    prepare_reports(reports_dir = reports_dir, data_meta = data_meta,
+                    file_types_included = getOption("SeuratExplorerServerReportsFileTypes"),
+                    max_file_size = getOption("SeuratExplorerServerMaxReportFileSize", Inf))
     removeModal()
-    output$ViewReports.UI <- renderUI({ # generate view reports UI
+    output$ViewReports.UI <- renderUI({ # render the report files as a folder tree of download links
       .log_verbose("Preparing ReportURL.UI...")
-      if (session$clientData$url_pathname == "/") {
-        verbatimTextOutput(outputId = "reports_not_work")
-      }else{
-        full_URL = paste0(session$clientData$url_protocol, "//",session$clientData$url_hostname,":",session$clientData$url_port,session$clientData$url_pathname)
-        reports_URL = paste0(dirname(full_URL), "/", basename(reports_dir),"/")
-        # https://stackoverflow.com/questions/37795760/r-shiny-add-weblink-to-actionbutton
-        .log_verbose(paste0("Reports url: ", reports_URL))
-        div(style = "text-align: center;",
-          actionButton(inputId='openreportswebpage',
-                       label="View/Download Reports",
-                       onclick = paste0("window.open('", reports_URL, "','_blank')"),
-                       icon = icon("file-alt"),
-                       class = "btn-primary btn-lg",
-                       style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);")
-        )
+      files <- list.files(reports_dir, recursive = TRUE, full.names = FALSE)
+      if (length(files) == 0) {
+        return(div(style = "text-align: center; color: #6c757d; padding: 10px;",
+                   p("No report files found.")))
       }
+      proto <- session$clientData$url_protocol
+      host <- session$clientData$url_hostname
+      port <- session$clientData$url_port
+      port_part <- if (nzchar(port)) paste0(":", port) else ""
+      path <- session$clientData$url_pathname
+      if (!grepl("/$", path)) path <- paste0(path, "/")
+      base <- paste0(proto, "//", host, port_part, path)
+      .log_verbose(paste0("Reports base url: ", base))
+      tags$ul(
+        style = "list-style: none; padding-left: 0; text-align: left; max-height: 460px; overflow-y: auto; margin: 0;",
+        render_reports_tree(reports_dir, base)
+      )
     })
   })
 
@@ -720,7 +718,7 @@ server <- function(input, output, session) {
 
   # do something when session ended
   session$onSessionEnded(function() {
-    reports_dir <- paste0("../", basename(getwd()), "_reports")
+    reports_dir <- file.path("www", "reports")
     if (!getOption("SeuratExplorerServerEncrypted")){
       if(dir.exists(reports_dir)){unlink(reports_dir, recursive = TRUE)}
       print('Hello, the session finally ended!')
