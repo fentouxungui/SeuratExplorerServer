@@ -449,7 +449,7 @@ revise_demo_path <- function(parameterfile = system.file("extdata", "data_meta.r
   }
 }
 
-na_to_null <- function(x) if (is.na(x)) NULL else x
+na_to_null <- function(x) if (length(x) == 1L && !is.na(x)) x else NULL
 
 .import_from_explorer <- function(func_names) {
   fns <- lapply(func_names, getFromNamespace, ns = "SeuratExplorer")

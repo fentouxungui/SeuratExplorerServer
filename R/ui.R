@@ -59,7 +59,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
 
   # Header ----
   header = shinydashboard::dashboardHeader(
-    title = p(strong(em("SeuratExplorer Server"))),
+    title = p(strong(em("SeuratExplorer Server")), style = "margin: 0;"),
     # Dropdown menu for R package on github page
     shinydashboard::dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
@@ -70,10 +70,11 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
     sidebarMenu(
       menuItem("Dataset", tabName = "dataset", icon = icon("database")),
       menuItem("Reports", tabName = "reports", icon = icon("file")),
+      menuItem("Comments", tabName = "comments", icon = icon("comments")),
       SeuratExplorer::explorer_sidebar_ui(),
       conditionalPanel(
         condition = "output.file_loaded",
-        menuItem("Settings", tabName = "settings", icon = icon("gear")))
+        sidebarMenu(menuItem("Settings", tabName = "settings", icon = icon("gear"))))
      )
   )
 
@@ -124,6 +125,61 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                    )
                                  )
                                )
+  )
+
+  tab_list[["comments"]] = tabItem(tabName = "comments",
+                                fluidRow(id = "comments-main-row",
+                                  section_box(title = "Comments / 留言", icon_name = "comments", color = "#06b6d4",
+                                    # Comment guidelines
+                                    div(
+                                      style = "background: #eff6ff; border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px;",
+                                      div(
+                                        style = "display: flex; align-items: flex-start; gap: 10px;",
+                                        icon("info-circle", style = "color: #3b82f6; margin-top: 2px;"),
+                                        div(
+                                          style = "color: #1e40af;",
+                                          strong("Comment guidelines: "),
+                                          "Please be respectful and use appropriate language. For bug reports or technical issues, please do not post here — contact the technician directly (",
+                                          TechnicianName, ", ", TechnicianEmail, ")."
+                                        )
+                                      )
+                                    ),
+                                    # Sample filter
+                                    uiOutput("comment_filter_ui"),
+                                    # Comment list (card layout)
+                                    uiOutput("comments_list"),
+                                    uiOutput("comment_reply_indicator"),
+                                    hr(),
+                                    # New comment form
+                                    h4(icon("pen"), "Add a Comment", style = "color: #06b6d4; font-weight: 600; margin-bottom: 10px;"),
+                                    div(
+                                      style = "background: #f0fdfa; border: 1px solid #06b6d4; border-left: 4px solid #06b6d4; padding: 15px; border-radius: 6px;",
+                                      div(
+                                        style = "display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;",
+                                        div(
+                                          style = "flex: 1; min-width: 180px;",
+                                          div(style = "color: #6c757d; font-size: 12px; margin-bottom: 4px;", "Login name (read-only)"),
+                                          textOutput("comment_current_user", inline = TRUE)
+                                        ),
+                                        div(
+                                          style = "flex: 1; min-width: 180px;",
+                                          textInput("comment_realname", "Your real name (optional):", value = "", width = "100%")
+                                        ),
+                                        div(
+                                          style = "flex: 1; min-width: 180px;",
+                                          uiOutput("comment_sample_ui")
+                                        )
+                                      ),
+                                      textAreaInput("comment_content", "Comment:", value = "", width = "100%", height = "120px", resize = "vertical"),
+                                      div(
+                                        style = "text-align: right; margin-top: 10px;",
+                                        actionButton("submit_comment", "Post Comment", icon = icon("paper-plane"),
+                                                     class = "btn-primary",
+                                                     style = "padding: 10px 28px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);")
+                                      )
+                                    )
+                                  )
+                                )
   )
 
   # body part for Seurat Explorer functions
@@ -187,6 +243,12 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
         /* Global font optimization */
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Header title: fit the full app name without clipping */
+        .main-header .logo {
+          font-size: 16px;
+          white-space: nowrap;
         }
 
         /* Sidebar menu: compact spacing */

@@ -15,6 +15,11 @@
 #' @param SupportedFileTypes supported file types
 #' @param verbose default FALSE, messages for debug use
 #' @param ReductionKeyWords keywords to extract reductions for the reduction options
+#' @param CommentsFile path to the CSV file that stores the comment board.
+#'   Defaults to a `comments.csv` file next to `parameterfile`.
+#' @param TechnicianUser character vector of login usernames with technician
+#'   privileges (allowed to delete comments / mark them resolved). Ignored when
+#'   `Encrypted = FALSE` (everyone is treated as technician).
 #'
 #' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
 #' @return In-browser Shiny Application launch
@@ -32,8 +37,13 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", 'gif',"jpg", "png", "bmp", "svg","html",'mp4','avi','Rmd','R','ipynb','sh','Sh','txt','csv','xlsx','xls','xml','md','py'),
                                         DefaultSplitMaxLevel = 6,
                                         SupportedFileTypes = c("rds", "qs2"),
+                                        CommentsFile = NULL,
+                                        TechnicianUser = "admin",
                                         verbose = FALSE
                                        ){
+  if (is.null(CommentsFile)) {
+    CommentsFile <- file.path(dirname(parameterfile), "comments.csv")
+  }
   options(
     SeuratExplorerVerbose = verbose,
     SeuratExplorerServerVerbose = verbose,
@@ -44,6 +54,8 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
     SeuratExplorerServerDefaultSplitLevel =  DefaultSplitMaxLevel,
     SeuratExplorerServerSupportedFiles =  SupportedFileTypes,
     SeuratExplorerServerReductionKeyWords=  ReductionKeyWords,
+    SeuratExplorerServerCommentsFile = CommentsFile,
+    SeuratExplorerServerTechnicianUser = TechnicianUser,
     # Suppress the `as.list.reactivevalues()` deprecation warning emitted by
     # shinydashboard 0.7.3 (and other older deps) on newer Shiny versions.
     shiny.deprecation.messages = FALSE

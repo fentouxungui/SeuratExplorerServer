@@ -11,7 +11,7 @@ ui(
 )
 }
 \arguments{
-\item{Encrypted.app}{weather to encrypt app}
+\item{Encrypted.app}{whether to encrypt app}
 
 \item{TechnicianEmail}{Email of the technician}
 

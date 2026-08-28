@@ -7,7 +7,7 @@
 launchSeuratExplorerServer(
   Encrypted = TRUE,
   credentials = data.frame(user = "shiny", password = "12345", stringsAsFactors = FALSE),
-  paramterfile = revise_demo_path(),
+  parameterfile = revise_demo_path(),
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
   ReductionKeyWords = c("umap", "tsne"),
@@ -16,15 +16,17 @@ launchSeuratExplorerServer(
     "xml", "md", "py"),
   DefaultSplitMaxLevel = 6,
   SupportedFileTypes = c("rds", "qs2"),
+  CommentsFile = NULL,
+  TechnicianUser = "admin",
   verbose = FALSE
 )
 }
 \arguments{
-\item{Encrypted}{weather to encrypt app}
+\item{Encrypted}{whether to encrypt app}
 
 \item{credentials}{a data frame with the credentials}
 
-\item{paramterfile}{path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
+\item{parameterfile}{path to the parameter file(rds), a data frame with columns:Reports.main, Rds.path, Reports.second, Sample.name
 SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Species, and Description}
 
 \item{TechnicianEmail}{Email of the technician}
@@ -38,6 +40,13 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 \item{DefaultSplitMaxLevel}{the max factor level of the column from metadata to be included in split option}
 
 \item{SupportedFileTypes}{supported file types}
+
+\item{CommentsFile}{path to the CSV file that stores the comment board.
+Defaults to a \code{comments.csv} file next to \code{parameterfile}.}
+
+\item{TechnicianUser}{character vector of login usernames with technician
+privileges (allowed to delete comments / mark them resolved). Ignored when
+\code{Encrypted = FALSE} (everyone is treated as technician).}
 
 \item{verbose}{default FALSE, messages for debug use}
 }

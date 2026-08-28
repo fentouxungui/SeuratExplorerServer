@@ -5,19 +5,30 @@
 \title{Revise demo data path}
 \usage{
 revise_demo_path(
-  paramterfile = system.file("extdata", "data_meta.rds", package =
+  parameterfile = system.file("extdata", "data_meta.rds", package =
     "SeuratExplorerServer")
 )
 }
 \arguments{
-\item{paramterfile}{the path to metadata file}
+\item{parameterfile}{the path to metadata file (.rds).
+Defaults to the built-in demo metadata file.}
 }
 \value{
-path to parameter file
+The file path to the (possibly modified) parameter file (character).
 }
 \description{
-Revise demo data path
+Checks whether the \code{Reports.main} paths in the metadata file are valid.
+If not, attempts to prepend the package installation path to fix them.
 }
+\section{Side Effects}{
+
+When path correction is triggered (i.e., all original \code{Reports.main}
+paths are invalid), this function \strong{overwrites} the \code{parameterfile}
+on disk via \code{saveRDS()}. This typically only happens on the first
+run after package installation. Subsequent calls will find valid paths
+and skip the modification.
+}
+
 \examples{
 revise_demo_path()
 }

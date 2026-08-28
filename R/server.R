@@ -39,6 +39,8 @@ server <- function(input, output, session) {
   # encrypt
   if (getOption("SeuratExplorerServerEncrypted")){
     res_auth <- shinymanager::secure_server(check_credentials = shinymanager::check_credentials(db = getOption("SeuratExplorerServerCredentials")))
+  } else {
+    res_auth <- NULL
   }
 
 
@@ -419,6 +421,302 @@ server <- function(input, output, session) {
     }
   })
 
+
+  ############################### Comments (message board)
+  comments_file <- getOption("SeuratExplorerServerCommentsFile")
+
+  comments <- reactiveVal(load_comments(comments_file))
+
+  # Refresh the comment board (called after local writes, and periodically to
+  # pick up comments posted by other users). Only re-assign when the content
+  # actually changed, to avoid needless re-renders every polling interval.
+  reload_comments <- function() {
+    new <- load_comments(comments_file)
+    if (!identical(comments(), new)) comments(new)
+  }
+  observe({
+    invalidateLater(30000)
+    reload_comments()
+  })
+
+  current_user <- reactive({
+    if (!is.null(res_auth) && !is.null(res_auth$user)) as.character(res_auth$user) else ""
+  })
+
+  is_technician <- reactive({
+    if (!getOption("SeuratExplorerServerEncrypted")) return(TRUE)
+    u <- current_user()
+    nzchar(u) && u %in% getOption("SeuratExplorerServerTechnicianUser")
+  })
+
+  # stable id (Rds.path) -> sample name lookup
+  sample_choices <- reactive({
+    stats::setNames(data_meta$Rds.path, data_meta$Sample.name)
+  })
+
+  sample_name_of <- function(sample_id) {
+    m <- match(sample_id, data_meta$Rds.path)
+    ifelse(is.na(m), sample_id, data_meta$Sample.name[m])
+  }
+
+  comment_display_name <- function(user_id, user_id_optional) {
+    nm <- if (!is.na(user_id_optional) && nzchar(user_id_optional)) user_id_optional else user_id
+    if (is.na(nm) || !nzchar(nm)) "(anonymous)" else nm
+  }
+
+  comment_snippet <- function(x, n = 40) {
+    if (is.na(x) || !nzchar(x)) return("")
+    x <- gsub("\\s+", " ", trimws(x))
+    if (nchar(x) > n) paste0(substr(x, 1, n), "...") else x
+  }
+
+  reply_parent <- function(all_df, reply_to) {
+    if (is.na(reply_to) || !nzchar(reply_to)) return(NULL)
+    parent_id <- suppressWarnings(as.integer(reply_to))
+    if (is.na(parent_id)) return(NULL)
+    row <- all_df[all_df$id %in% parent_id, , drop = FALSE]
+    if (nrow(row) == 0) {
+      return(list(name = "(deleted)", snippet = "", deleted = TRUE))
+    }
+    if (row$deleted[1] %in% TRUE) {
+      return(list(name = comment_display_name(row$user_id[1], row$user_id_optional[1]), snippet = "", deleted = TRUE))
+    }
+    list(
+      name = comment_display_name(row$user_id[1], row$user_id_optional[1]),
+      snippet = comment_snippet(row$content[1]),
+      deleted = FALSE
+    )
+  }
+
+  output$comment_current_user <- renderText({
+    u <- current_user()
+    if (nzchar(u)) u else "(anonymous)"
+  })
+
+  output$comment_filter_ui <- renderUI({
+    choices <- c("All samples" = "All", sample_choices())
+    selectInput("comment_filter", "Filter by sample:", choices = choices, selected = "All", width = "100%")
+  })
+
+  output$comment_sample_ui <- renderUI({
+    choices <- sample_choices()
+    sel <- NULL
+    cur <- data$Name
+    if (!is.null(cur) && cur %in% names(choices)) {
+      sel <- unname(choices[cur])
+    }
+    selectInput("comment_sample", "Data:", choices = choices, selected = sel, width = "100%")
+  })
+
+  filtered_comments <- reactive({
+    df <- comments()
+    if (is.null(df) || nrow(df) == 0) return(df)
+    df <- df[!(df$deleted %in% TRUE), , drop = FALSE]
+    f <- input$comment_filter
+    if (!is.null(f) && nzchar(f) && f != "All") {
+      df <- df[df$sample_id %in% f, , drop = FALSE]
+    }
+    df
+  })
+
+  avatar_color <- function(name) {
+    palette <- c("#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#06b6d4", "#ef4444", "#6366f1", "#14b8a6")
+    s <- sum(utf8ToInt(name))
+    palette[(s %% length(palette)) + 1]
+  }
+
+  comment_action_button <- function(id, type, label, icon_name, extra_class = "btn-default") {
+    tags$button(
+      id = paste0("comment_", type, "_", id),
+      type = "button",
+      class = paste("btn btn-xs", extra_class),
+      onclick = sprintf("Shiny.setInputValue('comment_action', {type:'%s', id:%d}, {priority:'event'});", type, as.integer(id)),
+      icon(icon_name), label
+    )
+  }
+
+  thread_rows <- function(df) {
+    if (is.null(df) || nrow(df) == 0) return(df)
+    pid <- vapply(seq_len(nrow(df)), function(i) {
+      x <- df$reply_to[i]
+      if (is.na(x) || !nzchar(x)) NA_integer_ else suppressWarnings(as.integer(x))
+    }, integer(1))
+    valid_ids <- df$id
+    is_top <- is.na(pid) | !(pid %in% valid_ids)
+    out <- integer()
+    indent <- integer()
+    walk <- function(id, lvl) {
+      if (lvl > 12) return()
+      out <<- c(out, id)
+      indent <<- c(indent, lvl)
+      kids <- sort(valid_ids[which(pid == id)])
+      for (k in kids) walk(k, lvl + 1L)
+    }
+    for (t in sort(valid_ids[is_top])) walk(t, 0L)
+    df2 <- df[match(out, valid_ids), , drop = FALSE]
+    df2$indent <- indent
+    df2
+  }
+
+  comment_card <- function(row, is_tech, all_df) {
+    name <- comment_display_name(row$user_id, row$user_id_optional)
+    sname <- sample_name_of(row$sample_id)
+    resolved <- row$is_resolved %in% TRUE
+    reply_ctx <- reply_parent(all_df, row$reply_to)
+    indent <- row$indent
+    if (is.null(indent) || is.na(indent)) indent <- 0L
+    initial <- toupper(substr(name, 1, 1))
+    if (!nzchar(initial)) initial <- "?"
+    card_border <- if (indent > 0) "#cbd5e1" else "#06b6d4"
+    card <- div(
+      style = sprintf("background: white; border: 1px solid #e5e7eb; border-left: 4px solid %s; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);", card_border),
+      div(
+        style = "display: flex; align-items: flex-start; gap: 12px;",
+        div(
+          style = sprintf("flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%%; background: %s; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px;", avatar_color(name)),
+          initial
+        ),
+        div(
+          style = "flex: 1; min-width: 0;",
+          div(
+            style = "display: flex; align-items: center; gap: 8px; flex-wrap: wrap;",
+            strong(name, style = "font-size: 14px; color: #1f2937;"),
+            tags$span(class = "label label-primary", style = "font-size: 11px; padding: 2px 6px;", sname),
+            if (resolved) tags$span(class = "label label-success", style = "font-size: 11px; padding: 2px 6px;", "Resolved"),
+            tags$span(row$created_at, style = "margin-left: auto; color: #9ca3af; font-size: 12px;")
+          ),
+          div(
+            style = "margin-top: 6px; color: #374151; line-height: 1.6; white-space: pre-wrap; word-break: break-word;",
+            row$content
+          ),
+          div(
+            style = "margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;",
+            if (!is.null(reply_ctx)) tags$span(
+              style = "color: #6b7280; font-size: 12px; background: #f3f4f6; padding: 2px 8px; border-radius: 10px; max-width: 100%;",
+              icon("reply"), " Reply to ", strong(reply_ctx$name),
+              if (reply_ctx$deleted) " (deleted)" else if (nzchar(reply_ctx$snippet)) paste0(": \"", reply_ctx$snippet, "\"") else ""
+            ),
+            comment_action_button(row$id, "reply", "Reply", "reply"),
+            if (is_tech && !resolved) comment_action_button(row$id, "resolve", "Resolve", "check-circle", "btn-success"),
+            if (is_tech) comment_action_button(row$id, "delete", "Delete", "trash", "btn-danger")
+          )
+        )
+      )
+    )
+    if (indent > 0) {
+      div(
+        style = sprintf("margin-left: %dpx; border-left: 2px solid #e0e7ef; padding-left: 12px;", min(as.integer(indent) * 24L, 96L)),
+        card
+      )
+    } else {
+      card
+    }
+  }
+
+  output$comments_list <- renderUI({
+    df <- filtered_comments()
+    if (is.null(df) || nrow(df) == 0) {
+      return(div(
+        style = "text-align: center; padding: 30px 10px; color: #9ca3af;",
+        icon("comment-dots", class = "fa-2x"),
+        p("No comments yet. Post the first one below!", style = "margin-top: 10px;")
+      ))
+    }
+    tech <- is_technician()
+    df <- thread_rows(df)
+    all_df <- comments()
+    do.call(tagList, lapply(seq_len(nrow(df)), function(i) comment_card(df[i, , drop = FALSE], tech, all_df)))
+  })
+
+  reply_target <- reactiveVal(NULL)
+
+  observeEvent(input$cancel_reply, {
+    reply_target(NULL)
+  })
+
+  output$comment_reply_indicator <- renderUI({
+    id <- reply_target()
+    if (is.null(id)) return(NULL)
+    df <- comments()
+    row <- df[df$id %in% id, , drop = FALSE]
+    if (nrow(row) == 0) {
+      reply_target(NULL)
+      return(NULL)
+    }
+    snip <- comment_snippet(row$content)
+    div(
+      style = "margin-top: 10px; padding: 8px 12px; background: #e0f2fe; border-left: 3px solid #06b6d4; border-radius: 4px; display: flex; align-items: center; gap: 10px;",
+      span(
+        style = "color: #0c4a6e;",
+        "Replying to ", strong(comment_display_name(row$user_id, row$user_id_optional)),
+        if (nzchar(snip)) paste0(": \"", snip, "\"") else ""
+      ),
+      actionLink("cancel_reply", "Cancel")
+    )
+  })
+
+  observeEvent(input$submit_comment, {
+    content <- input$comment_content
+    content <- if (is.null(content)) "" else trimws(content)
+    if (!nzchar(content)) {
+      showNotification("Comment cannot be empty.", type = "error")
+      return(NULL)
+    }
+    sample_id <- input$comment_sample
+    if (is.null(sample_id) || !nzchar(sample_id)) {
+      showNotification("Please select a dataset.", type = "error")
+      return(NULL)
+    }
+    realname <- input$comment_realname
+    realname <- if (is.null(realname)) "" else trimws(realname)
+    rt <- reply_target()
+    ok <- tryCatch({
+      add_comment(comments_file,
+                  user_id = current_user(),
+                  user_id_optional = realname,
+                  sample_id = sample_id,
+                  content = content,
+                  reply_to = if (is.null(rt)) "" else as.character(rt))
+      TRUE
+    }, error = function(e) {
+      showNotification(paste("Could not post comment:", conditionMessage(e)), type = "error")
+      FALSE
+    })
+    if (ok) {
+      reply_target(NULL)
+      updateTextAreaInput(session, "comment_content", value = "")
+      reload_comments()
+      showNotification("Comment posted.", type = "message")
+    }
+  })
+
+  observeEvent(input$comment_action, {
+    a <- input$comment_action
+    if (is.null(a) || is.null(a$type) || is.null(a$id)) return(NULL)
+    type <- a$type
+    id <- as.integer(a$id)
+    if (type == "reply") {
+      reply_target(id)
+    } else if (type == "resolve" && is_technician()) {
+      ok <- tryCatch({
+        update_comment(comments_file, id, is_resolved = TRUE)
+        TRUE
+      }, error = function(e) {
+        showNotification(paste("Could not update comment:", conditionMessage(e)), type = "error")
+        FALSE
+      })
+      if (ok) reload_comments()
+    } else if (type == "delete" && is_technician()) {
+      ok <- tryCatch({
+        update_comment(comments_file, id, deleted = TRUE)
+        TRUE
+      }, error = function(e) {
+        showNotification(paste("Could not delete comment:", conditionMessage(e)), type = "error")
+        FALSE
+      })
+      if (ok) reload_comments()
+    }
+  })
 
   # do something when session ended
   session$onSessionEnded(function() {

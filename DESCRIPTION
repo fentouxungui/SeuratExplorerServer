@@ -17,6 +17,7 @@ Imports:
     utils,
     shiny,
     shinydashboard,
+    shinyjs,
     DT,
     shinycssloaders,
     SeuratExplorer,
@@ -26,6 +27,7 @@ Imports:
     Seurat,
     htmltools,
     data.tree,
+    filelock,
     plyr,
     ggplot2,
     R.utils
