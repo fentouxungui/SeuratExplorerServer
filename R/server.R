@@ -447,6 +447,20 @@ server <- function(input, output, session) {
     nzchar(u) && u %in% getOption("SeuratExplorerServerTechnicianUser")
   })
 
+  # Fresh check whether the comment-board CSV exceeds the configured size limit.
+  board_is_full <- function() {
+    limit <- getOption("SeuratExplorerServerMaxCommentsFileSize", 5 * 1024^2)
+    is.finite(limit) && file.exists(comments_file) && file.size(comments_file) > limit
+  }
+
+  # Reactive version for the UI banner; re-evaluates whenever comments reload.
+  comments_board_full <- reactive({
+    comments()  # dependency so the banner refreshes as comments change
+    board_is_full()
+  })
+  output$comments_full <- comments_board_full
+  outputOptions(output, "comments_full", suspendWhenHidden = FALSE)
+
   # stable id (Rds.path) -> sample name lookup
   sample_choices <- reactive({
     stats::setNames(data_meta$Rds.path, data_meta$Sample.name)
@@ -654,10 +668,19 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$submit_comment, {
+    if (board_is_full()) {
+      showNotification("The comment board has reached its size limit, so new comments are disabled. Please contact the technician.", type = "error")
+      return(NULL)
+    }
     content <- input$comment_content
     content <- if (is.null(content)) "" else trimws(content)
     if (!nzchar(content)) {
       showNotification("Comment cannot be empty.", type = "error")
+      return(NULL)
+    }
+    max_len <- getOption("SeuratExplorerServerMaxCommentLength", 2000)
+    if (nchar(content) > max_len) {
+      showNotification(paste0("Comment is too long (max ", max_len, " characters)."), type = "error")
       return(NULL)
     }
     sample_id <- input$comment_sample

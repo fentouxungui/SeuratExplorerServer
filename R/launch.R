@@ -24,6 +24,10 @@
 #'   be copied into the reports directory when a hard link is not possible
 #'   (i.e. the source is on a different filesystem). Larger files are skipped.
 #'   Use `Inf` for no limit. Defaults to 100 MB.
+#' @param MaxCommentLength maximum number of characters allowed in a single
+#'   comment. Defaults to 2000.
+#' @param MaxCommentsFileSize maximum size (in bytes) of the comment-board CSV
+#'   file. Once exceeded, new comments are disabled. Defaults to 5 MB.
 #'
 #' @rawNamespace import(shiny, except=c(dataTableOutput, renderDataTable))
 #' @return In-browser Shiny Application launch
@@ -44,6 +48,8 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         CommentsFile = NULL,
                                         TechnicianUser = "admin",
                                         MaxReportFileSize = 100 * 1024^2,
+                                        MaxCommentLength = 2000,
+                                        MaxCommentsFileSize = 5 * 1024^2,
                                         verbose = FALSE
                                        ){
   if (is.null(CommentsFile)) {
@@ -62,6 +68,8 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
     SeuratExplorerServerCommentsFile = CommentsFile,
     SeuratExplorerServerTechnicianUser = TechnicianUser,
     SeuratExplorerServerMaxReportFileSize = MaxReportFileSize,
+    SeuratExplorerServerMaxCommentLength = MaxCommentLength,
+    SeuratExplorerServerMaxCommentsFileSize = MaxCommentsFileSize,
     # Suppress the `as.list.reactivevalues()` deprecation warning emitted by
     # shinydashboard 0.7.3 (and other older deps) on newer Shiny versions.
     shiny.deprecation.messages = FALSE

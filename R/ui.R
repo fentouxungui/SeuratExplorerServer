@@ -144,38 +144,54 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                         )
                                       )
                                     ),
+                                    # Board full warning
+                                    conditionalPanel(
+                                      condition = "output.comments_full",
+                                      div(
+                                        style = "background: #fef3c7; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px;",
+                                        div(
+                                          style = "display: flex; align-items: center; gap: 10px;",
+                                          icon("exclamation-triangle", style = "color: #f59e0b;"),
+                                          span(style = "color: #92400e;", "The comment board has reached its size limit, so new comments are disabled. Please contact the technician (", TechnicianName, ").")
+                                        )
+                                      )
+                                    ),
                                     # Sample filter
                                     uiOutput("comment_filter_ui"),
                                     # Comment list (card layout)
                                     uiOutput("comments_list"),
                                     uiOutput("comment_reply_indicator"),
                                     hr(),
-                                    # New comment form
-                                    h4(icon("pen"), "Add a Comment", style = "color: #06b6d4; font-weight: 600; margin-bottom: 10px;"),
-                                    div(
-                                      style = "background: #f0fdfa; border: 1px solid #06b6d4; border-left: 4px solid #06b6d4; padding: 15px; border-radius: 6px;",
+                                    # New comment form (hidden when the board is full)
+                                    conditionalPanel(
+                                      condition = "!output.comments_full",
+                                      h4(icon("pen"), "Add a Comment", style = "color: #06b6d4; font-weight: 600; margin-bottom: 10px;"),
                                       div(
-                                        style = "display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;",
+                                        style = "background: #f0fdfa; border: 1px solid #06b6d4; border-left: 4px solid #06b6d4; padding: 15px; border-radius: 6px;",
                                         div(
-                                          style = "flex: 1; min-width: 180px;",
-                                          div(style = "color: #6c757d; font-size: 12px; margin-bottom: 4px;", "Login name (read-only)"),
-                                          textOutput("comment_current_user", inline = TRUE)
+                                          style = "display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;",
+                                          div(
+                                            style = "flex: 1; min-width: 180px;",
+                                            div(style = "color: #6c757d; font-size: 12px; margin-bottom: 4px;", "Login name (read-only)"),
+                                            textOutput("comment_current_user", inline = TRUE)
+                                          ),
+                                          div(
+                                            style = "flex: 1; min-width: 180px;",
+                                            textInput("comment_realname", "Your real name (optional):", value = "", width = "100%")
+                                          ),
+                                          div(
+                                            style = "flex: 1; min-width: 180px;",
+                                            uiOutput("comment_sample_ui")
+                                          )
                                         ),
+                                        textAreaInput("comment_content", "Comment:", value = "", width = "100%", height = "120px", resize = "vertical"),
+                                        div(style = "color: #6c757d; font-size: 12px; margin-top: 4px;", paste0("Max ", getOption("SeuratExplorerServerMaxCommentLength", 2000), " characters.")),
                                         div(
-                                          style = "flex: 1; min-width: 180px;",
-                                          textInput("comment_realname", "Your real name (optional):", value = "", width = "100%")
-                                        ),
-                                        div(
-                                          style = "flex: 1; min-width: 180px;",
-                                          uiOutput("comment_sample_ui")
+                                          style = "text-align: right; margin-top: 10px;",
+                                          actionButton("submit_comment", "Post Comment", icon = icon("paper-plane"),
+                                                       class = "btn-primary",
+                                                       style = "padding: 10px 28px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);")
                                         )
-                                      ),
-                                      textAreaInput("comment_content", "Comment:", value = "", width = "100%", height = "120px", resize = "vertical"),
-                                      div(
-                                        style = "text-align: right; margin-top: 10px;",
-                                        actionButton("submit_comment", "Post Comment", icon = icon("paper-plane"),
-                                                     class = "btn-primary",
-                                                     style = "padding: 10px 28px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);")
                                       )
                                     )
                                   )
