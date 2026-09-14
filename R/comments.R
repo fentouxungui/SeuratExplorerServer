@@ -37,10 +37,24 @@ load_comments <- function(comments_file) {
   df
 }
 
+# Prevent CSV/Excel formula injection: when a cell value begins with a
+# character that spreadsheet apps interpret as a formula (=, +, -, @, tab, CR),
+# prefix a single quote so it is opened as plain text.
+.sanitize_csv_cell <- function(x) {
+  x <- as.character(x)
+  danger <- grepl("^[=+@-]", x)
+  x[danger] <- paste0("'", x[danger])
+  x
+}
+
 # Write comments atomically (temp file + rename) so concurrent readers never
 # observe a partially-written file.
 .save_comments <- function(comments_file, df) {
   tmp <- paste0(comments_file, ".tmp")
+  char_cols <- vapply(df, is.character, logical(1))
+  if (any(char_cols)) {
+    df[char_cols] <- lapply(df[char_cols], .sanitize_csv_cell)
+  }
   utils::write.csv(df, tmp, row.names = FALSE, fileEncoding = "UTF-8")
   if (!file.rename(tmp, comments_file)) {
     file.copy(tmp, comments_file, overwrite = TRUE)

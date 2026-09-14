@@ -358,7 +358,8 @@ server <- function(input, output, session) {
 
   observeEvent(input$submitsettings,{
     # 1. check Name
-    if(trimws(input$NewName) == ""){
+    new_name <- trimws(input$NewName)
+    if(new_name == ""){
       showModal(modalDialog(
         title = tagList(
           icon("exclamation-triangle", style = "color: #ef4444;"),
@@ -372,13 +373,27 @@ server <- function(input, output, session) {
         easyClose = TRUE,
         footer = NULL
       ))
+    }else if(!grepl("^[A-Za-z0-9_. -]+$", new_name) || new_name %in% c(".", "..")){
+      showModal(modalDialog(
+        title = tagList(
+          icon("exclamation-triangle", style = "color: #ef4444;"),
+          " Error"
+        ),
+        div(
+          style = "text-align: center; padding: 20px;",
+          icon("times-circle", class = "fa-3x", style = "color: #ef4444; margin-bottom: 15px;"),
+          p("Sample name can only contain letters, numbers, spaces, underscores, hyphens and dots (and cannot be '.' or '..').", style = "color: #6c757d; font-size: 14px;")
+        ),
+        easyClose = TRUE,
+        footer = NULL
+      ))
     }else{
       which_data <- match(data$Path, data_meta$Rds.full.path)
       if( !'Default.Assay' %in% colnames(data_meta)){ # for old version data.meta file, there is no Default.Assay column
         data_meta$Default.Assay <- 'RNA'
       }
       data_meta_new <- data_meta
-      data_meta_new$Sample.name[which_data] <- input$NewName
+      data_meta_new$Sample.name[which_data] <- new_name
       data_meta_new$Species[which_data] <- input$NewSpecies
       data_meta_new$Description[which_data] <- ifelse(trimws(input$NewDescription) == "", NA, input$NewDescription)
       data_meta_new$Default.DimensionReduction[which_data] <- input$NewDefaultReduction
