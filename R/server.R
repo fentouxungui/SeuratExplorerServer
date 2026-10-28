@@ -89,7 +89,8 @@ server <- function(input, output, session) {
                         split_maxlevel = 6,
                         split_options = NULL,
                         gene_annotations_list = NULL,
-                        extra_qc_options = NULL)
+                        extra_qc_options = NULL,
+                        version = 0)
 
   ## read in data after data selection
   ## possible problem: when switch data, data$obj will change firstly, while the default reduction and other options is still the previous configuration,
@@ -121,7 +122,7 @@ server <- function(input, output, session) {
       data$Description <- na_to_null(data_meta$Description[which_data]) # if NA value, return NULL
       data$reduction_options <- prepare_reduction_options(obj = data$obj, keywords = getOption("SeuratExplorerServerReductionKeyWords"))
       data$reduction_default <- na_to_null(data_meta$Default.DimensionReduction[which_data]) # if NA value, return NULL
-      data$assays_slots_options <- prepare_assays_slots(ob = data$obj, data_slot = data$assay_slots, verbose = getOption('SeuratExplorerServerVerbose'))
+      data$assays_slots_options <- prepare_assays_slots(obj = data$obj, data_slot = data$assay_slots, verbose = getOption('SeuratExplorerServerVerbose'))
       data$assays_options <- prepare_assays_options(Alist = data$assays_slots_options, verbose = getOption('SeuratExplorerServerVerbose'))
       if (!'Default.Assay' %in% colnames(data_meta)) { # for old version data_meta.rds, there is no Default.Assay column
         data$assay_default <- ifelse(data$assay_default %in% data$assays_options,data$assay_default, data$assays_options[1]) # update the default assay
@@ -166,6 +167,29 @@ server <- function(input, output, session) {
   ## When TRUE (the default), the output object will be suspended (not execute) when it is hidden on the web page.
   ## When FALSE, the output object will not suspend when hidden, and if it was already hidden and suspended, then it will resume immediately.
   outputOptions(output, 'file_loaded', suspendWhenHidden=FALSE)
+
+  # Compact dataset status in the dashboard header, mirroring SeuratExplorer.
+  # The server package knows the sample name from data_meta, so prefer it over
+  # the Seurat object's project name.
+  output$header_status <- renderUI({
+    if (is.null(data$obj)) {
+      return(tags$span(style = "color: #dfe6ec; font-size: 12px; padding-left: 10px;",
+                       "No dataset loaded"))
+    }
+    label <- data$Name
+    if (is.null(label) || !nzchar(label)) {
+      label <- tryCatch(data$obj@project.name, error = function(e) NULL)
+    }
+    if (is.null(label) || !nzchar(label)) label <- "Seurat object"
+    tags$span(
+      style = "color: #eaf2f8; font-size: 12px; padding-left: 10px; white-space: nowrap;",
+      tags$b(label), " · ",
+      format(ncol(data$obj), big.mark = ","), " cells · ",
+      format(nrow(data$obj), big.mark = ","), " features · ",
+      "assay ", tags$b(tryCatch(SeuratObject::DefaultAssay(data$obj), error = function(e) "-")),
+      " · modified ", tags$b(if (is.null(data$version)) 0L else data$version)
+    )
+  })
 
   # Reports page
   output$DirectoryTree <- renderPrint({
@@ -408,7 +432,9 @@ server <- function(input, output, session) {
       p <- paste0(getwd(), "/app.R")
       if(file.exists(p)){
         print("update app.R file, in case of Shiny not refresh when restart.")
-        R.utils::touchFile(p)}
+        # R.utils::touchFile(p)}
+        Sys.setFileTime(p, Sys.time())
+      }
       showModal(modalDialog(
         title = tagList(
           icon("check-circle", style = "color: #10b981;"),

@@ -11,6 +11,7 @@ launchSeuratExplorerServer(
   TechnicianEmail = "zhangyongchao@nibs.ac.cn",
   TechnicianName = "ZhangYongchao",
   ReductionKeyWords = c("umap", "tsne", "pca"),
+  PdfDpi = 72,
   ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", "gif", "jpg", "png", "bmp", "svg",
     "html", "mp4", "avi", "Rmd", "R", "ipynb", "sh", "Sh", "txt", "csv", "xlsx", "xls",
     "xml", "md", "py"),
@@ -19,6 +20,8 @@ launchSeuratExplorerServer(
   CommentsFile = NULL,
   TechnicianUser = "admin",
   MaxReportFileSize = 100 * 1024^2,
+  MaxCommentLength = 2000,
+  MaxCommentsFileSize = 5 * 1024^2,
   verbose = FALSE
 )
 }
@@ -35,6 +38,11 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 \item{TechnicianName}{Name of the technician}
 
 \item{ReductionKeyWords}{keywords to extract reductions for the reduction options}
+
+\item{PdfDpi}{dpi used when exporting PDF figures from the analysis pages.
+\code{72} (default) keeps the text/point proportions seen in the browser;
+\code{96} makes the PDF page match the on-screen figure size. Sets the
+\code{SeuratExplorerPdfDpi} option of the \code{SeuratExplorer} package.}
 
 \item{ReportsFileTypes}{File types to be included in reports}
 
@@ -53,6 +61,12 @@ privileges (allowed to delete comments / mark them resolved). Ignored when
 be copied into the reports directory when a hard link is not possible
 (i.e. the source is on a different filesystem). Larger files are skipped.
 Use \code{Inf} for no limit. Defaults to 100 MB.}
+
+\item{MaxCommentLength}{maximum number of characters allowed in a single
+comment. Defaults to 2000.}
+
+\item{MaxCommentsFileSize}{maximum size (in bytes) of the comment-board CSV
+file. Once exceeded, new comments are disabled. Defaults to 5 MB.}
 
 \item{verbose}{default FALSE, messages for debug use}
 }

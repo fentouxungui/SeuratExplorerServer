@@ -21,14 +21,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r echo=FALSE, results="hide", message=FALSE}
-library(badger)
-```
-
 # SeuratExplorer Server
 
 <!-- badges: start -->
-[![](https://img.shields.io/badge/devel%20version-0.1.5-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/badge/devel%20version-0.1.7-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![License:GPL_3](https://img.shields.io/badge/license-GPL_3-blue.svg)](https://cran.r-project.org/web/licenses/GPL_3)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
@@ -117,11 +113,12 @@ Set default parameters for each dataset:
 
 All interactive visualization features from SeuratExplorer are included:
 
-- 10+ plot types (Dimensional reduction, Feature plot, Violin, Dot plot, Heatmap, etc.)
+- 8 plot types (Dimensional reduction, Feature plot, Violin, Dot plot, Heatmap, etc.)
 - DEGs analysis and marker discovery
 - Feature correlation and summary statistics
 - Multi-assay support (scRNA-seq, scATAC-seq, spatial, CITE-seq)
-- Publication-ready PDF downloads
+- Publication-ready vector PDF downloads, sized to match the on-screen figure
+- Loaded-dataset status in the dashboard header (sample name, cells, features, assay, modification count)
 
 ## Live Demo
 
@@ -232,6 +229,8 @@ launchSeuratExplorerServer(
   parameterfile = "data_meta.rds",
   TechnicianEmail = "your-email@example.com",
   TechnicianName = "Your Name",
+  PdfDpi = 72,   # 72 keeps the text/point proportions of the browser;
+                 # 96 makes the PDF page match the on-screen size
   verbose = FALSE
 )
 ```

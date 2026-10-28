@@ -15,6 +15,10 @@
 #' @param SupportedFileTypes supported file types
 #' @param verbose default FALSE, messages for debug use
 #' @param ReductionKeyWords keywords to extract reductions for the reduction options
+#' @param PdfDpi dpi used when exporting PDF figures from the analysis pages.
+#'   `72` (default) keeps the text/point proportions seen in the browser;
+#'   `96` makes the PDF page match the on-screen figure size. Sets the
+#'   `SeuratExplorerPdfDpi` option of the `SeuratExplorer` package.
 #' @param CommentsFile path to the CSV file that stores the comment board.
 #'   Defaults to a `comments.csv` file next to `parameterfile`.
 #' @param TechnicianUser character vector of login usernames with technician
@@ -42,6 +46,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         TechnicianEmail = "zhangyongchao@nibs.ac.cn",
                                         TechnicianName = "ZhangYongchao",
                                         ReductionKeyWords = c("umap","tsne","pca"),
+                                        PdfDpi = 72,
                                         ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", 'gif',"jpg", "png", "bmp", "svg","html",'mp4','avi','Rmd','R','ipynb','sh','Sh','txt','csv','xlsx','xls','xml','md','py'),
                                         DefaultSplitMaxLevel = 6,
                                         SupportedFileTypes = c("rds", "qs2"),
@@ -65,6 +70,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
     SeuratExplorerServerDefaultSplitLevel =  DefaultSplitMaxLevel,
     SeuratExplorerServerSupportedFiles =  SupportedFileTypes,
     SeuratExplorerServerReductionKeyWords=  ReductionKeyWords,
+    SeuratExplorerPdfDpi = PdfDpi,
     SeuratExplorerServerCommentsFile = CommentsFile,
     SeuratExplorerServerTechnicianUser = TechnicianUser,
     SeuratExplorerServerMaxReportFileSize = MaxReportFileSize,

@@ -16,17 +16,23 @@ import(shinyWidgets)
 import(shinydashboard)
 import(shinymanager)
 import(utils)
-importFrom(DT,DTOutput)
-importFrom(DT,datatable)
-importFrom(DT,renderDT)
+importFrom(DT,
+  DTOutput,
+  datatable,
+  renderDT
+)
 importFrom(plyr,rbind.fill)
 importFrom(shinycssloaders,withSpinner)
-importFrom(shinydashboard,box)
-importFrom(shinydashboard,menuItem)
-importFrom(shinydashboard,menuSubItem)
-importFrom(shinydashboard,sidebarMenu)
-importFrom(shinydashboard,tabItem)
+importFrom(shinydashboard,
+  box,
+  menuItem,
+  menuSubItem,
+  sidebarMenu,
+  tabItem
+)
 importFrom(shinyjs,useShinyjs)
 importFrom(stats,na.omit)
-importFrom(utils,getFromNamespace)
-importFrom(utils,sessionInfo)
+importFrom(utils,
+  getFromNamespace,
+  sessionInfo
+)

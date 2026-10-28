@@ -60,6 +60,8 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   # Header ----
   header = shinydashboard::dashboardHeader(
     title = p(strong(em("SeuratExplorer Server")), style = "margin: 0;"),
+    # Compact dataset status (mirrors the header of SeuratExplorer)
+    tags$li(class = "dropdown", uiOutput("header_status")),
     # Dropdown menu for R package on github page
     shinydashboard::dropdownMenu(type = "notifications", icon = icon("github"), headerText = "R packages on Github:",
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorer", href = "https://github.com/fentouxungui/SeuratExplorer", target = "_blank"),
@@ -286,6 +288,23 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
 
         .box.box-solid .box-title {
           font-weight: 600;
+        }
+
+        /* Information boxes: tighten the gap to the content below.
+           Mirrors the rule in SeuratExplorer: AdminLTE gives .box a 20px
+           bottom margin which left a visibly large gap under the hints. */
+        #degs-info-box,
+        #topgenes-info-box,
+        #featuresummary-info-box,
+        #featurecorrelation-info-box {
+          margin-bottom: 8px !important;
+        }
+
+        #degs-info-box > .box,
+        #topgenes-info-box > .box,
+        #featuresummary-info-box > .box,
+        #featurecorrelation-info-box > .box {
+          margin-bottom: 0 !important;
         }
 
         /* Optimize button style */
