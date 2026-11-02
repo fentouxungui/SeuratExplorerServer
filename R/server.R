@@ -90,6 +90,7 @@ server <- function(input, output, session) {
                         split_options = NULL,
                         gene_annotations_list = NULL,
                         extra_qc_options = NULL,
+                        cluster_colors = list(),
                         version = 0)
 
   ## read in data after data selection
@@ -136,6 +137,12 @@ server <- function(input, output, session) {
       data$extra_qc_options <- prepare_qc_options(df = data$obj@meta.data, types = c("double","integer","numeric"))
       data$gene_annotations_list <- prepare_gene_annotations(obj = data$obj, verbose = getOption('SeuratExplorerServerVerbose'))
       data$version <- 0
+      # Restore custom colours saved inside a previously exported object
+      data$cluster_colors <- tryCatch(data$obj@misc$SeuratExplorer$cluster_colors,
+                                      error = function(e) NULL)
+      if (is.null(data$cluster_colors) || !is.list(data$cluster_colors)) {
+        data$cluster_colors <- list()
+      }
       .pkg.env$cache.rds.list[[.pkg.env$current_data_name]] <- reactiveValuesToList(data)
     }else{ # for data loaded before
       cached <- .pkg.env$cache.rds.list[[.pkg.env$current_data_name]]

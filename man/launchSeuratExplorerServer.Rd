@@ -12,6 +12,7 @@ launchSeuratExplorerServer(
   TechnicianName = "ZhangYongchao",
   ReductionKeyWords = c("umap", "tsne", "pca"),
   PdfDpi = 72,
+  EnableObjectExport = FALSE,
   ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", "gif", "jpg", "png", "bmp", "svg",
     "html", "mp4", "avi", "Rmd", "R", "ipynb", "sh", "Sh", "txt", "csv", "xlsx", "xls",
     "xml", "md", "py"),
@@ -43,6 +44,10 @@ SplitOptions.MaxLevel, Default.DimensionReduction, Default.ClusterResolution, Sp
 \code{72} (default) keeps the text/point proportions seen in the browser;
 \code{96} makes the PDF page match the on-screen figure size. Sets the
 \code{SeuratExplorerPdfDpi} option of the \code{SeuratExplorer} package.}
+
+\item{EnableObjectExport}{whether to show the \verb{Export Data} page, which lets
+users download the full (possibly subset) Seurat object. Defaults to
+\code{FALSE} for shared deployments; set it to \code{TRUE} to enable the page.}
 
 \item{ReportsFileTypes}{File types to be included in reports}
 

@@ -296,14 +296,18 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
         #degs-info-box,
         #topgenes-info-box,
         #featuresummary-info-box,
-        #featurecorrelation-info-box {
+        #featurecorrelation-info-box,
+        #clustercolors-info-box,
+        #exportdata-info-box {
           margin-bottom: 8px !important;
         }
 
         #degs-info-box > .box,
         #topgenes-info-box > .box,
         #featuresummary-info-box > .box,
-        #featurecorrelation-info-box > .box {
+        #featurecorrelation-info-box > .box,
+        #clustercolors-info-box > .box,
+        #exportdata-info-box > .box {
           margin-bottom: 0 !important;
         }
 

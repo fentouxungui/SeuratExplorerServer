@@ -19,6 +19,9 @@
 #'   `72` (default) keeps the text/point proportions seen in the browser;
 #'   `96` makes the PDF page match the on-screen figure size. Sets the
 #'   `SeuratExplorerPdfDpi` option of the `SeuratExplorer` package.
+#' @param EnableObjectExport whether to show the `Export Data` page, which lets
+#'   users download the full (possibly subset) Seurat object. Defaults to
+#'   `FALSE` for shared deployments; set it to `TRUE` to enable the page.
 #' @param CommentsFile path to the CSV file that stores the comment board.
 #'   Defaults to a `comments.csv` file next to `parameterfile`.
 #' @param TechnicianUser character vector of login usernames with technician
@@ -47,6 +50,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
                                         TechnicianName = "ZhangYongchao",
                                         ReductionKeyWords = c("umap","tsne","pca"),
                                         PdfDpi = 72,
+                                        EnableObjectExport = FALSE,
                                         ReportsFileTypes = c("pdf", "tiff", "tif", "jpeg", 'gif',"jpg", "png", "bmp", "svg","html",'mp4','avi','Rmd','R','ipynb','sh','Sh','txt','csv','xlsx','xls','xml','md','py'),
                                         DefaultSplitMaxLevel = 6,
                                         SupportedFileTypes = c("rds", "qs2"),
@@ -71,6 +75,7 @@ launchSeuratExplorerServer <- function( Encrypted = TRUE,
     SeuratExplorerServerSupportedFiles =  SupportedFileTypes,
     SeuratExplorerServerReductionKeyWords=  ReductionKeyWords,
     SeuratExplorerPdfDpi = PdfDpi,
+    SeuratExplorerEnableObjectExport = EnableObjectExport,
     SeuratExplorerServerCommentsFile = CommentsFile,
     SeuratExplorerServerTechnicianUser = TechnicianUser,
     SeuratExplorerServerMaxReportFileSize = MaxReportFileSize,

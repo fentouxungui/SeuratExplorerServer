@@ -119,6 +119,7 @@ All interactive visualization features from SeuratExplorer are included:
 - Multi-assay support (scRNA-seq, scATAC-seq, spatial, CITE-seq)
 - Publication-ready vector PDF downloads, sized to match the on-screen figure
 - Loaded-dataset status in the dashboard header (sample name, cells, features, assay, modification count)
+- The **Export Data** page is hidden by default on the server, because it allows downloading the full Seurat object; enable it per app with `EnableObjectExport = TRUE`
 
 ## Live Demo
 
@@ -231,6 +232,7 @@ launchSeuratExplorerServer(
   TechnicianName = "Your Name",
   PdfDpi = 72,   # 72 keeps the text/point proportions of the browser;
                  # 96 makes the PDF page match the on-screen size
+  EnableObjectExport = FALSE,  # TRUE to let users download the full object
   verbose = FALSE
 )
 ```
