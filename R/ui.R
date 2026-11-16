@@ -28,13 +28,24 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
   # Reusable styled section box (colored border + icon header + body), to avoid
   # duplicating the same markup for every page section.
   section_box <- function(title, icon_name = NULL, color = "#3b82f6", ...) {
+    # Keep the accent border, but use an AA-contrast text tone on white.
+    text_color <- switch(
+      tolower(color),
+      "#3b82f6" = "#1D4ED8",
+      "#10b981" = "#047857",
+      "#f59e0b" = "#B45309",
+      "#8b5cf6" = "#6D28D9",
+      "#ec4899" = "#BE185D",
+      "#06b6d4" = "#0E7490",
+      color
+    )
     if (is.null(icon_name)) {
-      title_tag <- h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", color), title)
+      title_tag <- h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", text_color), title)
     } else {
       title_tag <- div(
         style = "display: flex; align-items: center; gap: 10px;",
         icon(icon_name, style = sprintf("color: %s; font-size: 18px;", color)),
-        h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", color), title)
+        h4(style = sprintf("margin: 0; color: %s; font-weight: 600;", text_color), title)
       )
     }
     div(
@@ -68,16 +79,21 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                  notificationItemWithAttr(icon = icon("github"), status = "info", text = "SeuratExplorerServer", href = "https://github.com/fentouxungui/SeuratExplorerServer", target = "_blank")))
 
   # Sidebar ----
+  # Keep each sidebarMenu as a direct child of dashboardSidebar, matching
+  # SeuratExplorer. Nesting explorer_sidebar_ui() (which already contains its
+  # own sidebarMenu) inside another sidebarMenu adds wrapper bullets/margins
+  # and makes every Explorer submenu row taller.
   sidebar = shinydashboard::dashboardSidebar(
     sidebarMenu(
       menuItem("Dataset", tabName = "dataset", icon = icon("database")),
       menuItem("Reports", tabName = "reports", icon = icon("file")),
-      menuItem("Comments", tabName = "comments", icon = icon("comments")),
-      SeuratExplorer::explorer_sidebar_ui(),
-      conditionalPanel(
-        condition = "output.file_loaded",
-        sidebarMenu(menuItem("Settings", tabName = "settings", icon = icon("gear"))))
-     )
+      menuItem("Comments", tabName = "comments", icon = icon("comments"))
+    ),
+    SeuratExplorer::explorer_sidebar_ui(),
+    conditionalPanel(
+      condition = "output.file_loaded",
+      sidebarMenu(menuItem("Settings", tabName = "settings", icon = icon("gear")))
+    )
   )
 
   # BODY ----
@@ -93,7 +109,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                                  label = "Load Data",
                                                  icon = icon("upload"),
                                                  class = "btn-primary btn-lg",
-                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);")
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #047857 0%, #065F46 100%); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);")
                                    ),
                                    # current data info
                                    uiOutput("CurrentDataOverview")
@@ -120,7 +136,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                                  label = "Generate/Update Reports",
                                                  icon = icon("refresh"),
                                                  class = "btn-primary btn-lg",
-                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);")
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #B45309 0%, #92400E 100%); border: none; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);")
                                    ),
                                    div(style = "margin-top: 20px;",
                                      uiOutput("ViewReports.UI")
@@ -137,7 +153,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                       style = "background: #eff6ff; border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px;",
                                       div(
                                         style = "display: flex; align-items: flex-start; gap: 10px;",
-                                        icon("info-circle", style = "color: #3b82f6; margin-top: 2px;"),
+                                        icon("info-circle", style = "color: #1D4ED8; margin-top: 2px;"),
                                         div(
                                           style = "color: #1e40af;",
                                           strong("Comment guidelines: "),
@@ -153,7 +169,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                         style = "background: #fef3c7; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px;",
                                         div(
                                           style = "display: flex; align-items: center; gap: 10px;",
-                                          icon("exclamation-triangle", style = "color: #f59e0b;"),
+                                          icon("exclamation-triangle", style = "color: #B45309;"),
                                           span(style = "color: #92400e;", "The comment board has reached its size limit, so new comments are disabled. Please contact the technician (", TechnicianName, ").")
                                         )
                                       )
@@ -167,14 +183,14 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                     # New comment form (hidden when the board is full)
                                     conditionalPanel(
                                       condition = "!output.comments_full",
-                                      h4(icon("pen"), "Add a Comment", style = "color: #06b6d4; font-weight: 600; margin-bottom: 10px;"),
+                                      h4(icon("pen"), "Add a Comment", style = "color: #0E7490; font-weight: 600; margin-bottom: 10px;"),
                                       div(
                                         style = "background: #f0fdfa; border: 1px solid #06b6d4; border-left: 4px solid #06b6d4; padding: 15px; border-radius: 6px;",
                                         div(
                                           style = "display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;",
                                           div(
                                             style = "flex: 1; min-width: 180px;",
-                                            div(style = "color: #6c757d; font-size: 12px; margin-bottom: 4px;", "Login name (read-only)"),
+                                            div(style = "color: #5C636A; font-size: 12px; margin-bottom: 4px;", "Login name (read-only)"),
                                             textOutput("comment_current_user", inline = TRUE)
                                           ),
                                           div(
@@ -187,12 +203,12 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                           )
                                         ),
                                         textAreaInput("comment_content", "Comment:", value = "", width = "100%", height = "120px", resize = "vertical"),
-                                        div(style = "color: #6c757d; font-size: 12px; margin-top: 4px;", paste0("Max ", getOption("SeuratExplorerServerMaxCommentLength", 2000), " characters.")),
+                                        div(style = "color: #5C636A; font-size: 12px; margin-top: 4px;", paste0("Max ", getOption("SeuratExplorerServerMaxCommentLength", 2000), " characters.")),
                                         div(
                                           style = "text-align: right; margin-top: 10px;",
                                           actionButton("submit_comment", "Post Comment", icon = icon("paper-plane"),
                                                        class = "btn-primary",
-                                                       style = "padding: 10px 28px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);")
+                                                       style = "padding: 10px 28px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #0E7490 0%, #155E75 100%); border: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);")
                                         )
                                       )
                                     )
@@ -214,7 +230,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                      style = "background: #fef3c7; border: 2px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);",
                                      div(
                                        style = "display: flex; align-items: center; gap: 10px;",
-                                       icon("exclamation-triangle", style = "color: #f59e0b; font-size: 20px;"),
+                                       icon("exclamation-triangle", style = "color: #B45309; font-size: 20px;"),
                                        div(style = "flex: 1;", textOutput("settings_warning"))
                                      )
                                    )
@@ -224,12 +240,12 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                  section_box(title = "Set Default Initialization Parameters", icon_name = "gear", color = "#3b82f6",
                                    div(
                                      style = "background: #eff6ff; border: 1px solid #3b82f6; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 6px; margin-bottom: 20px;",
-                                     h5(icon("info-circle"), "Current Data Information", style = "color: #3b82f6; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"),
+                                     h5(icon("info-circle"), "Current Data Information", style = "color: #1D4ED8; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"),
                                      verbatimTextOutput(outputId = "InfoForDataOpened")
                                    ),
                                    div(
                                      style = "background: #f0fdf4; border: 1px solid #10b981; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 20px;",
-                                     h4(icon("sliders-h"), "Parameter Settings", style = "color: #10b981; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;"),
+                                     h4(icon("sliders-h"), "Parameter Settings", style = "color: #047857; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;"),
                                      withSpinner(
                                        div(
                                          uiOutput("SetSampleName.UI"),
@@ -248,7 +264,7 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
                                                  label = "Save Settings",
                                                  icon = icon("save"),
                                                  class = "btn-primary btn-lg",
-                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);")
+                                                 style = "padding: 12px 35px; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);")
                                    )
                                  )
                                )
@@ -363,6 +379,178 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
           transform: rotate(-90deg);
         }
 
+        /* Accessibility: AA text tokens and fixed shinydashboard surfaces */
+        :root {
+          --se-primary: #2563EB;
+          --se-primary-text: #1D4ED8;
+          --se-muted-text: #5C636A;
+        }
+
+        .skin-blue .main-header .navbar,
+        .skin-blue .main-header .logo,
+        .skin-blue .main-header .logo:hover {
+          background-color: #256b8e !important;
+        }
+
+        .sidebar-menu .treeview-menu > li > a {
+          color: #c4d1d8 !important;
+        }
+
+        .box.box-solid.box-primary > .box-header {
+          background-color: #256b8e !important;
+        }
+
+        .label-info,
+        .badge-info,
+        .label-primary {
+          background-color: #0e7490 !important;
+          color: #fff !important;
+        }
+
+        .label-success {
+          background-color: #047857 !important;
+          color: #fff !important;
+        }
+
+        .sidebar-menu .label-info {
+          font-size: 10px !important;
+          padding: 2px 4px !important;
+        }
+
+        .btn-primary,
+        .btn-primary:visited {
+          background-color: #256b8e !important;
+          border-color: #256b8e !important;
+          color: #fff !important;
+        }
+
+        /* actionButton wraps its label in .action-label. Do not paint that
+           inner span: it must stay transparent over the button surface. */
+        .btn-primary .action-label,
+        .btn-primary a {
+          background-color: transparent !important;
+          color: #fff !important;
+        }
+
+        .btn-info {
+          background-color: #0e7490 !important;
+          border-color: #0e7490 !important;
+          color: #fff !important;
+        }
+
+        .btn-info .action-label {
+          background-color: transparent !important;
+          color: #fff !important;
+        }
+
+        .bttn-primary {
+          background-color: #256b8e !important;
+          border-color: #256b8e !important;
+          color: #fff !important;
+        }
+
+        .bttn-primary a {
+          color: #fff !important;
+        }
+
+        .btn-warning,
+        .btn-warning:visited {
+          background-color: #B45309 !important;
+          border-color: #B45309 !important;
+          color: #fff !important;
+        }
+
+        .btn-warning .action-label,
+        .btn-warning a {
+          background-color: transparent !important;
+          color: #fff !important;
+        }
+
+        .content-wrapper a {
+          color: var(--se-primary-text);
+        }
+
+        #ClusterColorClearSaved {
+          color: #B42318 !important;
+          min-height: 24px;
+          line-height: 24px;
+          padding: 4px 0;
+        }
+
+        .bootstrap-select .filter-option-inner-inner,
+        .bootstrap-select .bs-placeholder,
+        .selectize-control .bs-placeholder,
+        .selectize-control .filter-option-inner-inner,
+        .selectize-control .selectized {
+          color: var(--se-muted-text) !important;
+        }
+
+        input[id$='-selectized'] {
+          min-width: 24px !important;
+          min-height: 24px !important;
+        }
+
+        .box-tools .btn-box-tool {
+          min-width: 28px;
+          min-height: 28px;
+          padding: 3px 4px;
+        }
+
+        .btn-xs {
+          min-height: 24px;
+          padding-top: 3px;
+          padding-bottom: 3px;
+        }
+
+        .box-body details > summary {
+          min-height: 32px;
+          padding: 4px 0;
+        }
+
+        .param-group-summary:focus-visible {
+          outline: 2px solid #1D4ED8;
+          outline-offset: 2px;
+          border-radius: 4px;
+        }
+
+        .selectize-control .selectize-input {
+          min-height: 32px;
+        }
+
+        .form-control,
+        .form-control:disabled,
+        .form-control[readonly] {
+          color: #495057;
+        }
+
+        .form-control::placeholder {
+          color: var(--se-muted-text) !important;
+          opacity: 1;
+        }
+
+        /* Inherited SeuratExplorer body UI may carry older inline accents.
+           Map those text colours to AA tones without changing borders. */
+        [style*='color: #10b981'] { color: #047857 !important; }
+        [style*='color: #3b82f6'] { color: #1D4ED8 !important; }
+        [style*='color: #f59e0b'] { color: #B45309 !important; }
+        [style*='color: #ec4899'] { color: #BE185D !important; }
+        [style*='color: #8b5cf6'] { color: #6D28D9 !important; }
+        [style*='color: #6c757d'] { color: #5C636A !important; }
+        [style*='color: #06b6d4'] { color: #0E7490 !important; }
+
+        /* Keep native checkbox/radio sizing: Bootstrap positions the input
+           with a negative margin, so enlarging it overlaps the label text. */
+        .checkbox,
+        .radio {
+          min-height: 24px;
+        }
+
+        .checkbox label,
+        .radio label {
+          min-height: 24px;
+          line-height: 24px;
+        }
+
         /* Responsive optimization */
         @media (max-width: 768px) {
           .content-wrapper {
@@ -377,7 +565,62 @@ ui <-  function(Encrypted.app, TechnicianEmail = "zhangyongchao@nibs.ac.cn", Tec
     ),
     div(class= "tab-content", tab_list),
     # to hide how many notifications in shinydashboard::dropdownMenu(), refer to:https://stackoverflow.com/questions/65915414/alter-dropdown-menu-in-shiny
-    tags$script(HTML("document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';")))
+    tags$script(HTML("document.querySelector('body > div.wrapper > header > nav > div > ul > li > a > span').style.visibility = 'hidden';")),
+    tags$script(HTML("
+      (function() {
+        document.documentElement.lang = 'en';
+
+        function fixA11y() {
+          document.querySelectorAll('.sidebar-menu a[aria-selected]').forEach(function(a) {
+            a.removeAttribute('aria-selected');
+          });
+
+          document.querySelectorAll('i[aria-label]').forEach(function(i) {
+            var label = i.getAttribute('aria-label');
+            var control = i.closest('button,a');
+            if (control && !control.getAttribute('aria-label') &&
+                !control.textContent.trim()) {
+              control.setAttribute('aria-label',
+                                   control.getAttribute('title') ||
+                                   label.replace(/ icon$/, ''));
+            }
+            i.removeAttribute('aria-label');
+            i.setAttribute('aria-hidden', 'true');
+          });
+
+          document.querySelectorAll('input[id^=\"clustercolor_\"]').forEach(function(input) {
+            if (input.getAttribute('aria-label')) return;
+            var row = input.closest('.row');
+            var label = row ? row.querySelector('.col-sm-5') : null;
+            var text = label ? label.textContent.trim() : '';
+            input.setAttribute('aria-label', text ? 'Color for ' + text : 'Cluster color');
+          });
+
+          document.querySelectorAll('.main-header .dropdown-toggle').forEach(function(a) {
+            if (!a.getAttribute('aria-label') && a.querySelector('.fa-github')) {
+              a.setAttribute('aria-label', 'GitHub repositories');
+            }
+          });
+
+          // Legacy shinyWidgets::downloadBttn wraps an empty Shiny download
+          // link in a button. Keep the link out of the tab order.
+          document.querySelectorAll('.bttn .shiny-download-link').forEach(function(a) {
+            a.style.display = 'none';
+            a.setAttribute('aria-hidden', 'true');
+            a.setAttribute('tabindex', '-1');
+            a.setAttribute('aria-live', 'off');
+          });
+        }
+
+        fixA11y();
+        new MutationObserver(fixA11y).observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['aria-label', 'role']
+        });
+      })();
+    ")))
 
   # combine
   ui_out <- dashboardPage(header, sidebar, body, title = "SeuratExplorer Server")

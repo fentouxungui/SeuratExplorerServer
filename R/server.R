@@ -105,8 +105,8 @@ server <- function(input, output, session) {
       # ),
       div(
         style = "text-align: center; padding: 20px;",
-        icon("circle-notch", class = "fa-spin fa-3x", style = "color: #3b82f6; margin-bottom: 15px;"),
-        p("Please wait until data is loaded. Large files usually take longer.", style = "color: #6c757d; font-size: 14px;")
+        icon("circle-notch", class = "fa-spin fa-3x", style = "color: #1D4ED8; margin-bottom: 15px;"),
+        p("Please wait until data is loaded. Large files usually take longer.", style = "color: #5C636A; font-size: 14px;")
       ),
       footer = NULL,
       size = "l"
@@ -180,7 +180,7 @@ server <- function(input, output, session) {
   # the Seurat object's project name.
   output$header_status <- renderUI({
     if (is.null(data$obj)) {
-      return(tags$span(style = "color: #dfe6ec; font-size: 12px; padding-left: 10px;",
+      return(tags$span(style = "color: #dfe6ec; font-size: 12px; padding-left: 10px; display: inline-block; max-width: 42vw; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; white-space: nowrap;",
                        "No dataset loaded"))
     }
     label <- data$Name
@@ -189,7 +189,7 @@ server <- function(input, output, session) {
     }
     if (is.null(label) || !nzchar(label)) label <- "Seurat object"
     tags$span(
-      style = "color: #eaf2f8; font-size: 12px; padding-left: 10px; white-space: nowrap;",
+      style = "color: #eaf2f8; font-size: 12px; padding-left: 10px; white-space: nowrap; display: inline-block; max-width: 42vw; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;",
       tags$b(label), " · ",
       format(ncol(data$obj), big.mark = ","), " cells · ",
       format(nrow(data$obj), big.mark = ","), " features · ",
@@ -240,7 +240,7 @@ server <- function(input, output, session) {
           open = "open",
           tags$summary(
             style = "cursor: pointer; color: #374151; font-weight: 600;",
-            icon("folder", style = "color: #f59e0b;"), " ", e
+            icon("folder", style = "color: #B45309;"), " ", e
           ),
           tags$ul(
             style = "list-style: none; padding-left: 20px; margin-top: 4px;",
@@ -254,7 +254,7 @@ server <- function(input, output, session) {
       url <- paste0(base, "reports/", gsub("\\\\", "/", relpath))
       tags$li(
         tags$a(href = url, target = "_blank", rel = "noopener",
-               icon("file", style = "color: #6b7280;"), " ", e)
+               icon("file", style = "color: #5C636A;"), " ", e)
       )
     })
     do.call(tagList, c(dir_nodes, file_nodes))
@@ -270,8 +270,8 @@ server <- function(input, output, session) {
         ),
         div(
           style = "text-align: center; padding: 20px;",
-          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #f59e0b; margin-bottom: 15px;"),
-          p("Please wait while reports are being generated...", style = "color: #6c757d; font-size: 14px;")
+          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #B45309; margin-bottom: 15px;"),
+          p("Please wait while reports are being generated...", style = "color: #5C636A; font-size: 14px;")
         ),
         footer = NULL,
         size = "l"
@@ -284,8 +284,8 @@ server <- function(input, output, session) {
         ),
         div(
           style = "text-align: center; padding: 20px;",
-          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #10b981; margin-bottom: 15px;"),
-          p("Please wait while reports are being updated...", style = "color: #6c757d; font-size: 14px;")
+          icon("circle-notch", class = "fa-spin fa-3x", style = "color: #047857; margin-bottom: 15px;"),
+          p("Please wait while reports are being updated...", style = "color: #5C636A; font-size: 14px;")
         ),
         footer = NULL,
         size = "l"
@@ -302,7 +302,7 @@ server <- function(input, output, session) {
       .log_verbose("Preparing ReportURL.UI...")
       files <- list.files(reports_dir, recursive = TRUE, full.names = FALSE)
       if (length(files) == 0) {
-        return(div(style = "text-align: center; color: #6c757d; padding: 10px;",
+        return(div(style = "text-align: center; color: #5C636A; padding: 10px;",
                    p("No report files found.")))
       }
       proto <- session$clientData$url_protocol
@@ -314,7 +314,9 @@ server <- function(input, output, session) {
       base <- paste0(proto, "//", host, port_part, path)
       .log_verbose(paste0("Reports base url: ", base))
       tags$ul(
-        style = "list-style: none; padding-left: 0; text-align: left; max-height: 460px; overflow-y: auto; margin: 0;",
+        # overflow-x + anywhere: deeply nested folders and long file names must
+        # scroll/wrap inside the box instead of widening the page
+        style = "list-style: none; padding-left: 0; text-align: left; max-height: 460px; overflow-y: auto; overflow-x: auto; overflow-wrap: anywhere; margin: 0;",
         render_reports_tree(reports_dir, base)
       )
     })
@@ -399,7 +401,7 @@ server <- function(input, output, session) {
         div(
           style = "text-align: center; padding: 20px;",
           icon("times-circle", class = "fa-3x", style = "color: #ef4444; margin-bottom: 15px;"),
-          p("Sample name cannot be empty. Please enter a valid name.", style = "color: #6c757d; font-size: 14px;")
+          p("Sample name cannot be empty. Please enter a valid name.", style = "color: #5C636A; font-size: 14px;")
         ),
         easyClose = TRUE,
         footer = NULL
@@ -413,7 +415,7 @@ server <- function(input, output, session) {
         div(
           style = "text-align: center; padding: 20px;",
           icon("times-circle", class = "fa-3x", style = "color: #ef4444; margin-bottom: 15px;"),
-          p("Sample name can only contain letters, numbers, spaces, underscores, hyphens and dots (and cannot be '.' or '..').", style = "color: #6c757d; font-size: 14px;")
+          p("Sample name can only contain letters, numbers, spaces, underscores, hyphens and dots (and cannot be '.' or '..').", style = "color: #5C636A; font-size: 14px;")
         ),
         easyClose = TRUE,
         footer = NULL
@@ -444,14 +446,14 @@ server <- function(input, output, session) {
       }
       showModal(modalDialog(
         title = tagList(
-          icon("check-circle", style = "color: #10b981;"),
+          icon("check-circle", style = "color: #047857;"),
           " Success"
         ),
         div(
           style = "text-align: center; padding: 20px;",
-          icon("check-circle", class = "fa-3x", style = "color: #10b981; margin-bottom: 15px;"),
-          p("New settings have been saved successfully.", style = "color: #6c757d; font-size: 14px; margin-bottom: 10px;"),
-          p(strong("Please restart the App to use the latest settings."), style = "color: #f59e0b; font-size: 13px;")
+          icon("check-circle", class = "fa-3x", style = "color: #047857; margin-bottom: 15px;"),
+          p("New settings have been saved successfully.", style = "color: #5C636A; font-size: 14px; margin-bottom: 10px;"),
+          p(strong("Please restart the App to use the latest settings."), style = "color: #B45309; font-size: 13px;")
         ),
         easyClose = TRUE,
         footer = NULL
@@ -580,7 +582,7 @@ server <- function(input, output, session) {
   })
 
   avatar_color <- function(name) {
-    palette <- c("#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#06b6d4", "#ef4444", "#6366f1", "#14b8a6")
+    palette <- c("#1D4ED8", "#047857", "#6D28D9", "#B45309", "#0E7490", "#B42318", "#4338CA", "#0F766E")
     s <- sum(utf8ToInt(name))
     palette[(s %% length(palette)) + 1]
   }
@@ -643,7 +645,7 @@ server <- function(input, output, session) {
             strong(name, style = "font-size: 14px; color: #1f2937;"),
             tags$span(class = "label label-primary", style = "font-size: 11px; padding: 2px 6px;", sname),
             if (resolved) tags$span(class = "label label-success", style = "font-size: 11px; padding: 2px 6px;", "Resolved"),
-            tags$span(row$created_at, style = "margin-left: auto; color: #9ca3af; font-size: 12px;")
+            tags$span(row$created_at, style = "margin-left: auto; color: #5C636A; font-size: 12px;")
           ),
           div(
             style = "margin-top: 6px; color: #374151; line-height: 1.6; white-space: pre-wrap; word-break: break-word;",
@@ -652,7 +654,7 @@ server <- function(input, output, session) {
           div(
             style = "margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;",
             if (!is.null(reply_ctx)) tags$span(
-              style = "color: #6b7280; font-size: 12px; background: #f3f4f6; padding: 2px 8px; border-radius: 10px; max-width: 100%;",
+              style = "color: #5C636A; font-size: 12px; background: #f3f4f6; padding: 2px 8px; border-radius: 10px; max-width: 100%;",
               icon("reply"), " Reply to ", strong(reply_ctx$name),
               if (reply_ctx$deleted) " (deleted)" else if (nzchar(reply_ctx$snippet)) paste0(": \"", reply_ctx$snippet, "\"") else ""
             ),
@@ -677,7 +679,7 @@ server <- function(input, output, session) {
     df <- filtered_comments()
     if (is.null(df) || nrow(df) == 0) {
       return(div(
-        style = "text-align: center; padding: 30px 10px; color: #9ca3af;",
+        style = "text-align: center; padding: 30px 10px; color: #5C636A;",
         icon("comment-dots", class = "fa-2x"),
         p("No comments yet. Post the first one below!", style = "margin-top: 10px;")
       ))
@@ -816,7 +818,7 @@ server <- function(input, output, session) {
       div(
         style = sprintf("background: white; padding: 15px; border-radius: 6px; border-left: 4px solid %s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);", color),
         div(
-          style = "color: #6c757d; font-size: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;",
+          style = "color: #5C636A; font-size: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;",
           icon(icon_name, style = sprintf("color: %s;", color)),
           label
         ),
