@@ -7,7 +7,7 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/devel%20version-0.1.7-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/badge/devel%20version-0.1.10-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/last-commit/fentouxungui/SeuratExplorerServer?label=last%20commit)](https://github.com/fentouxungui/SeuratExplorerServer/commits/main)
 [![](https://img.shields.io/github/stars/fentouxungui/SeuratExplorerServer?label=stars)](https://github.com/fentouxungui/SeuratExplorerServer/stargazers)
@@ -52,6 +52,21 @@ research groups who need to:
 | **Authentication** | Not included | Optional password protection |
 | **Report Management** | Not included | Built-in report browsing system |
 | **Target Users** | Individual researchers | Bioinformatics core facilities |
+
+### What You Get
+
+A SeuratExplorerServer deployment usually consists of one **index app**
+and one or more **data apps**:
+
+| Component | What it provides |
+|----|----|
+| **Index app** | A searchable table of datasets, with links to each data app, associated publications, and external resources |
+| **Data app** | A Shiny application that serves one or more Seurat objects, optionally protected by a login |
+| **Dataset page** | Dataset metadata, the current data overview, a data selector, and session information |
+| **Reports page** | A browsable file tree of analysis reports (PDF, HTML, images, tables, scripts, and more) |
+| **Explorer pages** | The interactive SeuratExplorer analysis modules: dimension reduction, feature/violin/dot/heatmap plots, DEG analysis, correlation, and summaries |
+| **Comments page** | A per-app message board for dataset-specific questions, replies, and technician follow-up |
+| **Settings page** | Per-dataset defaults for species, reduction, cluster resolution, assay, split levels, and description |
 
 ## Key Features
 
@@ -99,10 +114,11 @@ handling and via `shiny::addResourcePath()`, so report downloads work
 under local `runApp()` and Shiny Server (including versions ≥ 1.5.7 that
 reject symlinks pointing outside `site_dir`).
 
-### 💬 Comments / 留言
+### 💬 Comments / 留言与反馈
 
-A built-in message board lets users leave comments on individual
-datasets:
+Each data app has a built-in message board for dataset-specific
+discussion, so users do not have to leave the application to ask a
+question or report a data issue:
 
 - Commenter identity is taken from the Shiny login name (read-only),
   with an optional free-text real name.
@@ -113,6 +129,14 @@ datasets:
   them.
 - Comments are stored in a CSV file (see `CommentsFile`), with
   file-locked, atomic writes so concurrent users are safe.
+- The board refreshes every 30 seconds, so comments from other users
+  appear without reloading the whole app.
+- A configurable size limit (`MaxCommentsFileSize`) disables new posts
+  before the CSV can grow without bound, while existing comments remain
+  readable.
+
+See the **Comments / 留言与反馈** section below for the access path,
+step-by-step usage, and operational notes.
 
 ### ⚙️ Customize Initialization Parameters
 
@@ -156,10 +180,35 @@ Database](http://netinfo.nibs.ac.cn:666/SeuratExplorerServer-Index/)**
 
 ### Prerequisites
 
-1.  **R Environment**: R (\>= 3.5.0)
-2.  **Shiny Server**: [Install Shiny
-    Server](https://posit.co/download/shiny-server/)
-3.  **Dependencies**: Seurat, SeuratExplorer, and other dependencies
+| Requirement | Notes |
+|----|----|
+| **R** | R (\>= 3.5.0) |
+| **Shiny Server** | Required for a production deployment; optional for local testing. Install from [posit.co/download/shiny-server](https://posit.co/download/shiny-server/) |
+| **Seurat** | Used to read and process the Seurat objects |
+| **SeuratExplorer** | Provides the interactive analysis modules; install it from GitHub before installing this package |
+| **Write access** | The Shiny process must be able to write the comment CSV, the `www/reports/` directory, and the metadata file when Settings are saved |
+
+### R Package Dependencies
+
+`SeuratExplorerServer` imports the following packages. Install any
+missing CRAN dependencies first; `SeuratExplorer` itself must be
+installed from GitHub before this package:
+
+| Package | Role |
+|----|----|
+| `shiny`, `shinydashboard`, `shinyjs` | Web application framework and UI behavior |
+| `DT` | Interactive metadata tables |
+| `shinycssloaders` | Loading indicators for long-running outputs |
+| `shinymanager` | Optional password protection |
+| `Seurat`, `SeuratObject` | Single-cell object handling |
+| `SeuratExplorer` | Plotting and analysis modules |
+| `htmltools` | HTML UI components |
+| `filelock` | Safe concurrent writes to the comment CSV |
+| `plyr`, `stats`, `utils` | Data manipulation and helper utilities |
+
+For `.qs2` support, install the `qs2` package in the R library used by
+the app. If a format cannot be read, convert the object to `.rds` or
+install `qs2` before deployment.
 
 ### Install SeuratExplorerServer
 
@@ -184,7 +233,9 @@ library(SeuratExplorerServer)
 launchSeuratExplorerServer()
 ```
 
-This should launch a local instance with demo data.
+This should launch a local instance with demo data. The default call
+uses `Encrypted = TRUE`, so sign in with the demo credentials `shiny` /
+`12345`; change them before exposing the app to other users.
 
 ## Quick Start
 
@@ -219,7 +270,7 @@ data_meta <- SeuratExplorerServer::initialize_metadata(
 # Optional: Add custom parameters
 data_meta$Species <- c("Mouse", "Human")
 data_meta$Default.ClusterResolution <- c("res.0.4", "res.0.8")
-data_meta$Default.DimensionReduction <- c("umap", "tsne", "pca")
+data_meta$Default.DimensionReduction <- c("umap", "tsne")  # one value per dataset
 data_meta$Description <- c("First dataset", "Second dataset")
 
 # Verify metadata
@@ -261,6 +312,194 @@ launchSeuratExplorerServer(
 ### Step 4: Access Your App
 
 Visit your app at: `http://your-server:port/app-directory/`
+
+## Using the Web Interface
+
+### Navigation at a Glance
+
+After opening a data app, the left sidebar provides the main entry
+points:
+
+| Menu | What you can do |
+|----|----|
+| **Dataset** | Switch between datasets, load the selected Seurat object, inspect its metadata and the current data overview, and view session information |
+| **Reports** | Generate/update the report directory and browse or download analysis reports |
+| **Comments** | Read and post dataset-specific comments, reply to other users, and (for technicians) resolve or delete comments |
+| **Explorer pages** | Run interactive analyses: dimension reduction, feature/violin/dot/heatmap plots, DEG analysis, correlation, and summary statistics |
+| **Settings** | Change the default species, dimension reduction, cluster resolution, assay, split level, and description for the current dataset. One dataset is edited at a time, and changes take effect after the app is restarted |
+
+The **Settings** entry appears only after a dataset has been loaded. The
+**Explorer** entries are provided by the `SeuratExplorer` package and
+behave the same way as in the standalone application.
+
+### Typical User Workflow
+
+1.  **Open the index page** and choose a dataset, or open the data app
+    URL directly.
+2.  **Log in** if the app is encrypted.
+3.  On the **Dataset** page, select a dataset and click **Load Data**.
+    Large objects may take a while; wait for the loading dialog to
+    close.
+4.  Use the **Explorer** pages to explore the data and download
+    publication-ready PDF figures.
+5.  Use **Reports** to open the analysis reports that accompany the
+    dataset.
+6.  Use **Comments** to ask a dataset-specific question, reply to an
+    existing thread, or follow up with the technician.
+7.  Administrators can use **Settings** to adjust defaults for the next
+    app start.
+
+## Comments / 留言与反馈
+
+### What the Comment Board Is For
+
+The **Comments** page is a lightweight discussion board attached to a
+data app. It is intended for dataset-specific communication, for
+example:
+
+- Asking how a cluster, sample, or metadata column was generated
+- Reporting a missing or unexpected report file
+- Discussing interpretation of a plot with the data curator
+- Leaving a request that other users of the same dataset can see and
+  follow
+
+It is **not** a replacement for GitHub Issues or direct email when the
+application itself is unavailable. For reproducible software bugs or
+feature requests, use [GitHub
+Issues](https://github.com/fentouxungui/SeuratExplorerServer/issues).
+For access, account, or data-loading problems, contact the technician
+configured through `TechnicianName` and `TechnicianEmail`.
+
+### How to Access the Comment Board
+
+1.  Open the data app from the index page, or navigate to its URL.
+2.  Sign in if the app was launched with `Encrypted = TRUE`.
+3.  In the left sidebar, click **Comments** (the speech-bubble icon).
+    You do not need to load a dataset first to read existing comments.
+4.  The page shows all visible comments for the app in threaded order,
+    with a sample filter at the top. Replies appear indented under their
+    parent comment.
+
+The comment board is part of the data app, so anyone who can access the
+app can read its comments. It does not have a separate password or
+per-comment visibility setting.
+
+### How to Post a Comment
+
+1.  (Optional) Choose a sample in **Filter by sample** to narrow the
+    list. This only changes what is displayed.
+2.  Scroll to **Add a Comment**.
+3.  The **Login name** is read-only and comes from the Shiny login. If
+    the app is not encrypted, it is shown as `(anonymous)`.
+4.  Enter an optional **real name**. When provided, it is displayed
+    instead of the login name.
+5.  Choose the **Data** that the comment belongs to. The currently
+    loaded dataset is selected by default when its name matches the
+    metadata.
+6.  Type the comment and click **Post Comment**.
+7.  A confirmation notification appears and the board refreshes.
+
+The default maximum comment length is **2000 characters**. Empty
+comments, comments without a selected dataset, and comments that exceed
+the limit are rejected with an error notification.
+
+### How to Reply to a Comment
+
+1.  Click **Reply** on the comment card you want to answer.
+2.  A “Replying to …” indicator appears above the form. Click **Cancel**
+    to clear it.
+3.  Enter your reply and click **Post Comment**.
+4.  Replies are displayed as an indented thread under the parent
+    comment. Deep threads are indented up to a fixed limit so that the
+    page remains readable.
+
+Replying to a comment does not require the same dataset to be selected
+in the sample filter; the reply keeps the parent relationship and is
+shown with a snippet of the parent comment.
+
+### Technician Actions: Resolve and Delete
+
+Technician privileges are controlled by `TechnicianUser`:
+
+- When `Encrypted = TRUE`, only login names listed in `TechnicianUser`
+  see the **Resolve** and **Delete** buttons. The default is `"admin"`.
+- When `Encrypted = FALSE`, every user is treated as a technician,
+  because there is no login identity to check.
+- **Resolve** marks a comment with a green `Resolved` label. It does not
+  hide the comment, and there is currently no in-app “unresolve” action.
+- **Delete** performs a soft delete: the comment is hidden from the
+  board but remains in the CSV with `deleted = TRUE`. This makes
+  accidental deletions recoverable by an administrator who edits the
+  file while the app is stopped.
+- There is currently no in-app edit action. To correct a comment, delete
+  it and post a new one, or ask the technician to update the CSV
+  directly.
+
+### Refresh, Storage, and Limits
+
+- The board polls the CSV file every **30 seconds** and updates when
+  another user has posted. A manual page refresh is not required.
+- Comments are stored in **UTF-8 CSV** with one row per comment. The
+  default location is `comments.csv` next to `parameterfile`; override
+  it with `CommentsFile`.
+- Writes use a file lock and an atomic temporary-file rename, so
+  concurrent comments from multiple users do not corrupt the file.
+- `MaxCommentLength` (default `2000`) limits the length of a single
+  comment.
+- `MaxCommentsFileSize` (default `5 * 1024^2`, i.e. 5 MB) limits the CSV
+  size. When the file exceeds the limit, a warning is shown and new
+  comments are disabled; existing comments can still be read.
+- Timestamps use the **server’s local time**.
+- Character cells that begin with `=`, `+`, `-`, or `@` are prefixed
+  before writing, so opening the CSV in a spreadsheet does not execute
+  them as formulas.
+
+Example configuration:
+
+``` r
+launchSeuratExplorerServer(
+  Encrypted = TRUE,
+  credentials = credentials,
+  parameterfile = "data_meta.rds",
+  CommentsFile = "/srv/SeuratExplorerServer-Data/project_1/comments.csv",
+  TechnicianUser = c("admin", "curator"),
+  MaxCommentLength = 2000,
+  MaxCommentsFileSize = 5 * 1024^2
+)
+```
+
+### Important Notes
+
+- **Comments are not private.** Every user who can open the app can read
+  the board. Do not post unpublished patient information, credentials,
+  or other sensitive content.
+- The CSV is stored as **plain text**. Protect the app directory with
+  filesystem permissions and serve the app over HTTPS if comments may
+  contain sensitive project information.
+- Keep `CommentsFile` outside the app’s `www/` directory. Files under
+  `www/` are served as static assets and could be downloaded directly.
+- The board has **no email or push notification**. Users see new
+  comments on the next 30-second refresh or page load.
+- Deleting a comment is a **soft delete**; it is hidden from the UI but
+  not erased from the CSV.
+- To reset the board, stop the app, archive or remove `comments.csv`,
+  and restart. Back up the file first if the discussion needs to be
+  retained.
+- Include `comments.csv` in backups together with `data_meta.rds`,
+  `Entry.csv`, and `credentials.rds`.
+- When running the built-in demo from a read-only package library, set
+  `CommentsFile` to a writable location; otherwise posting will fail.
+- The board is designed for dataset discussion, not for urgent
+  operational alerts. Use the technician contact or GitHub Issues for
+  outages and reproducible bugs.
+
+### Feedback Channels
+
+| Channel | Best for | Where |
+|----|----|----|
+| **Comments** tab | Dataset-specific questions, report issues, discussion with other users of the same app | Inside each data app |
+| **GitHub Issues** | Reproducible bugs, feature requests, documentation errors | [github.com/fentouxungui/SeuratExplorerServer/issues](https://github.com/fentouxungui/SeuratExplorerServer/issues) |
+| **Technician email** | Account/access problems, data loading failures, deployment questions | The address configured in `TechnicianEmail` |
 
 ## Architecture
 
@@ -518,6 +757,8 @@ shinyApp(ui, server)
 | `Encrypted` | logical | `TRUE` | Enable password protection |
 | `credentials` | data.frame | See below | User credentials for authentication |
 | `parameterfile` | character | Auto (demo) | Path to the metadata RDS file |
+| `PdfDpi` | numeric | `72` | DPI used for PDF figure export. `72` keeps browser text/point proportions; `96` matches the on-screen page size |
+| `EnableObjectExport` | logical | `FALSE` | Show the **Export Data** page, which lets users download the full Seurat object. Leave `FALSE` for shared deployments unless object export is intended |
 | `TechnicianEmail` | character | `"zhangyongchao@nibs.ac.cn"` | Contact email for support |
 | `TechnicianName` | character | `"ZhangYongchao"` | Contact name for support |
 | `ReductionKeyWords` | character | `c("umap", "tsne", "pca")` | Keywords for dimension reduction |
@@ -527,6 +768,8 @@ shinyApp(ui, server)
 | `CommentsFile` | character | `NULL` | CSV file storing the comment board; defaults to `comments.csv` next to `parameterfile` |
 | `TechnicianUser` | character | `"admin"` | Login usernames allowed to delete/mark-resolve comments (ignored when `Encrypted = FALSE`) |
 | `MaxReportFileSize` | numeric | `100 * 1024^2` | Max size (bytes) of a report file that will be copied; larger files are skipped. `Inf` = no limit |
+| `MaxCommentLength` | integer | `2000` | Maximum number of characters in a single comment |
+| `MaxCommentsFileSize` | numeric | `5 * 1024^2` | Maximum size (bytes) of the comment CSV. When exceeded, new comments are disabled. `Inf` = no limit |
 | `verbose` | logical | `FALSE` | Print debug messages |
 
 ### Default Credentials
@@ -614,10 +857,11 @@ Browse and download analysis reports
 
 <div class="figure">
 
-<img src="inst/extdata/www/comments.png" alt="Browse and download analysis reports" width="100%" />
+<img src="inst/extdata/www/comments.png" alt="Comment board with sample filtering, threaded replies, and technician actions" width="100%" />
 <p class="caption">
 
-Browse and download analysis reports
+Comment board with sample filtering, threaded replies, and technician
+actions
 </p>
 
 </div>
@@ -652,12 +896,15 @@ Customize default parameters for each dataset
 
 ### Software
 
-| Component      | Version   | Notes           |
-|----------------|-----------|-----------------|
-| R              | \>= 3.5.0 | Required        |
-| Shiny Server   | Latest    | For deployment  |
-| Seurat         | \>= 4.0.0 | Core dependency |
-| SeuratExplorer | \>= 0.1.0 | Core dependency |
+| Component | Version | Notes |
+|----|----|----|
+| R | \>= 3.5.0 | Required |
+| Shiny Server | Latest | For deployment; local `runApp()` is supported for testing |
+| Seurat | \>= 4.0.0 | Core dependency |
+| SeuratExplorer | \>= 0.1.0 | Core dependency; install from GitHub |
+| shinymanager | Latest | Optional password protection |
+| filelock | Latest | Required for safe concurrent comment writes |
+| qs2 | Optional | Needed only when loading `.qs2` Seurat objects |
 
 ### Operating System
 
@@ -769,6 +1016,28 @@ ls -la /path/to/analysis/
 
 - Subset large datasets before loading
 
+#### 6. Comments Not Updating or Posting
+
+**Symptoms**: A new comment does not appear, the **Post Comment** button
+is missing, or posting returns an error.
+
+**Solutions**:
+
+- Wait for the next 30-second refresh, or reload the page once.
+- Confirm that `CommentsFile` (default `<app_dir>/comments.csv`) and its
+  directory are writable by the Shiny process.
+- When using the built-in demo, the package library may be read-only.
+  Pass a writable `CommentsFile = "/path/to/comments.csv"` to
+  `launchSeuratExplorerServer()`.
+- Check the board size. If `comments.csv` exceeds `MaxCommentsFileSize`,
+  new posts are disabled and a warning banner is shown; archive the CSV
+  or raise the limit, then restart the app.
+- If **Resolve** and **Delete** are missing, confirm that the login name
+  is listed in `TechnicianUser` and that `Encrypted = TRUE`.
+- Do not edit `comments.csv` by hand while the app is running. Stop the
+  app first and keep a backup, because an invalid CSV will prevent the
+  board from loading.
+
 ### Debug Mode
 
 Enable verbose logging for troubleshooting:
@@ -791,23 +1060,31 @@ provides better performance, stability, and multi-user support.
 
 ### Q: How do I add a new dataset to an existing app?
 
-A: Simply update the `data_meta.rds` file with the new dataset
-information:
+A: Update the `data_meta.rds` file with the new dataset information.
+Copy the column structure from an existing row so that every metadata
+field remains present:
 
 ``` r
 # Load existing metadata
 data_meta <- readRDS("data_meta.rds")
 
-# Add new row
-new_row <- data.frame(
-  Reports.main = "/path/to/new/dataset",
-  Rds.path = "new_data.rds",
-  Reports.second = NA,
-  Sample.name = "New Dataset"
-)
+# Start from the existing schema, then overwrite the new dataset's values
+new_row <- data_meta[1, , drop = FALSE]
+new_row[1, ] <- NA
+new_row$Reports.main <- "/path/to/new/dataset"
+new_row$Rds.path <- "new_data.rds"
+new_row$Reports.second <- NA
+new_row$Sample.name <- "New Dataset"
+new_row$Species <- "Mouse"
+new_row$Default.Assay <- "RNA"
+new_row$Default.DimensionReduction <- "umap"
+new_row$Default.ClusterResolution <- "res.0.5"
+new_row$SplitOptions.MaxLevel <- 6
+new_row$Description <- "New dataset"
 
-# Update and save
+# Rebuild derived paths and validate before saving
 data_meta <- rbind(data_meta, new_row)
+data_meta <- check_metadata(parameters = data_meta)
 saveRDS(data_meta, "data_meta.rds")
 ```
 
@@ -833,10 +1110,12 @@ A: There’s no hard limit, but practical considerations apply:
 
 ### Q: How do I backup the database?
 
-A: Backup two components:
+A: Backup these components:
 
 1.  **Metadata files** (`data_meta.rds`, `Entry.csv`, `credentials.rds`)
-2.  **Seurat objects** (original `.rds`/`.qs2` files)
+2.  **Comment board** (`comments.csv`, or the path configured in
+    `CommentsFile`)
+3.  **Seurat objects** (original `.rds`/`.qs2` files)
 
 ``` bash
 # Example backup script
@@ -845,10 +1124,103 @@ tar -czf seurat_db_backup_$(date +%Y%m%d).tar.gz \
   /path/to/analysis_data/
 ```
 
+### Q: Where are comments stored, and how do I back them up?
+
+A: Comments are stored in a UTF-8 CSV file. By default it is
+`comments.csv` next to `parameterfile`; use `CommentsFile` to put it on
+a dedicated volume. Include it in the backup set described above. To
+reset the board, stop the app, archive or remove the CSV, and restart.
+
+### Q: Who can delete or resolve comments?
+
+A: When `Encrypted = TRUE`, only login names listed in `TechnicianUser`
+(default `"admin"`) see the **Resolve** and **Delete** buttons. When
+`Encrypted = FALSE`, there is no login identity to check and every user
+is treated as a technician. Change `TechnicianUser` at launch time and
+restart the app.
+
+### Q: Why can’t I post a comment?
+
+A: Check the following:
+
+- The comment is not empty and is within `MaxCommentLength`.
+- A dataset is selected in the **Data** field.
+- The board has not reached `MaxCommentsFileSize`. If the warning banner
+  is shown, ask the technician to archive the CSV.
+- The Shiny process can write to `CommentsFile` and its directory.
+
+### Q: Do comments send email notifications?
+
+A: No. The board has no email or push notification. New comments from
+other users appear on the next 30-second refresh or page load. Use the
+technician email for urgent issues.
+
+### Q: Can users edit a comment after posting?
+
+A: There is no in-app edit action. Only technicians can delete comments
+(their own or other users’); regular users should ask a technician to
+delete the outdated comment and then post a corrected one. Deletion is a
+soft delete, so the row remains in the CSV.
+
 ### Q: Can I customize the UI appearance?
 
-A: Yes, you can modify the UI by creating a custom `ui.R` function. See
-the [Advanced Customization](#advanced-customization) section.
+A: Yes. The UI is defined in `R/ui.R` and the server logic in
+`R/server.R`; fork the repository, adjust the `shinydashboard` layout
+and CSS, then rebuild and redeploy the package. Keep custom changes on a
+branch so upstream updates remain easy to merge.
+
+## Security and Privacy
+
+- **Change the default credentials.** The fallback account is `shiny` /
+  `12345`; it must never be used on a public deployment.
+- **Prefer hashed passwords.** `shinymanager` can check a credential
+  database containing hashed passwords; see its documentation for the
+  hashing helper that matches your installed version, and store
+  `credentials.rds` with restrictive permissions.
+- **Use HTTPS.** Password protection and comments travel over the
+  network; put the app behind an HTTPS reverse proxy (for example,
+  nginx) rather than exposing plain HTTP.
+- **Protect the filesystem.** The Seurat objects, report files,
+  metadata, credentials, and `comments.csv` are ordinary files. Restrict
+  access to the Shiny service account and backups.
+- **Comments are plain text and visible to all app users.** Do not post
+  patient identifiers, credentials, or unpublished sensitive data.
+- **Object export is opt-in.** `EnableObjectExport = FALSE` hides the
+  page that downloads the full Seurat object. Enable it only when users
+  are allowed to receive the complete object.
+- **Reports may expose source data.** Report directories can contain
+  CSVs, figures, and analysis outputs; review them before publishing an
+  app.
+- **Backups contain the same information.** Encrypt backup archives if
+  the underlying data is sensitive.
+
+## Version History
+
+The current development version is **0.1.10** (see `DESCRIPTION`). The
+package does not keep a separate `NEWS.md`; the authoritative history is
+the GitHub tag and commit history:
+
+- [Tags](https://github.com/fentouxungui/SeuratExplorerServer/tags)
+- [Commits](https://github.com/fentouxungui/SeuratExplorerServer/commits/main)
+- [Issues](https://github.com/fentouxungui/SeuratExplorerServer/issues)
+
+Highlights of the current `0.1.x` series include:
+
+- A file-locked, threaded **comment board** with technician
+  resolve/delete actions and configurable length/size limits.
+- Report browsing based on hard links with a copy fallback, including
+  `MaxReportFileSize` protection and compatibility with Shiny Server ≥
+  1.5.7.
+- Configurable **PDF DPI** and an opt-in **Export Data** page.
+- Multi-dataset switching, encrypted access, and per-dataset
+  initialization settings.
+- UI accessibility, contrast, touch-target, and responsive-layout
+  improvements.
+- Optional `.qs2` support alongside `.rds`.
+
+Because the package is still pre-1.0, minor releases may change function
+arguments or UI behavior. Pin a commit or tag in production deployments
+and read the commit history before upgrading.
 
 ## Contributing
 
@@ -875,6 +1247,21 @@ We welcome contributions! Please see our guidelines:
 - Add examples to help files
 - Update vignettes and tutorials
 
+### Before Submitting a Pull Request
+
+- Run `R CMD check` (or at least `devtools::check()`) and fix new
+  warnings/notes where possible.
+- Run `devtools::document()` if you changed roxygen comments, and commit
+  the generated `man/` and `NAMESPACE` changes.
+- Edit **`README.Rmd`**, not `README.md`, then regenerate `README.md`
+  with `rmarkdown::render()`.
+- Include a short description of the user-visible change, the problem it
+  solves, and any configuration or migration notes.
+- Do not commit credentials, private datasets, comment CSVs, logs, or
+  generated report directories.
+- For UI changes, include a screenshot or a short recording when
+  practical.
+
 ## Citation
 
 If you use SeuratExplorerServer in your research, please cite:
@@ -885,7 +1272,7 @@ If you use SeuratExplorerServer in your research, please cite:
   author = {Zhang, Yongchao},
   year = {2025},
   url = {https://github.com/fentouxungui/SeuratExplorerServer},
-  note = {R package version 0.1.5}
+  note = {R package version 0.1.10}
 }
 ```
 
@@ -893,6 +1280,11 @@ If you use SeuratExplorerServer in your research, please cite:
 
 This package is licensed under **GPL (\>= 3)**. See
 [LICENSE.md](LICENSE.md) for details.
+
+Third-party packages used by SeuratExplorerServer (including Seurat,
+SeuratExplorer, Shiny, shinymanager, and filelock) remain under their
+own licenses. Check their license terms before redistributing a bundled
+deployment.
 
 ## Acknowledgments
 
@@ -949,6 +1341,53 @@ SeuratExplorerServer 是一个用于构建单细胞转录组数据库的 R
 - 💬 留言板：用户可针对数据集留言、回复，技术员可删除/标记已解决
 - ⚙️ 自定义配置：设置默认参数
 - 🚀 集成 SeuratExplorer：完整的可视化分析功能
+
+### 留言与反馈（Comments）
+
+每个数据应用左侧导航栏中的 **Comments** 页面是一个针对数据集的留言板：
+
+1.  打开数据应用并登录（若启用了加密访问）。
+2.  点击左侧 **Comments**。
+3.  可用 **Filter by sample** 按数据集筛选留言。
+4.  在 **Add a Comment**
+    中填写内容；登录名只读，真实姓名可选，并选择留言所属的数据集。
+5.  点击 **Post Comment** 发布。
+6.  点击某条留言的 **Reply**
+    可以回复；回复会以缩进形式显示在父留言下方。
+
+注意事项：
+
+- 留言默认保存在 `parameterfile` 同目录下的 `comments.csv`，也可通过
+  `CommentsFile` 指定位置。文件使用 UTF-8
+  编码，并采用文件锁和原子写入，支持多用户同时留言。
+- 默认单条留言最多 **2000** 字符，留言板 CSV 最大 **5
+  MB**；超过大小限制后会停止接收新留言，但已有留言仍可查看。可通过
+  `MaxCommentLength` 和 `MaxCommentsFileSize` 调整。
+- 技术员（`TechnicianUser`，默认 `admin`）可以 **Resolve** 或 **Delete**
+  留言；当 `Encrypted = FALSE` 时，所有用户都被视为技术员。
+- 删除是软删除：留言从页面隐藏，但仍保留在 CSV
+  中。应用内不支持编辑留言。
+- 留言板每 **30 秒**自动刷新；没有邮件或推送通知。
+- 所有能访问该应用的用户都能看到留言，请勿发布患者隐私、账号密码或其他敏感信息。
+- 应用故障、可复现的软件 bug 或功能建议请使用 GitHub
+  Issues；账号、访问或数据加载问题请联系 `TechnicianEmail`。
+
+### 安装与运行
+
+``` r
+# 安装依赖与包
+devtools::install_github("fentouxungui/SeuratExplorer")
+devtools::install_github("fentouxungui/SeuratExplorerServer")
+
+# 使用内置演示数据在本地运行
+library(SeuratExplorerServer)
+launchSeuratExplorerServer()
+```
+
+生产环境建议使用 Shiny Server，并按英文部分的 **Installation**、**Quick
+Start**、**Configuration** 章节配置 `data_meta.rds`、`credentials` 和
+`app.R`。当前版本为 **0.1.10**；更详细的更新记录见 GitHub 的 tags 和
+commits。
 
 ### 相关链接
 
