@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SeuratExplorer Server hex sticker, sand</title>
+  <desc id="desc">A warm sand hexagonal sticker with a dark green magnifying glass over colorful cell clusters and a three-layer server stack, plus the text SeuratExplorer and SERVER.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffbeb"/>
+      <stop offset="0.55" stop-color="#fef3c7"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.18" r="0.9">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="hexclip">
+      <path d="M256 16 L464 136 L464 376 L256 496 L48 376 L48 136 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Sticker shadow and shell -->
+  <path d="M256 24 L456 140 L456 372 L256 488 L56 372 L56 140 Z" fill="#78350f" opacity="0.16"/>
+  <path d="M256 16 L464 136 L464 376 L256 496 L48 376 L48 136 Z"
+        fill="url(#bg)" stroke="#065f46" stroke-width="10" stroke-linejoin="round"/>
+
+  <g clip-path="url(#hexclip)">
+    <rect x="40" y="10" width="432" height="492" fill="url(#glow)"/>
+
+    <g transform="translate(216 150) scale(0.78) translate(-216 -190)">
+      <!-- Faint cell-cluster network -->
+      <g stroke="#065f46" stroke-opacity="0.22" stroke-width="3" fill="none">
+        <path d="M198 160 L230 148"/>
+        <path d="M230 148 L254 170"/>
+        <path d="M254 170 L244 196"/>
+        <path d="M198 160 L186 184"/>
+        <path d="M186 184 L206 204"/>
+        <path d="M206 204 L244 196"/>
+      </g>
+
+      <!-- Magnifier handle -->
+      <path d="M286 260 L360 334" stroke="#065f46" stroke-width="30" stroke-linecap="round"/>
+      <path d="M286 260 L360 334" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.65"/>
+
+      <!-- Lens -->
+      <circle cx="216" cy="190" r="86" fill="#ffffff" fill-opacity="0.6" stroke="#065f46" stroke-width="14"/>
+      <circle cx="216" cy="190" r="70" fill="#ecfccb" fill-opacity="0.8"/>
+      <path d="M156 154 A78 78 0 0 1 214 112" stroke="#065f46" stroke-opacity="0.35"
+            stroke-width="8" fill="none" stroke-linecap="round"/>
+
+      <!-- Cell clusters (top of the lens) -->
+      <g stroke="#ffffff" stroke-width="3">
+        <circle cx="190" cy="146" r="11" fill="#ef4444"/>
+        <circle cx="216" cy="138" r="10" fill="#f59e0b"/>
+        <circle cx="242" cy="150" r="9" fill="#3b82f6"/>
+      </g>
+
+      <!-- Three-layer server / database stack -->
+      <g stroke="#065f46" stroke-width="4" stroke-linejoin="round">
+        <rect x="166" y="174" width="100" height="18" rx="4" fill="#fef3c7"/>
+        <rect x="166" y="198" width="100" height="18" rx="4" fill="#fef3c7"/>
+        <rect x="166" y="222" width="100" height="18" rx="4" fill="#fef3c7"/>
+      </g>
+      <g stroke="#065f46" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round">
+        <path d="M176 183 L230 183"/>
+        <path d="M176 207 L230 207"/>
+        <path d="M176 231 L230 231"/>
+      </g>
+      <g stroke="#ffffff" stroke-width="1.5">
+        <circle cx="252" cy="183" r="3.5" fill="#14b8a6"/>
+        <circle cx="252" cy="207" r="3.5" fill="#f59e0b"/>
+        <circle cx="252" cy="231" r="3.5" fill="#14b8a6"/>
+      </g>
+    </g>
+
+    <!-- Decorative cell specks -->
+    <g fill="#065f46" fill-opacity="0.35">
+      <circle cx="120" cy="110" r="4"/>
+      <circle cx="360" cy="160" r="5"/>
+      <circle cx="130" cy="300" r="3"/>
+      <circle cx="380" cy="300" r="4"/>
+    </g>
+  </g>
+
+  <path d="M256 16 L464 136 L464 376 L256 496 L48 376 L48 136 Z" fill="none"
+        stroke="#065f46" stroke-opacity="0.28" stroke-width="3" stroke-linejoin="round"/>
+
+  <text x="256" y="356" text-anchor="middle"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="56" font-weight="700" fill="#064e3b" letter-spacing="-2.5">SeuratExplorer</text>
+  <text x="256" y="412" text-anchor="middle"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="34" font-weight="700" fill="#065f46" letter-spacing="6">SERVER</text>
+</svg>

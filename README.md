@@ -3,10 +3,14 @@
 
 # SeuratExplorer Server
 
+<img src="icons/svg/hex-sand-server.svg" height="140" align="right" alt="SeuratExplorerServer logo" />
+
 <!-- badges: start -->
 
 [![](https://img.shields.io/badge/devel%20version-0.1.7-rossellhayes.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
 [![](https://img.shields.io/github/languages/code-size/fentouxungui/SeuratExplorerServer.svg)](https://github.com/fentouxungui/SeuratExplorerServer)
+[![](https://img.shields.io/github/last-commit/fentouxungui/SeuratExplorerServer?label=last%20commit)](https://github.com/fentouxungui/SeuratExplorerServer/commits/main)
+[![](https://img.shields.io/github/stars/fentouxungui/SeuratExplorerServer?label=stars)](https://github.com/fentouxungui/SeuratExplorerServer/stargazers)
 [![License:GPL_3](https://img.shields.io/badge/license-GPL_3-blue.svg)](https://cran.r-project.org/web/licenses/GPL_3)
 [![Ask
 DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-6E56CF)](https://deepwiki.com/fentouxungui/SeuratExplorerServer)
